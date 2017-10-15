@@ -1,0 +1,38 @@
+{
+  "name": "graphgram",
+  "version": "0.0.1",
+  "description": "Simple graph grammar library",
+  "main": "index.js",
+
+    "dependencies": {
+    "md5-file": "3.1.1",
+    "extend": "3.0.0",
+    "deepmerge": "0.2.10",
+    "jsonschema": "~1.1.1",
+    "rimraf": "~2.5.4",
+    "graphlib": "~2.1.1",
+    "mersenne-twister": "~1.1.0",
+    "deepcopy": "~0.6.3",
+    "node-getopt": "~0.2.3"
+  },
+  "devDependencies": {
+    "mocha": "~3.2.0",
+    "should": "~11.1.2",
+    "supertest": "~2.0.1",
+    "shelljs": "~0.7.6"
+  },
+  "scripts": {
+    "test": "node ./node_modules/mocha/bin/mocha test/bootstrap.test.js test/integration/**/*.test.js"
+  },
+
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ihh/graphgram.git"
+  },
+  "author": "Ian Holmes",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ihh/graphgram/issues"
+  },
+  "homepage": "https://github.com/ihh/graphgram#readme"
+}
