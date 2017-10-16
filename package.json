@@ -3,17 +3,17 @@
   "version": "0.0.1",
   "description": "Simple graph grammar library",
   "main": "index.js",
-
-    "dependencies": {
+  "dependencies": {
     "md5-file": "3.1.1",
     "extend": "3.0.0",
     "deepmerge": "0.2.10",
     "jsonschema": "~1.1.1",
     "rimraf": "~2.5.4",
     "graphlib": "~2.1.1",
-    "mersenne-twister": "~1.1.0",
+    "mersennetwister": "~0.2.3",
     "deepcopy": "~0.6.3",
-    "node-getopt": "~0.2.3"
+    "node-getopt": "~0.2.3",
+    "colors": "1.1.2"
   },
   "devDependencies": {
     "mocha": "~3.2.0",
