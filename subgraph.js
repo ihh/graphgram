@@ -1,5 +1,5 @@
-var extend = require('extend'),
-    deepcopy = require('deepcopy'),
+var _ = require('lodash'),
+    extend = require('extend'),
     graphlib = require('graphlib')
 
 // Implementation of Ullmann (1976)
@@ -87,7 +87,7 @@ SubgraphSearch.prototype.search = function (possibleAssignments) {
       return []
   }
   if (nAssigned == subnodes.length) {
-    var result = deepcopy(mapping)
+    var result = _.cloneDeep(mapping)
     result.edgeMatch = edgeMatch
     return [result]
   }
@@ -107,7 +107,7 @@ SubgraphSearch.prototype.search = function (possibleAssignments) {
         mapping.label[nextToAssign] = gLabel
         mapping.match[nextToAssign] = match
         mapping.assign[nextToAssign] = j
-        var newPossibleAssignments = deepcopy (possibleAssignments)
+        var newPossibleAssignments = _.cloneDeep (possibleAssignments)
         newPossibleAssignments[nextToAssign] = {}
         newPossibleAssignments[nextToAssign][j] = true
         results = results.concat (ss.search (newPossibleAssignments))
