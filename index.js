@@ -1,5 +1,4 @@
 var _ = require('lodash'),
-    fs = require('fs'),
     extend = require('extend'),  // NB: skips undefined values, unlike lodash extend (or lodash assign)
     graphlib = require('graphlib'),
     jsonschema = require('jsonschema'),
@@ -24,12 +23,6 @@ function Grammar (json, opts) {
   }
 
   this.init()
-}
-
-Grammar.fromFile = function (grammarFilename, grammarOpts) {
-  var grammarText = fs.readFileSync(grammarFilename).toString()
-  var grammarJson = eval ('(' + grammarText + ')')
-  return new Grammar (grammarJson, grammarOpts)
 }
 
 // main API method to evolve a graph using the grammar
