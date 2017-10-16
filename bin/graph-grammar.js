@@ -23,6 +23,7 @@ var opt = getopt.create([
   ['S' , 'stage=N'         , 'only run one stage'],
   ['s' , 'seed=N'          , 'seed random number generator'],
   ['q' , 'quiet'           , 'do not print pretty log messages'],
+  ['v' , 'verbose'         , 'print MORE pretty log messages'],
   ['h' , 'help'            , 'display this help message']
 ])              // create Getopt instance
     .bindHelp()     // bind option 'help' to default action
@@ -41,7 +42,7 @@ if (opt.options.input)
   graph = graphlib.json.read (JSON.parse (fs.readFileSync (opt.options.input)))
 
 var info = grammar.evolve ({ graph: graph,
-			     verbose: !opt.options.quiet,
+			     verbose: opt.options.quiet ? 0 : (opt.options.verbose ? 2 : 1),
 			     limit: opt.options.limit,
 			     stage: opt.options.stage,
 			     seed: opt.options.seed })

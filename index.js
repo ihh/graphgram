@@ -282,6 +282,11 @@ Grammar.prototype.warn = function() {
     console.warn.apply (console, arguments)
 }
 
+Grammar.prototype.warnVerbose = function() {
+  if (this.verbose > 1)
+    console.warn.apply (console, arguments)
+}
+
 Grammar.prototype.init = function() {
   var grammar = this
   this.displayName = this.name || this.displayName || 'graph-grammar'
@@ -461,6 +466,7 @@ Grammar.prototype.makeGraph = function (json) {
 function Context (json, opts) {
   extend (this, json, { nextNodeId: 1 })
   this.matcher = this.grammar.matcher
+  this.warnVerbose = this.grammar.warnVerbose
   this.warn = this.grammar.warn
   this.verbose = this.grammar.verbose
 
@@ -522,7 +528,7 @@ Context.prototype.sampleRuleSite = function() {
           })
         if (context.evalCond (isomorph, rule)) {
           var weight = context.evalWeight (isomorph, rule)
-          context.warn ('Found match ' + context.nodeList(isomorph.assign,colors.red) + ' to ' + rule.displayName + ' with weight ' + colors.blue(weight))
+          context.warnVerbose ('Found match ' + context.nodeList(isomorph.assign,colors.red) + ' to ' + rule.displayName + ' with weight ' + colors.blue(weight))
           sites.push ({ weight, isomorph, rule })
         }
       }
@@ -535,7 +541,7 @@ Context.prototype.sampleRuleSite = function() {
   while (w > 0 && ++m < sites.length - 1)
     w -= sites[m].weight
 
-  context.warn(colors.blue("Total weight is " + totalWeight + "; " + (totalWeight > 0 ? ("sampled " + sites[m].rule.displayName) : "no rules to apply")))
+  context.warnVerbose(colors.blue("Total weight is " + totalWeight + "; " + (totalWeight > 0 ? ("sampled " + sites[m].rule.displayName) : "no rules to apply")))
   return totalWeight > 0 ? sites[m] : false
 }
 
@@ -614,7 +620,7 @@ Context.prototype.reattachIncoming = function (oldId, newId) {
       var label = graph.edge (pred, oldId)
       context.addEdge (pred, newId, label)
       graph.removeEdge (pred, oldId)
-      context.warn ("Replacing incoming edge " + context.edgeDesc(pred,oldId,label,colors.green,colors.red) + " with " + context.edgeDesc(pred,newId,label,colors.green,colors.green))
+      context.warnVerbose ("Replacing incoming edge " + context.edgeDesc(pred,oldId,label,colors.green,colors.red) + " with " + context.edgeDesc(pred,newId,label,colors.green,colors.green))
     })
 }
 
@@ -626,7 +632,7 @@ Context.prototype.reattachOutgoing = function (oldId, newId) {
       var label = graph.edge (oldId, succ)
       context.addEdge (newId, succ, label)
       graph.removeEdge (oldId, succ)
-      context.warn ("Replacing outgoing edge " + context.edgeDesc(oldId,succ,label,colors.red,colors.green) + " with " + context.edgeDesc(newId,succ,label,colors.green,colors.green))
+      context.warnVerbose ("Replacing outgoing edge " + context.edgeDesc(oldId,succ,label,colors.red,colors.green) + " with " + context.edgeDesc(newId,succ,label,colors.green,colors.green))
     })
 }
 
