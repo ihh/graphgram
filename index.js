@@ -1,8 +1,6 @@
 var _ = require('lodash'),
     fs = require('fs'),
     extend = require('extend'),  // NB: skips undefined values, unlike lodash extend (or lodash assign)
-    merge = _.merge,
-    deepcopy = require('deepcopy'),
     graphlib = require('graphlib'),
     jsonschema = require('jsonschema'),
     colors = require('colors'),
@@ -327,7 +325,7 @@ Grammar.prototype.init = function() {
       if (!grammar.canonical) {
 	// if node is missing on rhs, copy it from lhs
 	if (typeof(graph.node) === 'undefined')
-          graph.node = deepcopy (rule.lhs.node)
+          graph.node = _.cloneDeep (rule.lhs.node)
 	graph.node = graph.node.map (function (node, n) {
           // if a node is a string or number, interpret it as a label, and auto-assign it an ID
           // if a node is a 2-tuple, interpret it as an [id,label] pair
@@ -856,7 +854,7 @@ Matcher.prototype.newLabel = function (isomorph, expr) {
     if (expr[this.assignKey])
       return _.assign.apply (null, expr[this.assignKey].map (newLabelForIsomorph))
     if (expr[this.mergeKey])
-      return merge.apply (null, expr[this.mergeKey].map (newLabelForIsomorph))
+      return _.merge.apply (null, expr[this.mergeKey].map (newLabelForIsomorph))
     return this.mapObject (expr, newLabelForIsomorph)
   } else
     return expr
