@@ -7,7 +7,7 @@ var fs = require('fs'),
     graphlib = require('graphlib'),
     jsonschema = require('jsonschema'),
     colors = require('colors'),
-    Grammar = require('../graphgram').Grammar
+    Grammar = require('../index').Grammar
 
 var defaultGrammarFilename = 'grammars/dungeon.json'
 
