@@ -10,7 +10,7 @@ var defaultNodeName = 'node', defaultInitNodeName = 'init', defaultEdgeName = 'e
 
 var opt = getopt.create([
   ['s' , 'size=N'          , 'specify size of lattice (default: ' + defaultSize + ')'],
-  ['b' , 'bidirectional'   , 'two edges between adjacent nodes'],
+  ['u' , 'undirected'      , 'undirected: single edges between adjacent nodes'],
   ['p' , 'periodic'        , 'periodic boundary conditions'],
   ['e' , 'edge=STRING'     , 'edge name'],
   ['n' , 'node=STRING'     , 'node name'],
@@ -24,9 +24,9 @@ var opt = getopt.create([
 
 var size = parseInt(opt.options.size) || defaultSize
 var periodic = opt.options.periodic
-var bidirectional = opt.options.bidirectional
+var bidirectional = !opt.options.undirected
 
-var isDirected = bidirectional ? true : false
+var isDirected = bidirectional
 var isMultigraph = (size <= 2)
 var g = new graphlib.Graph ({ directed: isDirected,
 			      multigraph: isMultigraph })
