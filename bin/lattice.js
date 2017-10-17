@@ -106,7 +106,7 @@ if (opt.options.dot) {
   })
   g.edges().forEach (function (edge) {
     var info = g.edge(edge)
-    var dot = { label: info.name, dir: info.dir }
+    var dot = { label: info.name }
     console.log ('  ' + edge.v + (bidirectional ? ' -> ' : ' -- ') + edge.w + Grammar.prototype.dotAttrs({dot:dot}) + ';')
   })
   console.log ('}')
