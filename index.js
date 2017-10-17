@@ -85,12 +85,11 @@ Grammar.prototype.evolve = function (opts) {
 
 // Convert graphlib graph to graphviz dot format
 Grammar.prototype.toDot = function (graph) {
-  var grammar = this
-  return ["digraph G {"]
+  return [(graph.isDirected() ? "digraph" : "graph") + " G {"]
     .concat (graph.nodes().map (function (id) {
-      return '  ' + id + grammar.dotAttrs(graph.node(id)) + ';'
+      return '  ' + id + Grammar.prototype.dotAttrs(graph.node(id)) + ';'
     })).concat (graph.edges().map (function (edge) {
-      return '  ' + edge.v + ' -> ' + edge.w + grammar.dotAttrs(graph.edge(edge)) + ';'
+      return '  ' + edge.v + (graph.isDirected() ? ' -> ' : ' -- ') + edge.w + Grammar.prototype.dotAttrs(graph.edge(edge)) + ';'
     })).concat (['}',''])
     .join("\n")
 }

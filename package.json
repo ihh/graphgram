@@ -10,7 +10,8 @@
     "graphlib": "~2.1.1",
     "mersennetwister": "~0.2.3",
     "node-getopt": "~0.2.3",
-    "colors": "1.1.2"
+    "colors": "1.1.2",
+    "tmp": "~0.0.33"
   },
   "devDependencies": {
     "mocha": "~3.2.0",

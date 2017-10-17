@@ -100,16 +100,7 @@ for (var x = 0; x < size; ++x)
   }
 
 // output
-if (opt.options.dot) {
-  console.log ((isDirected ? "digraph" : "graph") + " G {")
-  g.nodes().forEach (function (id) {
-    var info = g.node(id)
-    console.log ('  ' + id + Grammar.prototype.dotAttrs({dot:info.dot}) + ';')
-  })
-  g.edges().forEach (function (edge) {
-    var info = g.edge(edge)
-    console.log ('  ' + edge.v + (isDirected ? ' -> ' : ' -- ') + edge.w + Grammar.prototype.dotAttrs({dot:info.dot}) + ';')
-  })
-  console.log ('}')
-} else
+if (opt.options.dot)
+  console.log (Grammar.prototype.toDot(g))
+else
   console.log (JSON.stringify (graphlib.json.write (g), null, 2))

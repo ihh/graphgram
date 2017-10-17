@@ -6,7 +6,7 @@
                              { id: "node", label: { name: "node" } }],
                       edge: [{ v: "init", w: "node", label: { name: "edge" } },
                              { v: "node", w: "init", label: { name: "edge" } }] },
-               rhs: { node: [{ id: "start", head:["init"], tail:["init"], label: { name: "start" } },
-                             { id: "end", head:["node"], tail:["node"], label: { name: "end" } }],
+               rhs: { node: [{ id: "start", head:["init"], tail:["init"], label: { name: "start", dot: { $eval: '$init.label.dot' } } },
+                             { id: "end", head:["node"], tail:["node"], label: { name: "end", dot: { $eval: '$node.label.dot' } } }],
                       edge: [{ v: "start", w: "end", label: { name: "path" } }] } }] }]
 }

@@ -83,7 +83,6 @@ SubgraphSearch.prototype.search = function (possibleAssignments) {
       }
       return match
     })
-    console.log('edgeNotFound',edgeNotFound)
     if (edgeNotFound)
       return []
   }
