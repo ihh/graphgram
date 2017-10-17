@@ -1,0 +1,155 @@
+{
+  "options": {
+    "directed": true,
+    "multigraph": true,
+    "compound": false
+  },
+  "nodes": [
+    {
+      "v": "x0y0",
+      "value": {
+        "x": 0,
+        "y": 0,
+        "dot": {
+          "pos": "0,0",
+          "label": "node"
+        },
+        "name": "node"
+      }
+    },
+    {
+      "v": "x0y1",
+      "value": {
+        "x": 0,
+        "y": 1,
+        "dot": {
+          "pos": "0,128",
+          "label": "node"
+        },
+        "name": "node"
+      }
+    },
+    {
+      "v": "x1y0",
+      "value": {
+        "x": 1,
+        "y": 0,
+        "dot": {
+          "pos": "128,0",
+          "label": "node"
+        },
+        "name": "node"
+      }
+    },
+    {
+      "v": "x1y1",
+      "value": {
+        "x": 1,
+        "y": 1,
+        "dot": {
+          "pos": "128,128",
+          "label": "init"
+        },
+        "name": "init"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "v": "x0y0",
+      "w": "x1y0",
+      "name": "x0y0_x1y0_e",
+      "value": {
+        "dir": "e",
+        "dot": {
+          "label": "edge"
+        },
+        "name": "edge"
+      }
+    },
+    {
+      "v": "x0y0",
+      "w": "x0y1",
+      "name": "x0y0_x0y1_n",
+      "value": {
+        "dir": "n",
+        "dot": {
+          "label": "edge"
+        },
+        "name": "edge"
+      }
+    },
+    {
+      "v": "x0y1",
+      "w": "x1y1",
+      "name": "x0y1_x1y1_e",
+      "value": {
+        "dir": "e",
+        "dot": {
+          "label": "edge"
+        },
+        "name": "edge"
+      }
+    },
+    {
+      "v": "x0y1",
+      "w": "x0y0",
+      "name": "x0y1_x0y0_s",
+      "value": {
+        "dir": "s",
+        "dot": {
+          "label": "edge"
+        },
+        "name": "edge"
+      }
+    },
+    {
+      "v": "x1y0",
+      "w": "x1y1",
+      "name": "x1y0_x1y1_n",
+      "value": {
+        "dir": "n",
+        "dot": {
+          "label": "edge"
+        },
+        "name": "edge"
+      }
+    },
+    {
+      "v": "x1y0",
+      "w": "x0y0",
+      "name": "x1y0_x0y0_w",
+      "value": {
+        "dir": "w",
+        "dot": {
+          "label": "edge"
+        },
+        "name": "edge"
+      }
+    },
+    {
+      "v": "x1y1",
+      "w": "x0y1",
+      "name": "x1y1_x0y1_w",
+      "value": {
+        "dir": "w",
+        "dot": {
+          "label": "edge"
+        },
+        "name": "edge"
+      }
+    },
+    {
+      "v": "x1y1",
+      "w": "x1y0",
+      "name": "x1y1_x1y0_s",
+      "value": {
+        "dir": "s",
+        "dot": {
+          "label": "edge"
+        },
+        "name": "edge"
+      }
+    }
+  ]
+}

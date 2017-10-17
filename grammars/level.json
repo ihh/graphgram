@@ -1,0 +1,12 @@
+{
+  name: 'level-grammar',
+  stages:
+  [{ name: 'extend',
+     rules: [{ lhs: { node: [{ id: "init", label: { name: "init" } },
+                             { id: "node", label: { name: "node" } }],
+                      edge: [{ v: "init", w: "node", label: { name: "edge" } },
+                             { v: "node", w: "init", label: { name: "edge" } }] },
+               rhs: { node: [{ id: "start", head:["init"], tail:["init"], label: { name: "start" } },
+                             { id: "end", head:["node"], tail:["node"], label: { name: "end" } }],
+                      edge: [{ v: "start", w: "end", label: { name: "path" } }] } }] }]
+}
