@@ -13,14 +13,15 @@
                 edge: [{ v: "start", w: "end", label: { name: "path" } }] } },
 
        // replace a-->end--x with a-->mid-->end
-       { lhs: { node: [{ id: "a" },
+       { weight: 2,
+	 lhs: { node: [{ id: "a" },
                        { id: "b", label: { name: "end" } },
                        { id: "x", label: { name: "node" } }],
                 edge: [{ v: "a", w: "b", label: { name: "path" } },
 		       { v: "b", w: "x", label: { name: "edge" } },
 		       { v: "x", w: "b", label: { name: "edge" } }] },
          rhs: { node: [{ id: "a" },
-                       { id: "mid", head:["b"], tail:["b"], label: { name: "scene", dot: { pos: '${b.label.dot.pos}' } } },
+                       { id: "mid", head:["b"], tail:["b"], label: { name: "room", dot: { pos: '${b.label.dot.pos}' } } },
                        { id: "end", head:["x"], tail:["x"], label: { $merge: [ { $eval: '$b.label' },
 									       { dot: { pos: '${x.label.dot.pos}' } }] } }],
                 edge: [{ v: "a", w: "mid", label: { name: "path" } },
@@ -30,7 +31,7 @@
        //         |  |      |  ^
        //         |  |      v  |
        //         x--y      b->c
-       // shortcut
+
        { lhs: { node: [{ id: "a" },
                        { id: "d" },
                        { id: "x", label: { name: "node" } },
@@ -44,15 +45,38 @@
 		       { v: "d", w: "y", label: { name: "edge" } }] },
          rhs: { node: [{ id: "a" },
                        { id: "d" },
-                       { id: "b", head:["x"], tail:["x"], label: { name: "scene", dot: { pos: '${x.label.dot.pos}' } } },
-                       { id: "c", head:["y"], tail:["y"], label: { name: "scene", dot: { pos: '${y.label.dot.pos}' } } }],
+                       { id: "b", head:["x"], tail:["x"], label: { name: "room", dot: { pos: '${x.label.dot.pos}' } } },
+                       { id: "c", head:["y"], tail:["y"], label: { name: "room", dot: { pos: '${y.label.dot.pos}' } } }],
+                edge: [{ v: "a", w: "b", label: { name: "path" } },
+		       { v: "b", w: "c", label: { name: "path" } },
+		       { v: "c", w: "d", label: { name: "path" } }] } },
+       
+       // shortcut
+       { limit: 3,
+	 lhs: { node: [{ id: "a" },
+                       { id: "d" },
+                       { id: "x", label: { name: "node" } },
+                       { id: "y", label: { name: "node" } }],
+                edge: [{ v: "a", w: "d", label: { name: "path" } },
+		       { v: "a", w: "x", label: { name: "edge" } },
+		       { v: "x", w: "a", label: { name: "edge" } },
+		       { v: "x", w: "y", label: { name: "edge" } },
+		       { v: "y", w: "x", label: { name: "edge" } },
+		       { v: "y", w: "d", label: { name: "edge" } },
+		       { v: "d", w: "y", label: { name: "edge" } }] },
+         rhs: { node: [{ id: "a" },
+                       { id: "d" },
+                       { id: "b", head:["x"], tail:["x"], label: { name: "room", dot: { pos: '${x.label.dot.pos}' } } },
+                       { id: "c", head:["y"], tail:["y"], label: { name: "room", dot: { pos: '${y.label.dot.pos}' } } }],
                 edge: [{ v: "a", w: "d", label: { name: "shortcut", dot: { style: "dotted" } } },
 		       { v: "a", w: "b", label: { name: "path" } },
 		       { v: "b", w: "c", label: { name: "path" } },
 		       { v: "c", w: "d", label: { name: "path" } }] } },
 
        // key-door
-       { lhs: { node: [{ id: "a" },
+       { limit: 2,
+	 weight: .5,
+	 lhs: { node: [{ id: "a" },
                        { id: "d" },
                        { id: "x", label: { name: "node" } },
                        { id: "y", label: { name: "node" } }],
@@ -65,11 +89,12 @@
 		       { v: "d", w: "y", label: { name: "edge" } }] },
          rhs: { node: [{ id: "a" },
                        { id: "d" },
-                       { id: "b", head:["x"], tail:["x"], label: { name: "scene", dot: { pos: '${x.label.dot.pos}' } } },
+                       { id: "b", head:["x"], tail:["x"], label: { name: "room", dot: { pos: '${x.label.dot.pos}' } } },
                        { id: "c", head:["y"], tail:["y"], label: { name: "key", dot: { pos: '${y.label.dot.pos}' } } }],
                 edge: [{ v: "a", w: "d", label: { name: "lock", dot: { style: "dotted" } } },
 		       { v: "a", w: "b", label: { name: "path" } },
-		       { v: "b", w: "c", label: { name: "path" } }] } },
+		       { v: "b", w: "c", label: { name: "path" } },
+		       { v: "c", w: "a", label: { name: "valve", dot: { style: "dashed" } } }] } },
        
      ] },
    
