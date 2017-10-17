@@ -11,7 +11,7 @@ var opt = getopt.create([
   ['g' , 'graph=PATH'      , 'read graphlib graph file'],
   ['p' , 'pdf=PATH'        , 'run neato to generate PDF'],
   ['o' , 'open'            , 'run neato, then open PDF with open'],
-  ['l' , 'label'           , 'auto-set labels using \'pos\' & \'name\''],
+  ['n' , 'no-autolabel'    , 'do not auto-label using \'pos\' & \'name\''],
   ['h' , 'help'            , 'display this help message']
 ])              // create Getopt instance
     .bindHelp()     // bind option 'help' to default action
@@ -20,7 +20,8 @@ var opt = getopt.create([
 var filename = opt.options.graph || opt.argv[0]
 var graph = graphlib.json.read (JSON.parse (fs.readFileSync (filename)))
 
-if (opt.options.label) {
+var label = !opt.options['no-autolabel']
+if (label) {
   graph.nodes().forEach (function (node) {
     var info = graph.node(node)
     info.dot = info.dot || {}

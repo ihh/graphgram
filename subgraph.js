@@ -72,14 +72,13 @@ SubgraphSearch.prototype.search = function (possibleAssignments) {
   var nAssigned = Object.keys(mapping.assign).length
   var edgeMatch
   if (nAssigned) {
-    var lastAssigned = subnodes[nAssigned-1]
     var edgeNotFound = false
     edgeMatch = subedges.map (function (edge) {
       var match
-      if (!edgeNotFound && edge.v <= lastAssigned && edge.w <= lastAssigned) {
+      if (!edgeNotFound && mapping.assign[edge.v] && mapping.assign[edge.w]) {
         match = ss.testEdgeMatch (mapping.assign[edge.v], mapping.assign[edge.w], subgraph.edge(edge))
         if (!match)
-          edgeNotFound = edge
+          edgeNotFound = edge || true
       }
       return match
     })

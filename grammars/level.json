@@ -2,11 +2,85 @@
   name: 'level-grammar',
   stages:
   [{ name: 'extend',
-     rules: [{ lhs: { node: [{ id: "init", label: { name: "init" } },
-                             { id: "node", label: { name: "node" } }],
-                      edge: [{ v: "init", w: "node", label: { name: "edge" } },
-                             { v: "node", w: "init", label: { name: "edge" } }] },
-               rhs: { node: [{ id: "start", head:["init"], tail:["init"], label: { name: "start", dot: { $eval: '$init.label.dot' } } },
-                             { id: "end", head:["node"], tail:["node"], label: { name: "end", dot: { $eval: '$node.label.dot' } } }],
-                      edge: [{ v: "start", w: "end", label: { name: "path" } }] } }] }]
+     rules: [
+       // replace init--node with start-->end
+       { lhs: { node: [{ id: "init", label: { name: "init" } },
+                       { id: "node", label: { name: "node" } }],
+                edge: [{ v: "init", w: "node", label: { name: "edge" } },
+                       { v: "node", w: "init", label: { name: "edge" } }] },
+         rhs: { node: [{ id: "start", head:["init"], tail:["init"], label: { name: "start", dot: { pos: '${init.label.dot.pos}' } } },
+                       { id: "end", head:["node"], tail:["node"], label: { name: "end", dot: { pos: '${node.label.dot.pos}' } } }],
+                edge: [{ v: "start", w: "end", label: { name: "path" } }] } },
+
+       // replace a-->end--x with a-->mid-->end
+       { lhs: { node: [{ id: "a" },
+                       { id: "b", label: { name: "end" } },
+                       { id: "x", label: { name: "node" } }],
+                edge: [{ v: "a", w: "b", label: { name: "path" } },
+		       { v: "b", w: "x", label: { name: "edge" } },
+		       { v: "x", w: "b", label: { name: "edge" } }] },
+         rhs: { node: [{ id: "a" },
+                       { id: "mid", head:["b"], tail:["b"], label: { name: "scene", dot: { pos: '${b.label.dot.pos}' } } },
+                       { id: "end", head:["x"], tail:["x"], label: { $merge: [ { $eval: '$b.label' },
+									       { dot: { pos: '${x.label.dot.pos}' } }] } }],
+                edge: [{ v: "a", w: "mid", label: { name: "path" } },
+		       { v: "mid", w: "end", label: { name: "path" } }] } },
+
+       // replace a->d with a->d
+       //         |  |      |  ^
+       //         |  |      v  |
+       //         x--y      b->c
+       // shortcut
+       { lhs: { node: [{ id: "a" },
+                       { id: "d" },
+                       { id: "x", label: { name: "node" } },
+                       { id: "y", label: { name: "node" } }],
+                edge: [{ v: "a", w: "d", label: { name: "path" } },
+		       { v: "a", w: "x", label: { name: "edge" } },
+		       { v: "x", w: "a", label: { name: "edge" } },
+		       { v: "x", w: "y", label: { name: "edge" } },
+		       { v: "y", w: "x", label: { name: "edge" } },
+		       { v: "y", w: "d", label: { name: "edge" } },
+		       { v: "d", w: "y", label: { name: "edge" } }] },
+         rhs: { node: [{ id: "a" },
+                       { id: "d" },
+                       { id: "b", head:["x"], tail:["x"], label: { name: "scene", dot: { pos: '${x.label.dot.pos}' } } },
+                       { id: "c", head:["y"], tail:["y"], label: { name: "scene", dot: { pos: '${y.label.dot.pos}' } } }],
+                edge: [{ v: "a", w: "d", label: { name: "shortcut", dot: { style: "dotted" } } },
+		       { v: "a", w: "b", label: { name: "path" } },
+		       { v: "b", w: "c", label: { name: "path" } },
+		       { v: "c", w: "d", label: { name: "path" } }] } },
+
+       // key-door
+       { lhs: { node: [{ id: "a" },
+                       { id: "d" },
+                       { id: "x", label: { name: "node" } },
+                       { id: "y", label: { name: "node" } }],
+                edge: [{ v: "a", w: "d", label: { name: "path" } },
+		       { v: "a", w: "x", label: { name: "edge" } },
+		       { v: "x", w: "a", label: { name: "edge" } },
+		       { v: "x", w: "y", label: { name: "edge" } },
+		       { v: "y", w: "x", label: { name: "edge" } },
+		       { v: "y", w: "d", label: { name: "edge" } },
+		       { v: "d", w: "y", label: { name: "edge" } }] },
+         rhs: { node: [{ id: "a" },
+                       { id: "d" },
+                       { id: "b", head:["x"], tail:["x"], label: { name: "scene", dot: { pos: '${x.label.dot.pos}' } } },
+                       { id: "c", head:["y"], tail:["y"], label: { name: "key", dot: { pos: '${y.label.dot.pos}' } } }],
+                edge: [{ v: "a", w: "d", label: { name: "lock", dot: { style: "dotted" } } },
+		       { v: "a", w: "b", label: { name: "path" } },
+		       { v: "b", w: "c", label: { name: "path" } }] } },
+       
+     ] },
+   
+  { name: 'trim',
+     rules: [
+       { lhs: { node: [{ id: "a" },
+                       { id: "b" }],
+                edge: [{ v: "a", w: "b", label: { name: "edge" } }] },
+         rhs: { node: [{ id: "a" },
+                       { id: "b" }],
+                edge: [] } }
+     ] }
+  ]
 }
