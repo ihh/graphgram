@@ -12,7 +12,7 @@
                        { id: "end", head:["node"], tail:["node"], label: { name: "end", dot: { pos: '${node.label.dot.pos}' } } }],
                 edge: [{ v: "start", w: "end", label: { name: "path" } }] } },
 
-       // replace a-->end--x with a-->mid-->end
+       // replace a-->b--x with a-->mid-->end
        { weight: 2,
 	 lhs: { node: [{ id: "a" },
                        { id: "b", label: { name: "end" } },
