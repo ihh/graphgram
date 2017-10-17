@@ -1,7 +1,8 @@
 {
   name: 'level-grammar',
   stages:
-  [{ name: 'extend',
+  [{ name: 'init',
+     limit: 1,
      rules: [
        // replace init--node with start-->end
        { lhs: { node: [{ id: "init", label: { name: "init" } },
@@ -9,13 +10,25 @@
                 edge: [{ v: "init", w: "node", label: { name: "edge" } },
                        { v: "node", w: "init", label: { name: "edge" } }] },
          rhs: { node: [{ id: "start", head:["init"], tail:["init"], label: { name: "start", dot: { pos: '${init.label.dot.pos}' } } },
-                       { id: "end", head:["node"], tail:["node"], label: { name: "end", dot: { pos: '${node.label.dot.pos}' } } }],
+                       { id: "end", head:["node"], tail:["node"], label: { name: "end", endpoint: true, dot: { pos: '${node.label.dot.pos}' } } }],
+                edge: [{ v: "start", w: "end", label: { name: "path" } }] } }
+     ] },
+       
+   { name: 'extend',
+     rules: [
+       // replace init--node with start-->end
+       { lhs: { node: [{ id: "init", label: { name: "init" } },
+                       { id: "node", label: { name: "node" } }],
+                edge: [{ v: "init", w: "node", label: { name: "edge" } },
+                       { v: "node", w: "init", label: { name: "edge" } }] },
+         rhs: { node: [{ id: "start", head:["init"], tail:["init"], label: { name: "start", dot: { pos: '${init.label.dot.pos}' } } },
+                       { id: "end", head:["node"], tail:["node"], label: { name: "end", endpoint: true, dot: { pos: '${node.label.dot.pos}' } } }],
                 edge: [{ v: "start", w: "end", label: { name: "path" } }] } },
 
        // replace a-->b--x with a-->mid-->end
        { weight: 2,
-	 lhs: { node: [{ id: "a" },
-                       { id: "b", label: { name: "end" } },
+	 lhs: { node: [{ id: "a", label: { $not: { name: "node" } } },
+                       { id: "b", label: { endpoint: true } },
                        { id: "x", label: { name: "node" } }],
                 edge: [{ v: "a", w: "b", label: { name: "path" } },
 		       { v: "b", w: "x", label: { name: "edge" } },
@@ -27,13 +40,28 @@
                 edge: [{ v: "a", w: "mid", label: { name: "path" } },
 		       { v: "mid", w: "end", label: { name: "path" } }] } },
 
+       // replace x--a-->... with herring<--a-->...
+       { weight: .25,
+         limit: 2,
+	 lhs: { node: [{ id: "a", label: { $and: [{ $not: { name: "node" } },
+                                                  { $not: { endpoint: true } }] } },
+                       { id: "x", label: { name: "node" } }],
+                edge: [{ v: "a", w: "x", label: { name: "edge" } },
+		       { v: "x", w: "a", label: { name: "edge" } }] },
+         rhs: { node: [{ id: "a" },
+                       { id: "side", head:["x"], tail:["x"], label: { name: 'herring',
+                                                                      endpoint: true,
+								      dot: { pos: '${x.label.dot.pos}' } } }],
+                edge: [{ v: "a", w: "side", label: { name: "path" } }] } },
+       
        // replace a->d with a->d
        //         |  |      |  ^
        //         |  |      v  |
        //         x--y      b->c
 
-       { lhs: { node: [{ id: "a" },
-                       { id: "d" },
+       // wrinkle in path (no a->d connection on rhs)
+       { lhs: { node: [{ id: "a", label: { $not: { name: "node" } } },
+                       { id: "d", label: { $not: { name: "node" } } },
                        { id: "x", label: { name: "node" } },
                        { id: "y", label: { name: "node" } }],
                 edge: [{ v: "a", w: "d", label: { name: "path" } },
@@ -50,11 +78,35 @@
                 edge: [{ v: "a", w: "b", label: { name: "path" } },
 		       { v: "b", w: "c", label: { name: "path" } },
 		       { v: "c", w: "d", label: { name: "path" } }] } },
-       
+
+       // fork: a->d splits to a->d->c and a->b->c. endpoint moves from d to c
+       { weight: .1,
+         limit: 4,
+         lhs: { node: [{ id: "a", label: { $not: { name: "node" } } },
+                       { id: "d", label: { endpoint: true } },
+                       { id: "x", label: { name: "node" } },
+                       { id: "y", label: { name: "node" } }],
+                edge: [{ v: "a", w: "d", label: { name: "path" } },
+		       { v: "a", w: "x", label: { name: "edge" } },
+		       { v: "x", w: "a", label: { name: "edge" } },
+		       { v: "x", w: "y", label: { name: "edge" } },
+		       { v: "y", w: "x", label: { name: "edge" } },
+		       { v: "y", w: "d", label: { name: "edge" } },
+		       { v: "d", w: "y", label: { name: "edge" } }] },
+         rhs: { node: [{ id: "a" },
+                       { id: "d2", head:["d"], tail:["d"], label: { name: "room", dot: { pos: '${d.label.dot.pos}' } } },
+                       { id: "b", head:["x"], tail:["x"], label: { name: "room", dot: { pos: '${x.label.dot.pos}' } } },
+                       { id: "c", head:["y"], tail:["y"], label: { $merge: [ { $eval: '$d.label' },
+                                                                             { dot: { pos: '${y.label.dot.pos}' } }] } }],
+                edge: [{ v: "a", w: "b", label: { name: "fork", dot: { style: "dotted" } } },
+		       { v: "b", w: "c", label: { name: "path" } },
+		       { v: "a", w: "d2", label: { name: "fork", dot: { style: "dotted" } } },
+		       { v: "d2", w: "c", label: { name: "path" } }] } },
+
        // shortcut
        { limit: 3,
-	 lhs: { node: [{ id: "a" },
-                       { id: "d" },
+	 lhs: { node: [{ id: "a", label: { $not: { name: "node" } } },
+                       { id: "d", label: { $not: { name: "node" } } },
                        { id: "x", label: { name: "node" } },
                        { id: "y", label: { name: "node" } }],
                 edge: [{ v: "a", w: "d", label: { name: "path" } },
@@ -76,8 +128,8 @@
        // key-door
        { limit: 2,
 	 weight: .5,
-	 lhs: { node: [{ id: "a" },
-                       { id: "d" },
+	 lhs: { node: [{ id: "a", label: { $not: { name: "node" } } },
+                       { id: "d", label: { $not: { name: "node" } } },
                        { id: "x", label: { name: "node" } },
                        { id: "y", label: { name: "node" } }],
                 edge: [{ v: "a", w: "d", label: { name: "path" } },
