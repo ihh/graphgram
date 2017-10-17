@@ -24,10 +24,9 @@ var opt = getopt.create([
 
 var size = parseInt(opt.options.size) || defaultSize
 var periodic = opt.options.periodic
-var bidirectional = !opt.options.undirected
-
-var isDirected = bidirectional
+var isDirected = !opt.options.undirected
 var isMultigraph = (size <= 2)
+
 var g = new graphlib.Graph ({ directed: isDirected,
 			      multigraph: isMultigraph })
 
@@ -44,15 +43,17 @@ function xy(x,y) {
   return 'x' + x + 'y' + y
 }
 
-var nodePoints = 128
+var nodePoints = 128  // size of a node, in points, for (neato) layout
 for (var x = 0; x < size; ++x)
   for (var y = 0; y < size; ++y) {
+    var name = ((x === xInit && y === yInit)
+		? (opt.options.initial || defaultInitNodeName)
+		: (opt.options.node || defaultNodeName))
     g.setNode (xy(x,y), { x: x,
 			  y: y,
-			  pos: (x*nodePoints) + ',' + (y*nodePoints),
-			  name: ((x === xInit && y === yInit)
-				 ? (opt.options.initial || defaultInitNodeName)
-				 : (opt.options.node || defaultNodeName)) })
+			  dot: { pos: (x*nodePoints) + ',' + (y*nodePoints),
+                                 label: name },
+			  name: name })
   }
 
 // edges
@@ -71,43 +72,44 @@ for (var x = 0; x < size; ++x)
     if (x + 1 < size || periodic)
       addEdge (xy(x,y),
 	       xy(x+1,y),
-	       { dir: bidirectional ? 'e' : 'h',
+	       { dir: isDirected ? 'e' : 'h',
+                 dot: { label: edgeName },
 		 name: edgeName })
 
     if (y + 1 < size || periodic)
       addEdge (xy(x,y),
 	       xy(x,y+1),
-	       { dir: bidirectional ? 'n' : 'v',
+	       { dir: isDirected ? 'n' : 'v',
+                 dot: { label: edgeName },
 		 name: edgeName })
 
-    if (bidirectional) {
+    if (isDirected) {
       if (x > 0 || periodic)
 	addEdge (xy(x,y),
 		 xy(x-1,y),
 		 { dir: 'w',
+                   dot: { label: edgeName },
 		   name: edgeName })
 
       if (y > 0 || periodic)
 	addEdge (xy(x,y),
 		 xy(x,y-1),
 		 { dir: 's',
+                   dot: { label: edgeName },
 		   name: edgeName })
     }
   }
 
 // output
 if (opt.options.dot) {
-  console.log ((bidirectional ? "digraph" : "graph") + " G {")
+  console.log ((isDirected ? "digraph" : "graph") + " G {")
   g.nodes().forEach (function (id) {
     var info = g.node(id)
-    var dot = { pos: info.pos,
-		label: info.name }
-    console.log ('  ' + id + Grammar.prototype.dotAttrs({dot:dot}) + ';')
+    console.log ('  ' + id + Grammar.prototype.dotAttrs({dot:info.dot}) + ';')
   })
   g.edges().forEach (function (edge) {
     var info = g.edge(edge)
-    var dot = { label: info.name }
-    console.log ('  ' + edge.v + (bidirectional ? ' -> ' : ' -- ') + edge.w + Grammar.prototype.dotAttrs({dot:dot}) + ';')
+    console.log ('  ' + edge.v + (isDirected ? ' -> ' : ' -- ') + edge.w + Grammar.prototype.dotAttrs({dot:info.dot}) + ';')
   })
   console.log ('}')
 } else
