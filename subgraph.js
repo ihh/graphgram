@@ -79,10 +79,11 @@ SubgraphSearch.prototype.search = function (possibleAssignments) {
       if (!edgeNotFound && edge.v <= lastAssigned && edge.w <= lastAssigned) {
         match = ss.testEdgeMatch (mapping.assign[edge.v], mapping.assign[edge.w], subgraph.edge(edge))
         if (!match)
-          edgeNotFound = true
+          edgeNotFound = edge
       }
       return match
     })
+    console.log('edgeNotFound',edgeNotFound)
     if (edgeNotFound)
       return []
   }

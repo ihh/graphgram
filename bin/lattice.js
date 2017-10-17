@@ -25,10 +25,12 @@ var opt = getopt.create([
 var size = parseInt(opt.options.size) || defaultSize
 var periodic = opt.options.periodic
 var isDirected = !opt.options.undirected
-var isMultigraph = (size <= 2)
 
-var g = new graphlib.Graph ({ directed: isDirected,
-			      multigraph: isMultigraph })
+if (periodic && size <= 2) {
+  throw new Error ("Periodic boundary conditions on a 2x2 lattice yield a multigraph. Declining to output this.")
+}
+
+var g = new graphlib.Graph ({ directed: isDirected })
 
 var xInit, yInit
 if (periodic)
@@ -61,10 +63,7 @@ var edgeName = opt.options.edge || defaultEdgeName
 function addEdge (src, dest, label) {
   if (opt.options.verbose)
     console.warn ('adding edge from ' + src + ' to ' + dest + ': ' + JSON.stringify(label))
-  if (isMultigraph)
-    g.setEdge (src, dest, label, src + '_' + dest + '_' + label.dir)
-  else
-    g.setEdge (src, dest, label)
+  g.setEdge (src, dest, label)
 }
 for (var x = 0; x < size; ++x)
   for (var y = 0; y < size; ++y) {

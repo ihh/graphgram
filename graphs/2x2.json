@@ -1,7 +1,6 @@
 {
   "options": {
     "directed": true,
-    "multigraph": true,
     "compound": false
   },
   "nodes": [
@@ -58,7 +57,6 @@
     {
       "v": "x0y0",
       "w": "x1y0",
-      "name": "x0y0_x1y0_e",
       "value": {
         "dir": "e",
         "dot": {
@@ -70,7 +68,6 @@
     {
       "v": "x0y0",
       "w": "x0y1",
-      "name": "x0y0_x0y1_n",
       "value": {
         "dir": "n",
         "dot": {
@@ -82,7 +79,6 @@
     {
       "v": "x0y1",
       "w": "x1y1",
-      "name": "x0y1_x1y1_e",
       "value": {
         "dir": "e",
         "dot": {
@@ -94,7 +90,6 @@
     {
       "v": "x0y1",
       "w": "x0y0",
-      "name": "x0y1_x0y0_s",
       "value": {
         "dir": "s",
         "dot": {
@@ -106,7 +101,6 @@
     {
       "v": "x1y0",
       "w": "x1y1",
-      "name": "x1y0_x1y1_n",
       "value": {
         "dir": "n",
         "dot": {
@@ -118,7 +112,6 @@
     {
       "v": "x1y0",
       "w": "x0y0",
-      "name": "x1y0_x0y0_w",
       "value": {
         "dir": "w",
         "dot": {
@@ -130,7 +123,6 @@
     {
       "v": "x1y1",
       "w": "x0y1",
-      "name": "x1y1_x0y1_w",
       "value": {
         "dir": "w",
         "dot": {
@@ -142,7 +134,6 @@
     {
       "v": "x1y1",
       "w": "x1y0",
-      "name": "x1y1_x1y0_s",
       "value": {
         "dir": "s",
         "dot": {
