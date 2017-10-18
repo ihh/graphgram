@@ -1,0 +1,1214 @@
+{
+  "options": {
+    "directed": true,
+    "multigraph": false,
+    "compound": false
+  },
+  "nodes": [
+    {
+      "v": "12",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "384,384"
+        }
+      }
+    },
+    {
+      "v": "20",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "256,512"
+        }
+      }
+    },
+    {
+      "v": "23",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "512,384"
+        }
+      }
+    },
+    {
+      "v": "33",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "384,512"
+        }
+      }
+    },
+    {
+      "v": "35",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "512,256"
+        }
+      }
+    },
+    {
+      "v": "40",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "384,256"
+        }
+      }
+    },
+    {
+      "v": "54",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "384,128"
+        }
+      }
+    },
+    {
+      "v": "65",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "256,128"
+        }
+      }
+    },
+    {
+      "v": "69",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "128,0"
+        }
+      }
+    },
+    {
+      "v": "71",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "0,0"
+        }
+      }
+    },
+    {
+      "v": "85",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "512,128"
+        }
+      }
+    },
+    {
+      "v": "86",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "512,0"
+        }
+      }
+    },
+    {
+      "v": "91",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "0,640"
+        }
+      }
+    },
+    {
+      "v": "92",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "128,640"
+        }
+      }
+    },
+    {
+      "v": "93",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "128,768"
+        }
+      }
+    },
+    {
+      "v": "96",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "128,512"
+        }
+      }
+    },
+    {
+      "v": "97",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "0,512"
+        }
+      }
+    },
+    {
+      "v": "108",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "640,0"
+        }
+      }
+    },
+    {
+      "v": "111",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "768,384"
+        }
+      }
+    },
+    {
+      "v": "112",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "896,384"
+        }
+      }
+    },
+    {
+      "v": "119",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "0,128"
+        }
+      }
+    },
+    {
+      "v": "120",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "128,128"
+        }
+      }
+    },
+    {
+      "v": "123",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "896,896"
+        }
+      }
+    },
+    {
+      "v": "126",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "768,0"
+        }
+      }
+    },
+    {
+      "v": "128",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "896,0"
+        }
+      }
+    },
+    {
+      "v": "167",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "640,128"
+        }
+      }
+    },
+    {
+      "v": "182",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "768,896"
+        }
+      }
+    },
+    {
+      "v": "183",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "640,640"
+        }
+      }
+    },
+    {
+      "v": "189",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "256,384"
+        }
+      }
+    },
+    {
+      "v": "190",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "256,256"
+        }
+      }
+    },
+    {
+      "v": "191",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "256,0"
+        }
+      }
+    },
+    {
+      "v": "192",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "384,0"
+        }
+      }
+    },
+    {
+      "v": "194",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "0,768"
+        }
+      }
+    },
+    {
+      "v": "195",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "768,128"
+        }
+      }
+    },
+    {
+      "v": "197",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "0,384"
+        }
+      }
+    },
+    {
+      "v": "198",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "0,256"
+        }
+      }
+    },
+    {
+      "v": "199",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "896,256"
+        }
+      }
+    },
+    {
+      "v": "200",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "896,128"
+        }
+      }
+    },
+    {
+      "v": "202",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "512,768"
+        }
+      }
+    },
+    {
+      "v": "205",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "256,896"
+        }
+      }
+    },
+    {
+      "v": "207",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "768,512"
+        }
+      }
+    },
+    {
+      "v": "213",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "640,768"
+        }
+      }
+    },
+    {
+      "v": "214",
+      "value": {
+        "name": "end",
+        "endpoint": true,
+        "dot": {
+          "pos": "640,896"
+        }
+      }
+    },
+    {
+      "v": "215",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "640,256"
+        }
+      }
+    },
+    {
+      "v": "216",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "768,256"
+        }
+      }
+    },
+    {
+      "v": "218",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "768,640"
+        }
+      }
+    },
+    {
+      "v": "219",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "128,384"
+        }
+      }
+    },
+    {
+      "v": "220",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "128,256"
+        }
+      }
+    },
+    {
+      "v": "221",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "896,768"
+        }
+      }
+    },
+    {
+      "v": "222",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "768,768"
+        }
+      }
+    },
+    {
+      "v": "223",
+      "value": {
+        "name": "start",
+        "dot": {
+          "pos": "512,512"
+        }
+      }
+    },
+    {
+      "v": "224",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "512,640"
+        }
+      }
+    },
+    {
+      "v": "225",
+      "value": {
+        "name": "key",
+        "dot": {
+          "pos": "896,512"
+        }
+      }
+    },
+    {
+      "v": "226",
+      "value": {
+        "name": "herring",
+        "endpoint": true,
+        "dot": {
+          "pos": "896,640"
+        }
+      }
+    },
+    {
+      "v": "227",
+      "value": {
+        "x": 3,
+        "y": 7,
+        "dot": {
+          "pos": "384,896",
+          "label": "node"
+        },
+        "name": "node"
+      }
+    },
+    {
+      "v": "228",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "512,896"
+        }
+      }
+    },
+    {
+      "v": "231",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "256,768"
+        }
+      }
+    },
+    {
+      "v": "232",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "384,768"
+        }
+      }
+    },
+    {
+      "v": "233",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "128,896"
+        }
+      }
+    },
+    {
+      "v": "234",
+      "value": {
+        "x": 0,
+        "y": 7,
+        "dot": {
+          "pos": "0,896",
+          "label": "node"
+        },
+        "name": "node"
+      }
+    },
+    {
+      "v": "235",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "384,640"
+        }
+      }
+    },
+    {
+      "v": "236",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "256,640"
+        }
+      }
+    },
+    {
+      "v": "237",
+      "value": {
+        "name": "herring",
+        "endpoint": true,
+        "dot": {
+          "pos": "640,512"
+        }
+      }
+    },
+    {
+      "v": "238",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "640,384"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "v": "12",
+      "w": "33",
+      "value": {
+        "name": "shortcut",
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "20",
+      "w": "33",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "40",
+      "w": "12",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "54",
+      "w": "65",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "69",
+      "w": "71",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "35",
+      "w": "85",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "91",
+      "w": "92",
+      "value": {
+        "name": "cave",
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "92",
+      "w": "93",
+      "value": {
+        "name": "cave",
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "91",
+      "w": "93",
+      "value": {
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "96",
+      "w": "20",
+      "value": {
+        "name": "shortcut",
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "96",
+      "w": "92",
+      "value": {
+        "name": "shortcut",
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "97",
+      "w": "91",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "96",
+      "w": "97",
+      "value": {
+        "name": "cave",
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "108",
+      "w": "86",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "71",
+      "w": "119",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "119",
+      "w": "120",
+      "value": {
+        "name": "cave",
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "126",
+      "w": "108",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "128",
+      "w": "126",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "85",
+      "w": "167",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "182",
+      "w": "123",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "12",
+      "w": "189",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "190",
+      "w": "40",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "191",
+      "w": "69",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "65",
+      "w": "191",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "192",
+      "w": "54",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "86",
+      "w": "192",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "194",
+      "w": "93",
+      "value": {
+        "name": "cave",
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "91",
+      "w": "194",
+      "value": {
+        "name": "cave",
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "92",
+      "w": "194",
+      "value": {
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "167",
+      "w": "195",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "197",
+      "w": "97",
+      "value": {
+        "name": "cave",
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "96",
+      "w": "197",
+      "value": {
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "119",
+      "w": "198",
+      "value": {
+        "name": "cave",
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "120",
+      "w": "198",
+      "value": {
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "199",
+      "w": "112",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "200",
+      "w": "128",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "195",
+      "w": "200",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "111",
+      "w": "207",
+      "value": {
+        "name": "lock",
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "183",
+      "w": "213",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "215",
+      "w": "35",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "216",
+      "w": "199",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "111",
+      "w": "216",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "218",
+      "w": "183",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "207",
+      "w": "218",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "219",
+      "w": "96",
+      "value": {
+        "name": "cave",
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "219",
+      "w": "97",
+      "value": {
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "219",
+      "w": "197",
+      "value": {
+        "name": "cave",
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "189",
+      "w": "219",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "220",
+      "w": "190",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "119",
+      "w": "220",
+      "value": {
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "120",
+      "w": "220",
+      "value": {
+        "name": "cave",
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "198",
+      "w": "220",
+      "value": {
+        "name": "cave",
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "123",
+      "w": "221",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "222",
+      "w": "182",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "213",
+      "w": "222",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "223",
+      "w": "23",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "224",
+      "w": "202",
+      "value": {
+        "name": "cave",
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "225",
+      "w": "111",
+      "value": {
+        "name": "valve",
+        "dot": {
+          "style": "dashed"
+        }
+      }
+    },
+    {
+      "v": "112",
+      "w": "225",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "221",
+      "w": "226",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "228",
+      "w": "214",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "202",
+      "w": "228",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "205",
+      "w": "231",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "232",
+      "w": "202",
+      "value": {
+        "name": "cave",
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "224",
+      "w": "232",
+      "value": {
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "233",
+      "w": "205",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "93",
+      "w": "233",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "235",
+      "w": "202",
+      "value": {
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "235",
+      "w": "224",
+      "value": {
+        "name": "cave",
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "235",
+      "w": "232",
+      "value": {
+        "name": "cave",
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "33",
+      "w": "235",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "236",
+      "w": "20",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "231",
+      "w": "236",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "223",
+      "w": "237",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "238",
+      "w": "111",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "238",
+      "w": "215",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "23",
+      "w": "238",
+      "value": {
+        "name": "path"
+      }
+    }
+  ]
+}

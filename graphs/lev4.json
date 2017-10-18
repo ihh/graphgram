@@ -1,0 +1,305 @@
+{
+  "options": {
+    "directed": true,
+    "multigraph": false,
+    "compound": false
+  },
+  "nodes": [
+    {
+      "v": "7",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "384,0"
+        }
+      }
+    },
+    {
+      "v": "11",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "256,0"
+        }
+      }
+    },
+    {
+      "v": "20",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "384,256"
+        }
+      }
+    },
+    {
+      "v": "22",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "384,384"
+        }
+      }
+    },
+    {
+      "v": "24",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "256,384"
+        }
+      }
+    },
+    {
+      "v": "28",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "128,384"
+        }
+      }
+    },
+    {
+      "v": "30",
+      "value": {
+        "name": "key",
+        "dot": {
+          "pos": "0,384"
+        }
+      }
+    },
+    {
+      "v": "33",
+      "value": {
+        "name": "start",
+        "dot": {
+          "pos": "256,256"
+        }
+      }
+    },
+    {
+      "v": "41",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "0,256"
+        }
+      }
+    },
+    {
+      "v": "42",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "0,128"
+        }
+      }
+    },
+    {
+      "v": "43",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "384,128"
+        }
+      }
+    },
+    {
+      "v": "44",
+      "value": {
+        "name": "end",
+        "endpoint": true,
+        "dot": {
+          "pos": "256,128"
+        }
+      }
+    },
+    {
+      "v": "45",
+      "value": {
+        "name": "herring",
+        "endpoint": true,
+        "dot": {
+          "pos": "0,0"
+        }
+      }
+    },
+    {
+      "v": "46",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "128,0"
+        }
+      }
+    },
+    {
+      "v": "49",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "128,128"
+        }
+      }
+    },
+    {
+      "v": "50",
+      "value": {
+        "name": "room",
+        "dot": {
+          "pos": "128,256"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "v": "7",
+      "w": "11",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "22",
+      "w": "20",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "24",
+      "w": "22",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "28",
+      "w": "24",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "33",
+      "w": "20",
+      "value": {
+        "name": "shortcut",
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "33",
+      "w": "24",
+      "value": {
+        "name": "shortcut",
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "41",
+      "w": "30",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "43",
+      "w": "7",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "20",
+      "w": "43",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "11",
+      "w": "44",
+      "value": {
+        "name": "shortcut",
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "42",
+      "w": "45",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "11",
+      "w": "46",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "49",
+      "w": "42",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "49",
+      "w": "44",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "46",
+      "w": "49",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "50",
+      "w": "28",
+      "value": {
+        "name": "lock",
+        "dot": {
+          "style": "dotted"
+        }
+      }
+    },
+    {
+      "v": "50",
+      "w": "41",
+      "value": {
+        "name": "path"
+      }
+    },
+    {
+      "v": "30",
+      "w": "50",
+      "value": {
+        "name": "valve",
+        "dot": {
+          "style": "dashed"
+        }
+      }
+    },
+    {
+      "v": "33",
+      "w": "50",
+      "value": {
+        "name": "path"
+      }
+    }
+  ]
+}
