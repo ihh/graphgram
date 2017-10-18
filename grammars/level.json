@@ -16,29 +16,16 @@
        
    { name: 'extend',
      rules: [
-       // replace init--node with start-->end
-       { lhs: { node: [{ id: "init", label: { name: "init" } },
-                       { id: "node", label: { name: "node" } }],
-                edge: [{ v: "init", w: "node", label: { name: "edge" } },
-                       { v: "node", w: "init", label: { name: "edge" } }] },
-         rhs: { node: [{ id: "start", head:["init"], tail:["init"], label: { name: "start", dot: { pos: '${init.label.dot.pos}' } } },
-                       { id: "end", head:["node"], tail:["node"], label: { name: "end", endpoint: true, dot: { pos: '${node.label.dot.pos}' } } }],
-                edge: [{ v: "start", w: "end", label: { name: "path" } }] } },
-
-       // replace a-->b--x with a-->mid-->end
+       // replace b--x with mid-->end  where b is an endpoint
        { weight: 2,
-	 lhs: { node: [{ id: "a", label: { $not: { name: "node" } } },
-                       { id: "b", label: { endpoint: true } },
+	 lhs: { node: [{ id: "b", label: { endpoint: true } },
                        { id: "x", label: { name: "node" } }],
-                edge: [{ v: "a", w: "b", label: { name: "path" } },
-		       { v: "b", w: "x", label: { name: "edge" } },
+                edge: [{ v: "b", w: "x", label: { name: "edge" } },
 		       { v: "x", w: "b", label: { name: "edge" } }] },
-         rhs: { node: [{ id: "a" },
-                       { id: "mid", head:["b"], tail:["b"], label: { name: "room", dot: { pos: '${b.label.dot.pos}' } } },
+         rhs: { node: [{ id: "mid", head:["b"], tail:["b"], label: { name: "room", dot: { pos: '${b.label.dot.pos}' } } },
                        { id: "end", head:["x"], tail:["x"], label: { $merge: [ { $eval: '$b.label' },
 									       { dot: { pos: '${x.label.dot.pos}' } }] } }],
-                edge: [{ v: "a", w: "mid", label: { name: "path" } },
-		       { v: "mid", w: "end", label: { name: "path" } }] } },
+                edge: [{ v: "mid", w: "end", label: { name: "path" } }] } },
 
        // replace x--a-->... with herring<--a-->...
        { weight: .25,
@@ -103,6 +90,31 @@
 		       { v: "a", w: "d2", label: { name: "fork", dot: { style: "dotted" } } },
 		       { v: "d2", w: "c", label: { name: "path" } }] } },
 
+       
+       // cave: a->b->c adds a corner d
+       { weight: 1,
+         limit: 4,
+         lhs: { node: [{ id: "a", label: { $not: { name: "node" } } },
+                       { id: "b", label: { $not: { name: "node" } } },
+                       { id: "c", label: { $not: { name: "node" } } },
+                       { id: "x", label: { name: "node" } }],
+                edge: [{ v: "a", w: "b", label: { $or: [ { name: "path" }, { name: "cave" } ] } },
+		       { v: "b", w: "c", label: { $or: [ { name: "path" }, { name: "cave" } ] } },
+		       { v: "a", w: "x", label: { name: "edge" } },
+		       { v: "x", w: "a", label: { name: "edge" } },
+		       { v: "c", w: "x", label: { name: "edge" } },
+		       { v: "x", w: "c", label: { name: "edge" } }] },
+         rhs: { node: [{ id: "a" },
+                       { id: "b" },
+                       { id: "c" },
+                       { id: "d", head:["x"], tail:["x"], label: { name: "room", dot: { pos: '${x.label.dot.pos}' } } }],
+                edge: [{ v: "a", w: "b", label: { name: "cave", dot: { style: "dotted" } } },
+		       { v: "b", w: "c", label: { name: "cave", dot: { style: "dotted" } } },
+		       { v: "a", w: "d", label: { name: "cave", dot: { style: "dotted" } } },
+		       { v: "d", w: "c", label: { name: "cave", dot: { style: "dotted" } } },
+		       { v: "a", w: "c", label: { dot: { style: "dotted" } } },
+		       { v: "b", w: "d", label: { dot: { style: "dotted" } } }] } },
+
        // shortcut
        { limit: 3,
 	 lhs: { node: [{ id: "a", label: { $not: { name: "node" } } },
@@ -126,7 +138,7 @@
 		       { v: "c", w: "d", label: { name: "path" } }] } },
 
        // key-door
-       { limit: 2,
+       { limit: 1,
 	 weight: .5,
 	 lhs: { node: [{ id: "a", label: { $not: { name: "node" } } },
                        { id: "d", label: { $not: { name: "node" } } },

@@ -25,12 +25,14 @@ if (label) {
   graph.nodes().forEach (function (node) {
     var info = graph.node(node)
     info.dot = info.dot || {}
-    info.dot.label = info.name || ''
+    if (info.name)
+      info.dot.label = info.name
   })
   graph.edges().forEach (function (edge) {
     var info = graph.edge(edge)
     info.dot = info.dot || {}
-    info.dot.label = info.name || ''
+    if (info.name)
+      info.dot.label = info.name
   })
 }
 
