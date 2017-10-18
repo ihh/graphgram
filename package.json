@@ -1,6 +1,6 @@
 {
   "name": "graphgram",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Simple graph grammar library",
   "main": "index.js",
   "dependencies": {
@@ -20,7 +20,6 @@
   "scripts": {
     "test": "node ./node_modules/mocha/bin/mocha test/bootstrap.test.js test/integration/**/*.test.js"
   },
-
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ihh/graphgram.git"
