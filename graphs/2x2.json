@@ -1,6 +1,7 @@
 {
   "options": {
     "directed": true,
+    "multigraph": false,
     "compound": false
   },
   "nodes": [
@@ -10,7 +11,7 @@
         "x": 0,
         "y": 0,
         "dot": {
-          "pos": "0,0",
+          "pos": "0,128",
           "label": "node"
         },
         "name": "node"
@@ -22,7 +23,7 @@
         "x": 0,
         "y": 1,
         "dot": {
-          "pos": "0,128",
+          "pos": "0,0",
           "label": "node"
         },
         "name": "node"
@@ -34,7 +35,7 @@
         "x": 1,
         "y": 0,
         "dot": {
-          "pos": "128,0",
+          "pos": "128,128",
           "label": "node"
         },
         "name": "node"
@@ -46,7 +47,7 @@
         "x": 1,
         "y": 1,
         "dot": {
-          "pos": "128,128",
+          "pos": "128,0",
           "label": "init"
         },
         "name": "init"

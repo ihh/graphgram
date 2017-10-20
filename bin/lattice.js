@@ -53,7 +53,7 @@ for (var x = 0; x < size; ++x)
 		: (opt.options.node || defaultNodeName))
     g.setNode (xy(x,y), { x: x,
 			  y: y,
-			  dot: { pos: (x*nodePoints) + ',' + (y*nodePoints),
+			  dot: { pos: (x*nodePoints) + ',' + ((size-1-y)*nodePoints),
                                  label: name },
 			  name: name })
   }
@@ -78,7 +78,7 @@ for (var x = 0; x < size; ++x)
     if (y + 1 < size || periodic)
       addEdge (xy(x,y),
 	       xy(x,y+1),
-	       { dir: isDirected ? 'n' : 'v',
+	       { dir: isDirected ? 's' : 'v',
                  dot: { label: edgeName },
 		 name: edgeName })
 
@@ -93,7 +93,7 @@ for (var x = 0; x < size; ++x)
       if (y > 0 || periodic)
 	addEdge (xy(x,y),
 		 xy(x,y-1),
-		 { dir: 's',
+		 { dir: 'n',
                    dot: { label: edgeName },
 		   name: edgeName })
     }
