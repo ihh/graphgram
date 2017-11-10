@@ -26,8 +26,8 @@ var graphlib = require('graphlib'),
     Grammar = require('../graphgram').Grammar,
     fs = require('fs')
 
-var grammarJson = JSON.parse (fs.readFileSync
-          ('grammars/dungeon.json').toString())
+var grammarFile = 'grammars/dungeon.json'
+var grammarJson = JSON.parse (fs.readFileSync (grammarFile).toString())
 
 var grammar = new Grammar (grammarJson)
 var graph = grammar.evolve().graph
