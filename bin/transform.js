@@ -9,7 +9,7 @@ var fs = require('fs'),
     colors = require('colors'),
     Grammar = require('../index').Grammar
 
-var defaultGrammarFilename = 'grammars/dungeon.json'
+var defaultGrammarFilename = 'grammars/dungeon.js'
 
 var opt = getopt.create([
   ['g' , 'grammar=PATH'    , 'read grammar file (default "' + defaultGrammarFilename + '")'],
