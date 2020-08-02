@@ -55,7 +55,7 @@ if (!dotFile)
 
 const emojisFile = opt.options.emojis
 const emojis = (emojisFile
-                ? JSON.parse (fs.readFileSync(emojisFile).toString())
+                ? JSON.parse ('(()=>{return ' + fs.readFileSync(emojisFile).toString() + '})()')
                 : defaultEmojis)
 
 let seed = opt.options.seed
