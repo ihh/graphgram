@@ -14,6 +14,8 @@
     "tmp": "~0.0.33"
   },
   "devDependencies": {
+    "@jukben/emoji-search": "^2.0.1",
+    "emojilib": "^2.4.0",
     "mocha": "~3.2.0",
     "should": "~11.1.2"
   },
