@@ -491,7 +491,7 @@ Context.prototype.sampleRuleSite = function() {
   grammar.rules.forEach (function (rule, n) {
     if (rule.limit && context.ruleCount[rule.countType] >= rule.limit)
       return
-    if (rule.delay && this.iter < rule.delay)
+    if (rule.delay && context.iter < rule.delay)
       return
     
     var isomorphs = new SubgraphSearch (graph, rule.lhsGraph, { labelMatch }).isomorphisms
