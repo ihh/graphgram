@@ -4,7 +4,7 @@
   "description": "Simple graph grammar library",
   "main": "index.js",
   "dependencies": {
-    "lodash": "~4.11.1",
+    "lodash": "~4.17.19",
     "extend": "3.0.0",
     "jsonschema": "~1.1.1",
     "graphlib": "~2.1.1",
