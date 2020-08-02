@@ -45,11 +45,17 @@ var graph
 if (opt.options.input)
   graph = graphlib.json.read (JSON.parse (fs.readFileSync (opt.options.input)))
 
+var seed = opt.options.seed
+if (typeof(seed) === 'undefined') {
+  seed = new Date().getTime()
+  console.warn ("Random number seed: " + seed)
+}
+
 var info = grammar.evolve ({ graph: graph,
 			     verbose: opt.options.quiet ? 0 : (opt.options.verbose ? 2 : 1),
 			     limit: opt.options.limit,
 			     stage: opt.options.stage,
-			     seed: opt.options.seed })
+			     seed: seed })
 graph = info.graph
 
 var dotFilename = opt.options.dot
