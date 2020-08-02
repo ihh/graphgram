@@ -108,7 +108,7 @@ fs.readFileSync(dotFile).toString()
     if (match = edgeRegex.exec(line)) {
       src = match[1];
       dest = match[2];
-      type = 'headlabel'
+      type = 'taillabel'
     } else if (match = nodeRegex.exec(line)) {
       node = match[1];
       type = 'label'
