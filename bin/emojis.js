@@ -79,7 +79,7 @@ const toEmoji = (str) => {
   let result = str
   const emoji = (str[0] === '@'
                  ? emojiLib.lib[str.substr(1)]
-                 : randElement (emojiSearch (str.substr(1)).filter ((emoji) => emoji.name === str.substr(1))))
+                 : randElement (emojiSearch (str.substr(1)).filter ((emoji) => emoji.keywords.filter ((keyword) => keyword === str.substr(1)).length)))
   if (emoji) {
     result = emoji.char
     if (opt.options.fitzpatrick && emoji.fitzpatrick_scale) {
