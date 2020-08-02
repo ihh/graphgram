@@ -6,22 +6,29 @@ const fs = require('fs'),
       MersenneTwister = require('mersennetwister'),
       getopt = require('node-getopt'),
       emojiLib = require('emojilib'),
-      emojiSearch = require('@jukben/emoji-search').default
+      emojiSearch = require('@jukben/emoji-search').default,
+      Bracery = require('bracery').Bracery
+
+// #keyword gets replaced with a random emoji that matches keyword
+// @name gets replaced with a specific named emoji
 
 const defaultEmojis = {
   theme: {
     standard: {
-      live: ['#happy'],
-      enter: ['thinking','wave','tickets','arrow_forward'],
-      ignore: ['expressionless', 'running_man', 'running_woman'],
-      bypass: ['eyes', 'roll_eyes', 'unamused', 'no_entry'],
-      scenery: ['#building','#plant','#flower','#nature'],
-      x: ['#nature'],
-      crossroads: ['#plus','#x','#road'],
-      fork: ['#y','#road'],
-      rumor: ['#secret'],
-      treasure: ['#money'],
-      door: ['door']
+      rules: {},
+      labels: {
+        live: '#happy',
+        enter: '[@thinking|@wave|@tickets|@arrow_forward]',
+        ignore: '[@expressionless|@running_man|@running_woman]',
+        bypass: '[@eyes|@roll_eyes|@unamused|@no_entry]',
+        scenery: '[#building|#plant|#flower|#nature]',
+        x: '#nature',
+        crossroads: '[crossroads|junction][#plus|#x|#road]',
+        fork: '[#y|#road]',
+        rumor: '#secret',
+        treasure: '#money',
+        door: '@door'
+      }
     }
   }
 };
@@ -30,7 +37,6 @@ const opt = getopt.create([
   ['d' , 'dot=PATH'    , 'GraphViz file (required)'],
   ['e' , 'emojis=PATH' , 'JSON emojis file (optional)'],
   ['k' , 'keep'        , 'keep original label'],
-  ['p' , 'print'       , 'print all emoji options for debugging'],
   ['t' , 'theme=STRING', 'theme from emojis file (optional)'],
   ['f' , 'fitzpatrick' , 'use Fitzpatrick modifiers'],
   ['s' , 'seed=N'      , 'seed random number generator'],
@@ -57,29 +63,13 @@ const mt = new MersenneTwister (seed)
 const randElement = (array) => array[Math.floor (mt.rnd() * array.length)];
 
 const theme = emojis.theme[opt.options.theme || randElement (Object.keys(emojis.theme))]
+const bracery = new Bracery (theme.rules)
 
-const toEmoji = (options) => {
-  if (opt.options.print) {
-    options.forEach ((keyword) => {
-      const emojiList = (keyword[0] === '#'
-                         ? emojiSearch (keyword.substr(1))
-                         : [extend ({name:keyword}, emojiLib.lib[keyword])])
-      console.warn (keyword + " => " + emojiList.map ((emoji) => {
-        if (!emoji)
-          throw new Error ('Emoji ' + keyword + ' not found')
-        return emoji.name + emoji.char
-      }).join(","))
-    })
-  }
-  const keyword = randElement (options)
-  let result = keyword, emoji
-  if (keyword[0] === '#') {
-    const emojiList = emojiSearch (keyword.substr(1))
-    if (emojiList && emojiList.length) {
-      emoji = randElement (emojiList)
-    }
-  } else
-    emoji = extend ({ name: keyword }, emojiLib.lib[keyword])
+const toEmoji = (str) => {
+  let result = str
+  const emoji = (str[0] === '@'
+                 ? emojiLib.lib[str.substr(1)]
+                 : randElement (emojiSearch (str.substr(1))))
   if (emoji) {
     result = emoji.char
     if (opt.options.fitzpatrick && emoji.fitzpatrick_scale) {
@@ -91,13 +81,20 @@ const toEmoji = (options) => {
   return result
 }
 
+let vars = {}
+const expandBracery = (template) => {
+  let expansion = bracery.expand(template,{vars})
+  vars = expansion.vars
+  return expansion.text.replace (/([@#][a-z_]+)/g, toEmoji)
+}
+
 fs.readFileSync(dotFile).toString()
   .split ("\n")
   .forEach ((line) => {
     line = line.replace (/label="(.*?)"/g, (_m, label) => {
-      const emoji = toEmoji (theme[label] || ['#' + label])
-      console.warn ("Replacing " + label + " with " + emoji)
-      return 'label="' + (opt.options.keep ? label : "") + emoji + '"'
+      const expansion = expandBracery (theme.labels[label] || ('#' + label))
+      console.warn ("Replacing " + label + " with " + expansion)
+      return 'label="' + (opt.options.keep ? label : "") + expansion + '"'
     })
     console.log (line)
   })
