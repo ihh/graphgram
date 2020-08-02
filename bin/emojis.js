@@ -12,9 +12,9 @@ const defaultEmojis = {
   theme: {
     standard: {
       live: ['#happy'],
-      enter: ['thinking','wave','raised_hand'],
+      enter: ['thinking','wave','tickets','arrow_forward'],
       ignore: ['expressionless', 'running_man', 'running_woman'],
-      bypass: ['eyes', 'roll_eyes', 'unamused'],
+      bypass: ['eyes', 'roll_eyes', 'unamused', 'no_entry'],
       scenery: ['#building','#plant','#flower','#nature'],
       x: ['#nature'],
       crossroads: ['#plus','#x','#road'],
@@ -29,7 +29,8 @@ const defaultEmojis = {
 const opt = getopt.create([
   ['d' , 'dot=PATH'    , 'GraphViz file (required)'],
   ['e' , 'emojis=PATH' , 'JSON emojis file (optional)'],
-  ['p' , 'print'       , 'print all emojis'],
+  ['k' , 'keep'        , 'keep original label'],
+  ['p' , 'print'       , 'print all emoji options for debugging'],
   ['t' , 'theme=STRING', 'theme from emojis file (optional)'],
   ['f' , 'fitzpatrick' , 'use Fitzpatrick modifiers'],
   ['s' , 'seed=N'      , 'seed random number generator'],
@@ -96,7 +97,7 @@ fs.readFileSync(dotFile).toString()
     line = line.replace (/label="(.*?)"/g, (_m, label) => {
       const emoji = toEmoji (theme[label] || ['#' + label])
       console.warn ("Replacing " + label + " with " + emoji)
-      return 'label="' + emoji + '"'
+      return 'label="' + (opt.options.keep ? label : "") + emoji + '"'
     })
     console.log (line)
   })
