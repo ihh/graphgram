@@ -9,6 +9,8 @@ const fs = require('fs'),
       emojiSearch = require('@jukben/emoji-search').default,
       Bracery = require('bracery').Bracery
 
+// For node labels, $node is set to the node ID ($src, $dest are empty)
+// For edge labels, $src and $dest are the end node IDs ($node is empty)
 // #keyword gets replaced with a random emoji that matches keyword
 // @name gets replaced with a specific named emoji
 
@@ -88,10 +90,20 @@ const expandBracery = (template) => {
   return expansion.text.replace (/([@#][a-z_]+)/g, toEmoji)
 }
 
+const labelRegex = /label="(.*?)"/g;
+const nodeRegex = /^ *([0-9]+) *\[/;
+const edgeRegex = /^ *([0-9]+) *-> *([0-9]+) *\[/;
 fs.readFileSync(dotFile).toString()
   .split ("\n")
   .forEach ((line) => {
-    line = line.replace (/label="(.*?)"/g, (_m, label) => {
+    let node = '', src = '', dest = '', match
+    if (match = edgeRegex.exec(line)) {
+      src = match[1];
+      dest = match[2];
+    } else if (match = nodeRegex.exec(line))
+      node = match[1];
+    line = line.replace (labelRegex, (_m, label) => {
+      vars = extend (vars, { node, src, dest });
       const expansion = expandBracery (theme.labels[label] || ('#' + label))
       console.warn ("Replacing " + label + " with " + expansion)
       return 'label="' + (opt.options.keep ? label : "") + expansion + '"'
