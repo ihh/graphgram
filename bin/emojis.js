@@ -61,7 +61,7 @@ fs.readFileSync(dotFile).toString()
   .split ("\n")
   .forEach ((line) => {
     line = line.replace (/label="(.*)"/g, (_m, label) => {
-      return toEmoji (theme[label] || label)
+      return 'label="' + toEmoji (theme[label] || label) + '"'
     })
     console.log (line)
   })
