@@ -104,17 +104,20 @@ const edgeRegex = /^ *([0-9]+) *-> *([0-9]+) *\[/;
 fs.readFileSync(dotFile).toString()
   .split ("\n")
   .forEach ((line) => {
-    let node = '', src = '', dest = '', match
+    let node = '', src = '', dest = '', type, match
     if (match = edgeRegex.exec(line)) {
       src = match[1];
       dest = match[2];
-    } else if (match = nodeRegex.exec(line))
+      type = 'headlabel'
+    } else if (match = nodeRegex.exec(line)) {
       node = match[1];
+      type = 'label'
+    }
     line = line.replace (labelRegex, (_m, label) => {
       vars = extend (vars, { node, src, dest });
       const expansion = expandBracery (theme.labels[label] || ('#' + label))
       console.warn ("Replacing " + label + " with " + expansion)
-      return 'label="' + (opt.options.keep ? label : "") + expansion + '"'
+      return type + '="' + (opt.options.keep ? label : "") + expansion + '"'
     })
     console.log (line)
   })
