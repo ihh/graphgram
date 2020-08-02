@@ -9,6 +9,7 @@ const fs = require('fs'),
       emojiSearch = require('@jukben/emoji-search').default,
       Bracery = require('bracery').Bracery
 
+// Bracery dialect:
 // For node labels, $node is set to the node ID ($src, $dest are empty)
 // For edge labels, $src and $dest are the end node IDs ($node is empty)
 // #keyword gets replaced with a random emoji that matches keyword
@@ -38,8 +39,9 @@ const defaultEmojis = {
 const opt = getopt.create([
   ['d' , 'dot=PATH'    , 'GraphViz file (required)'],
   ['e' , 'emojis=PATH' , 'JSON emojis file (optional)'],
-  ['k' , 'keep'        , 'keep original label'],
+  ['i' , 'import=PATH' , 'JSON file from Bracery import directory (optional)'],
   ['t' , 'theme=STRING', 'theme from emojis file (optional)'],
+  ['k' , 'keep'        , 'keep original label'],
   ['f' , 'fitzpatrick' , 'use Fitzpatrick modifiers'],
   ['s' , 'seed=N'      , 'seed random number generator'],
   ['h' , 'help'        , 'display this help message']
@@ -65,7 +67,13 @@ const mt = new MersenneTwister (seed)
 const randElement = (array) => array[Math.floor (mt.rnd() * array.length)];
 
 const theme = emojis.theme[opt.options.theme || randElement (Object.keys(emojis.theme))]
-const bracery = new Bracery (theme.rules)
+let extraRules = {}
+if (opt.options.import) {
+  const imported = JSON.parse(fs.readFileSync(opt.options.import).toString())
+  imported.forEach ((entry) => { extraRules[entry.name] = entry.rules.map (rhs => rhs.join("")) })
+  console.warn(extraRules)
+}
+const bracery = new Bracery (extend (theme.rules, extraRules))
 
 const toEmoji = (str) => {
   let result = str
