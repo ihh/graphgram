@@ -28,7 +28,7 @@ opt.argv.forEach ((arg) => {
       console.log (arg + ' not found')
     else
       emojis.forEach ((emoji) => {
-        console.log (arg + ' ' + emoji.name + ' ' + emoji.char)
+        console.log (arg + ' ' + emoji.name + ' ' + emoji.char + '  ' + emoji.keywords.join(','))
       })
   }
 })
