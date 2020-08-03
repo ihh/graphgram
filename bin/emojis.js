@@ -115,7 +115,7 @@ fs.readFileSync(dotFile).toString()
     }
     line = line.replace (labelRegex, (_m, label) => {
       vars = extend (vars, { node, src, dest });
-      const expansion = expandBracery (theme.labels[label] || ('#' + label))
+      const expansion = label && expandBracery (theme.labels[label] || ('#' + label))
       console.warn ("Replacing " + label + " with " + expansion)
       return type + '="' + (opt.options.keep ? label : "") + expansion + '"'
     })
