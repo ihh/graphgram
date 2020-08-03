@@ -71,7 +71,6 @@ let extraRules = {}
 if (opt.options.import) {
   const imported = JSON.parse(fs.readFileSync(opt.options.import).toString())
   imported.forEach ((entry) => { extraRules[entry.name] = entry.rules.map (rhs => rhs.join("")) })
-  console.warn(extraRules)
 }
 const bracery = new Bracery (extend (theme.rules, extraRules))
 
