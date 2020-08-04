@@ -6,6 +6,7 @@ const getopt = require('node-getopt'),
 
 const opt = getopt.create([
   ['n' , 'name'        , 'search by name'],
+  ['r' , 'rule'        , 'generate Bracery alternation rule'],
   ['k' , 'keyword'     , 'search by keyword (default)'],
   ['h' , 'help'        , 'display this help message']
 ])              // create Getopt instance
@@ -26,6 +27,8 @@ opt.argv.forEach ((arg) => {
     const emojis = emojiSearch (arg)
     if (!emojis.length)
       console.log (arg + ' not found')
+    else if (opt.options.rule)
+      console.log ('[' + emojis.map((e)=>e.name).join('|') + ']')
     else
       emojis.forEach ((emoji) => {
         console.log (arg + ' ' + emoji.name + ' ' + emoji.char + '  ' + emoji.keywords.join(','))
