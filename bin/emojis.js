@@ -94,7 +94,7 @@ let vars = {}
 const expandBracery = (template) => {
   let expansion = bracery.expand(template,{vars})
   vars = expansion.vars
-  return expansion.text.replace (/([@#][a-z_]+)/g, toEmoji)
+  return expansion.text.replace (/([@#][a-z_0-9\-]+)/g, toEmoji)
 }
 
 const labelRegex = /label="(.*?)"/g;
