@@ -10,7 +10,13 @@ function isArray (obj) {
   return Object.prototype.toString.call(obj) === '[object Array]'
 }
 
-// main Grammar object
+/**
+ * Represents a graph grammar.
+ * @constructor
+ * @param {Object} json A description of the graph grammar, matching the JSON schema.
+ * @param {Object} [opts] Options that will be passed to [evolve]{@link Grammar#evolve}.
+ * 
+ */
 function Grammar (json, opts) {
   if (opts)
     extend (this, opts)
@@ -25,6 +31,25 @@ function Grammar (json, opts) {
   this.init()
 }
 
+/**
+ * @typedef {Object} EvolveReturnValue
+ * @property {Integer} iterations The number of times a transformation rule was applied
+ * @property {Graph} graph The transformed [graphlib]{@link https://www.npmjs.com/package/graphlib} graph
+ */
+
+/**
+ * @function{Grammar#evolve}
+ * @description Evolve a graph using a graph grammar.
+ * @param {Object} [opts] Options influencing the way the grammar is applied.
+ * @param {Object} [opts.rnd] Random number generator. Default is [MersenneTwister]{@link https://www.npmjs.com/package/mersennetwister}
+ * @param {Integer} [opts.seed] Seed for random number generator.
+ * @param {Graph} [opts.graph] Initial [graphlib]{@link https://www.npmjs.com/package/graphlib} graph. Default is a graph containing a single node whose ID is given by `opts.start`
+ * @param {String} [opts.start] Default label for the starting node of the initial graph. Default is to use the `start` property of the grammar.
+ * @param {Integer} [opts.limit] Maximum number of transformation rules to apply. Default is to use the limits specified by the grammar or subgrammars, if any
+ * @param {Integer} [opts.stage] Apply a specific stage of the grammar. GraphGram's grammars can consist of multiple subgrammars. Default is to apply all of them, one after the other.
+ * @param {Integer} [opts.verbose] Verbosity level. 0 is quiet (the default), 1 is the default for the CLI, 2+ is loud.
+ * @returns {EvolveReturnValue} An object containing the results of the grammar application.
+ */
 // main API method to evolve a graph using the grammar
 Grammar.prototype.evolve = function (opts) {
   var grammar = this
@@ -83,6 +108,12 @@ Grammar.prototype.evolve = function (opts) {
   return { iterations, graph }
 }
 
+/**
+ * @function{Grammar#toDot}
+ * @description Generate a GraphViz dot-format description of a graph.
+ * @param {Object} graph A graphlib graph.
+ * @returns {string} The graph in GraphViz dot format.
+ */
 // Convert graphlib graph to graphviz dot format
 Grammar.prototype.toDot = function (graph) {
   return [(graph.isDirected() ? "digraph" : "graph") + " G {"]
@@ -105,93 +136,109 @@ Grammar.prototype.dotAttrs = function (label) {
 // private validation & setup methods (yes I know they're not really private)
 Grammar.prototype.makeGraphSchema = function (lhs) {
   var canonical = this.canonical
-  var labelSchema = { '$ref': (lhs ? '#/definitions/lhs_label' : '#/definitions/rhs_label') }
-  var headTailSchema = { '$ref': (canonical ? '#/definitions/identifier_list' : '#/definitions/identifier_or_list') }
+  var labelSchema = lhs
+     ? { description: 'A query expression for matching a label on the left-hand side of a subgraph transformation rule.', '$ref': '#/definitions/lhs_label' }
+     : { description: 'A recipe for generating a label on the right-hand side of a subgraph transformation rule.', '$ref': '#/definitions/rhs_label' }
+  var headTailSchema = function(desc) { return { '$ref': (canonical ? '#/definitions/identifier_list' : '#/definitions/identifier_or_list') } }
   return {
+    description: lhs
+    ? 'This block specifies a pattern with which to match the subgraph on the left-hand side of the transformation rule.'
+    : 'This block specifies the subgraph generated on the right-hand side of the transformation rule, replacing the matched subgraph on the left-hand side.',
     oneOf: (canonical
-            ? []
-            : [{ type: 'array', items: { type: 'string' } },  // interpreted as a chain of nodes
-               { type: 'string' }])  // interpreted as a single node
+      ? []
+            : [{ description: 'An array of node labels. The ' + (lhs ? 'matched' : 'replacement') + ' subgraph is a chain of nodes.' + (lhs ? '' : ' The `head` and `tail` properties will be automatically set to (respectively) the first and last nodes on the left-hand side of the rule.'), type: 'array', items: { description: 'A node label.', type: 'string' } },
+               { description: 'A single node label. The ' + (lhs ? 'matched' : 'replacement') + ' subgraph contains exactly one node.' + (lhs ? '' : ' The `head` and `tail` properties will automatically be set to (respectively) the first and last nodes on the left-hand side of the rule.'), type: 'string' }])
       .concat ([
         { type: 'object',
+          description: 'A full description, including nodes and edges, of the subgraph to be ' + (lhs ? 'matched.' : 'used for replacement. If the `node` block is absent, it will be copied from the left-hand side.'),
           required: (canonical || lhs) ? ['node'] : [],
           additionalProperties: false,
           properties: {
             node: {
+              description: 'The set of nodes in the ' + (lhs ? 'matching' : 'replacement') + ' subgraph.',
               type: 'array',
               minItems: 1,
               items: {
                 oneOf: (canonical
                         ? []
-                        : [{ type: 'string' },  // interpreted as a label
-                           { type: 'array', minItems: 2, maxItems: 2, items: { type: 'string' } }]  // interpreted as [id,label]
+                        : [{ description: 'A node label.' + (lhs ? 'This pattern will match any node that has the corresponding string label.' : ''), type: 'string' },
+                           { description: 'A (node ID, node label) pair; both are strings. The ID can be used to reference the node elsewhere in the ' + (lhs ? 'rule.' : 'right-hand side of the rule.'), type: 'array', minItems: 2, maxItems: 2, items: { type: 'string' } }]
 			.concat (lhs ? [] : [
 			  { type: 'object',
+          description: 'A description of a node in the replacement subgraph.',
 			    additionalProperties: false,
 			    required: ['id','update'],
 			    properties:
-			    { id: { '$ref': '#/definitions/identifier' },
+			    { id: { description: 'An identifier that can be used to reference the node elsewhere in the ' + (lhs ? 'rule.' : 'right-hand side of the rule.'), '$ref': '#/definitions/identifier' },
                               update: labelSchema,
-                              head: headTailSchema,
-                              tail: headTailSchema } } ]))
+                              head: headTailSchema('The identifier(s) of the node, or nodes, whose incoming edges will be replaced by incoming edges to this node. (The identifiers are as defined in the `node` block.)'),
+                              tail: headTailSchema('The identifier(s) of the node, or nodes, whose outgoing edges will be replaced by outgoing edges from this node.  (The identifiers are as defined in the `node` block.)') } } ]))
 		  .concat ([
                     { type: 'object',
+                      description: lhs ? 'A pattern for matching a node in a subgraph.' : 'A description of a node in the replacement subgraph.',
                       additionalProperties: false,
                       properties: extend ({
-                        id: { '$ref': '#/definitions/identifier' },
+                        id: { description: 'A node identifier that can be used to reference the node elsewhere in the ' + (lhs ? 'rule.' : 'right-hand side of the rule.'), '$ref': '#/definitions/identifier' },
                         label: labelSchema,
                       }, lhs ? {
-                        strict: { type: 'boolean' }  // if true, then matching graph node cannot have any neighbors that are not in the subgraph
+                        strict: { description: 'If true, then any graph node that matches this pattern rule cannot have any neighbors that are not also in the subgraph defined by the pattern rule', type: 'boolean' }
                       } : {
-                        head: headTailSchema,  // if an lhs node is specified here, incoming edges to that lhs node will be attached
-                        tail: headTailSchema   // if an lhs node is specified here, outgoing edges from that lhs node will be attached
+                        head: headTailSchema('The identifier(s) of the node, or nodes, whose incoming edges will be replaced by incoming edges to this node. (The identifiers are as defined in the `node` block.)'),  // if an lhs node is specified here, incoming edges to that lhs node will be attached
+                        tail: headTailSchema('The identifier(s) of the node, or nodes, whose outgoing edges will be replaced by outgoing edges from this node. (The identifiers are as defined in the `node` block.)')   // if an lhs node is specified here, outgoing edges from that lhs node will be attached
                       })
                     }
                   ])
               }
             },
             edge: {
+              description: 'The set of edges in the ' + (lhs ? 'matching subgraph. Note that, unless the `induce` property is set (within this rule or at a higher level in the grammar), this match is permissive rather than strict: the subgraph is allowed to contain more edges than specified here. In contrast, if `induce` is set, then ONLY the edges in this subgraph are allowed for a match.' : 'replacement subgraph. Note that under some circumstances, edges will be automatically added even if not specified here. Specifically, if the `node` property is array-valued, then a chain of edges will be added automatically between consecutive nodes in the list.'),
               type: 'array',
               items: {
+                description: 'An edge being ' + (lhs ? 'matched on the left' : 'added on the right') + '-hand side of a transformation rule. '
+                + (lhs
+                  ? 'Note that the edge may be specified as an array of the form `[v,w,label,id]` or as an object with those properties; the two are functionally equivalent. `v` and `w` represent source and target node IDs, respectively; `label` is a query expression to match edge labels; and `id` is a temporary identifier for the edge. `label` and `id` are optional.'
+                  : ''),
                 anyOf: (canonical
                         ? []
                         : [{ type: 'array',
+                        description: 'A tuple describing an edge being ' + (lhs ? 'matched on the left' : 'added on the right') + '-hand side of a transformation rule.',
 			     minItems: 2,
 			     maxItems: lhs ? 4 : 3,
-			     items: [ { type: ['string','number'] },  // v
-				      { type: ['string','number'] },  // w
-				      labelSchema ]  // label
-                             .concat (lhs ? [{type:'string'}] : []) }]  // id
-                        .concat (lhs ? [] : [
-                          { type: 'object',
-                            additionalProperties: false,
-                            required: ['id'],
-                            properties: { id: { '$ref': '#/definitions/identifier' },
-					  label: labelSchema }
-                          },
-                          { type: 'object',
-                            additionalProperties: false,
-                            required: ['id','update'],
-                            properties: { id: { '$ref': '#/definitions/identifier' },
-					  update: labelSchema }
-                          },
+			     items: [ { description: 'The source node of the edge, using the node numbering or naming scheme defined in the `node` block.', type: ['string','number'] },  // v
+				            { description: 'The target node of the edge, using the node numbering or naming scheme defined in the `node` block.', type: ['string','number'] },  // w
+				              extend ({}, labelSchema, { description: 'A query expression for matching the edge label.' }) ]  // label
+                                  .concat (lhs ? [{description: 'A temporary identifier for the edge being matched. This is temporary in the sense that it is defined only while the transformation rule is being applied.', type:'string'}] : []) }]  // id
+                                  .concat (lhs ? [] : [
+                                    { type: 'object',
+                                      additionalProperties: false,
+                                      required: ['id'],
+                                      properties: { id: { '$ref': '#/definitions/identifier' },
+                                                    label: labelSchema }
+                                    },
+                                    { type: 'object',
+                                      additionalProperties: false,
+                                      required: ['id','update'],
+                                      properties: { id: { '$ref': '#/definitions/identifier' },
+                                                    update: labelSchema }
+                                    },
 			  { type: 'object',
-			    additionalProperties: false,
+          description: 'An object describing an edge being ' + (lhs ? 'matched on the left' : 'added on the right') + '-hand side of a transformation rule',			    additionalProperties: false,
 			    required: ['v','w','update'],
-			    properties: { v: { '$ref': '#/definitions/identifier' },
-					  w: { '$ref': '#/definitions/identifier' },
+			    properties: { v: { description: 'The source node of the edge, using the node identifiers defined in the `node` block.', '$ref': '#/definitions/identifier' },
+					  w: { description: 'The target node of the edge, using the node identifiers defined in the `node` block.', '$ref': '#/definitions/identifier' },
 					  update: labelSchema }
 			  },
 			  { type: 'string' }]))
                   .concat ([
                     { type: 'object',
+                      description: 'An object describing an edge being ' + (lhs ? 'matched on the left' : 'added on the right') + '-hand side of a transformation rule.',			    additionalProperties: false,
                       additionalProperties: false,
                       required: ['v','w'],
                       properties: extend ({
-                        v: { '$ref': '#/definitions/identifier' },
-                        w: { '$ref': '#/definitions/identifier' },
-                        label: labelSchema
-                      }, lhs ? { id: { '$ref': '#/definitions/identifier' } } : {})
+                        v: { description: 'The source node of the edge, using the node naming scheme defined in the `node` block.', '$ref': '#/definitions/identifier' },
+                        w: { description: 'The target node of the edge, using the node naming scheme defined in the `node` block.', '$ref': '#/definitions/identifier' },
+                        label: extend ({}, labelSchema, { description: 'A query expression for matching the edge label.' })
+                      }, lhs ? { id: { description: 'A temporary identifier for the edge being matched. This is temporary in the sense that it is defined only while the transformation rule is being applied.', '$ref': '#/definitions/identifier' } } : {})
                     }
                   ])
               }
@@ -204,26 +251,29 @@ Grammar.prototype.makeGraphSchema = function (lhs) {
 
 Grammar.prototype.makeGrammarSchema = function (topLevel, staged) {
   return extend ({
+    description: (topLevel ? (staged ? 'A top-level grammar, consisting of one or more stages.' : 'A top-level grammar, consisting of just one stage.') : 'A subgrammar'),
     type: 'object',
     required: (staged ? ['stages'] : ['rules']),
     additionalProperties: false,
     properties: extend
     (staged
-     ? { stages: { type: 'array', minItems: 1, items: { '$ref': '#/definitions/subgrammar' } } }
+     ? { stages: { description: 'The successive stages to be applied. Each stage is a separate subgrammar of transformations.', type: 'array', minItems: 1, items: { '$ref': '#/definitions/subgrammar' } } }
      : { rules: { '$ref': '#/definitions/rules' } },
-     { name: { type: 'string' },
-       limit: { type: 'number' },  // maximum number of rule applications
-       induced: { type: 'boolean' } },  // default 'induced', overridden by 'induced' for individual stages/rules
-     topLevel ? {start:{}} : {})
+     { name: { description: 'The name of this ' + (topLevel ? 'grammar.' : 'subgrammar.'), type: 'string' },
+       limit: { description: 'The maximum number of rule applications.', type: 'number' },
+       induced: { description: 'Default value of the `induced` parameter, which governs the specificty of subgraph-matching. Can be overridden by the `induced` parameter for stages and rules.', type: 'boolean' } },
+     topLevel ? {start:{ description: 'The start node label for the default initial graph.' }} : {})
   })
 }
 
 Grammar.prototype.makeSchema = function() {
   return {
+    description: "Specification of a `graphgram` stochastic grammar for graph transformation.",
     oneOf: [ this.makeGrammarSchema(true,false),
-	     this.makeGrammarSchema(true,true) ],
+	           this.makeGrammarSchema(true,true) ],
     definitions: {
       identifier: {
+        description: 'An identifier',
         type: 'string',
         pattern: '^[a-zA-Z_0-9]+$'
       },
@@ -234,21 +284,23 @@ Grammar.prototype.makeSchema = function() {
       lhs_label: this.matcher.makeLhsLabelSchema ({ '$ref': '#/definitions/lhs_label' }),
       rhs_label: this.matcher.makeRhsLabelSchema ({ '$ref': '#/definitions/rhs_label' }),
       rules: {
+        description: 'The list of subgraph transformation rules in this grammar.',
         type: 'array',
         items: {
+          description: 'An individual subgraph transformation rule.',
           type: 'object',
           required: ['lhs','rhs'],
           additionalProperties: false,
           properties: {
-	    name: { type: 'string' },
+	    name: { description: 'The name of this rule.', type: 'string' },
             lhs: this.makeGraphSchema(true),
             rhs: this.makeGraphSchema(false),
-            induced: { type: 'boolean' },  // if true, match lhs using induced subgraph search
-            condition: { type: 'string' },  // eval'd string. Use $id.label for labels, $id.match[n] for n'th matching group, $$iter for iteration#, $$graph for graph
-            weight: { type: ['string','number'] },  // string is eval'd using same expansions as 'condition'
-            limit: { type: 'number' },  // max number of times this rule can be used
-            type: { type: 'string' },  // if set, then 'limit' for this rule applies to all rules of this type
-            delay: { type: 'number' },  // minimum number of iterations (rule applications) before this rule can be used
+            induced: { description: 'If true, then the subgraph induced by the nodes on the left-hand side of the rule must exactly match the subgraph as specified in the rule: no additional nodes within the subgraph are allowed.', type: 'boolean' },  // if true, match lhs using induced subgraph search
+            condition: { description: 'A string that will be passed to JavaScript\'s `eval` for evaluation, to test whether the match should proceed. Use $id.label for labels, $id.match[n] for n\'th matching group, $$iter for iteration#, $$graph for graph.', type: 'string' },  // eval'd string. Use $id.label for labels, $id.match[n] for n'th matching group, $$iter for iteration#, $$graph for graph
+            weight: { description: 'A probabilistic weight that is used to determine which rules should be randomly applied, in the event that multiple patterns match.', type: ['string','number'] },  // string is eval'd using same expansions as 'condition'
+            limit: { description: 'The maximum number of times this rule can be used to transform the graph.', type: 'number' },
+            type: { description: 'If a `type` is specified, then any `limit` specified for this rule is interpreted as the maximum number of times any rule with the same `type` can be used.', type: 'string' },
+            delay: { description: 'The minimum number of times another transformation rule must be applied to the graph before this rule can be used.', type: 'number' },
           }
         }
       },
@@ -327,7 +379,7 @@ Grammar.prototype.init = function() {
 	    if (typeof(node.id) === 'undefined')
 	      node.id = nodeIdFactory(n)
 	    // if a node doesn't have a 'label' but has the ID of an LHS node, then copy the label over
-	    // or, if it has an '{assign:X}', create the corresponding label expression '{$assign:[{$eval:"$id.label"},X]}'
+	    // or, if it has an '{update:X}', create the corresponding label expression '{$assign:[{$eval:"$id.label"},X]}'
 	    if (typeof(node.label) === 'undefined' && lhsInfo && lhsInfo.isNodeId[node.id])
 	      node.label = node.update
 	      ? grammar.matcher.makeLabelUpdate (node.id, node.update)
@@ -693,22 +745,26 @@ Matcher.prototype.makeExtendedContext = function (isomorph) {
 
 // schema for label queries (used in 'label' on the LHS of rules)
 Matcher.prototype.makeLhsLabelSchema = function (ref) {
+  let descRef = function (desc) { return extend ({}, ref, { description: desc }) }
   return {
-    oneOf: [{ type: ['string','number','boolean','array'] },
+    description: 'A query for matching a label in a graph entity (i.e. a node or edge).',
+    oneOf: [{ description: 'This query will match any label that has exactly the specified type and value.', type: ['string','number','boolean','array'] },
             { type: 'object',
+              description: 'A compound query expression that is formed by combining, or modifying, one or more constituent query expressions.',
               maxProperties: 1,
               additionalProperties: false,
               properties: {
-                '$equals': ref,
-                '$contains': ref,
-                '$find': ref,
-                '$not': ref,
-                '$and': { type: 'array', minItems: 1, items: ref },
-                '$or': { type: 'array', minItems: 1, items: ref },
-                '$test': { type: 'string' }
+                '$equals': descRef('The label object must exactly match the given query expression, with no additional properties.'),
+                '$contains': descRef('The label object must match the given query expression, but is allowed to contain additional properties.'),
+                '$find': descRef('A recursive descent search of the label object must find an element that matches the given query expression.'),
+                '$not': descRef('The label must NOT match the given query expression.'),
+                '$and': { description: 'The label must match all of the query expressions given in the list.', type: 'array', minItems: 1, items: ref },
+                '$or': { description: 'The label must match one of the query expressions given in the list.', type: 'array', minItems: 1, items: ref },
+                '$test': { description: 'A flexible user-defined query. The text value of this query expression, when `eval`\'d, defines a JavaScript function which, when called with the label as its sole argument, must return a truthy value.', type: 'string' }
               }
             },
             { type: 'object',
+              description: 'The label must be a JSON object, it must have a key that matches the given key (which can be any string - hence the "pattern property" in the schema which is just a wildcard), and the value must match the query expression associated with that key.',
               additionalProperties: false,
               patternProperties: {
                 '^[^$].*$': ref

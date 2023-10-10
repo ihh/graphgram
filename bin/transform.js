@@ -30,8 +30,10 @@ var opt = getopt.create([
     .parseSystem() // parse command line
 
 var grammarOpts = { canonical: opt.options.canonical }
-if (opt.options.schema)
+if (opt.options.schema) {
   fs.writeFileSync (opt.options.schema, JSON.stringify (new Grammar(null,grammarOpts).makeSchema(), null, 2))
+  process.exit()
+}
 
 var grammarFilename = opt.options.grammar || defaultGrammarFilename
 var grammarText = fs.readFileSync(grammarFilename).toString()
