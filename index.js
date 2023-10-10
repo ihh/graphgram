@@ -162,15 +162,15 @@ Grammar.prototype.makeGraphSchema = function (lhs) {
                 oneOf: (canonical
                         ? []
                         : [{ description: 'A node label.' + (lhs ? 'This pattern will match any node that has the corresponding string label.' : ''), type: 'string' },
-                           { description: 'A (node ID, node label) pair; both are strings. The ID can be used to reference the node elsewhere in the ' + (lhs ? 'rule.' : 'right-hand side of the rule.'), type: 'array', minItems: 2, maxItems: 2, items: { type: 'string' } }]
+                           { description: 'A (node ID, node label) pair; both are strings. ' + (lhs ? 'The ID can be used to reference the node elsewhere in the rule.' : 'The ID either refers to a node that was matched on the left-hand side of the rule, or is completely new.'), type: 'array', minItems: 2, maxItems: 2, items: { type: 'string' } }]
 			.concat (lhs ? [] : [
 			  { type: 'object',
-          description: 'A description of a node in the replacement subgraph.',
+          description: 'An incremental update to a node in the matched subgraph.',
 			    additionalProperties: false,
 			    required: ['id','update'],
 			    properties:
-			    { id: { description: 'An identifier that can be used to reference the node elsewhere in the ' + (lhs ? 'rule.' : 'right-hand side of the rule.'), '$ref': '#/definitions/identifier' },
-                              update: labelSchema,
+			    { id: { description: 'A node identifier that refers to a node that was matched on the left-hand side of the rule.', '$ref': '#/definitions/identifier' },
+                              update: extend ({}, labelSchema, {description:'An update to the existing node label, whose properties will be copied over to the existing node label using Lodash `assign` semantics. It follows that this update will typically be an object rather than another type of value (though the schema also allows string-valued, array-valued, or numeric values here).'}),
                               head: headTailSchema('The identifier(s) of the node, or nodes, whose incoming edges will be replaced by incoming edges to this node. (The identifiers are as defined in the `node` block.)'),
                               tail: headTailSchema('The identifier(s) of the node, or nodes, whose outgoing edges will be replaced by outgoing edges from this node.  (The identifiers are as defined in the `node` block.)') } } ]))
 		  .concat ([
@@ -178,7 +178,7 @@ Grammar.prototype.makeGraphSchema = function (lhs) {
                       description: lhs ? 'A pattern for matching a node in a subgraph.' : 'A description of a node in the replacement subgraph.',
                       additionalProperties: false,
                       properties: extend ({
-                        id: { description: 'A node identifier that can be used to reference the node elsewhere in the ' + (lhs ? 'rule.' : 'right-hand side of the rule.'), '$ref': '#/definitions/identifier' },
+                        id: { description: lhs ? 'A node identifier that can be used to reference the node elsewhere in the rule.' : 'A node identifier that either refers to a node that was matched on the left-hand side of the rule, or is completely new.', '$ref': '#/definitions/identifier' },
                         label: labelSchema,
                       }, lhs ? {
                         strict: { description: 'If true, then any graph node that matches this pattern rule cannot have any neighbors that are not also in the subgraph defined by the pattern rule', type: 'boolean' }
@@ -191,53 +191,56 @@ Grammar.prototype.makeGraphSchema = function (lhs) {
               }
             },
             edge: {
-              description: 'The set of edges in the ' + (lhs ? 'matching subgraph. Note that, unless the `induce` property is set (within this rule or at a higher level in the grammar), this match is permissive rather than strict: the subgraph is allowed to contain more edges than specified here. In contrast, if `induce` is set, then ONLY the edges in this subgraph are allowed for a match.' : 'replacement subgraph. Note that under some circumstances, edges will be automatically added even if not specified here. Specifically, if the `node` property is array-valued, then a chain of edges will be added automatically between consecutive nodes in the list.'),
+              description: 'The set of edges in the ' + (lhs ? 'matching subgraph. Note that, unless the `induce` property is set (within this rule or at a higher level in the grammar), this match is permissive rather than strict: the subgraph is allowed to contain more edges than specified here. In contrast, if `induce` is set, then ONLY the edges in this subgraph are allowed for a match.' : 'replacement subgraph. (Note that under some circumstances, edges will be automatically added even if not specified here. Specifically, if the `node` property is array-valued, then a chain of edges will be added automatically between consecutive nodes in the list.)'),
               type: 'array',
               items: {
                 description: 'An edge being ' + (lhs ? 'matched on the left' : 'added on the right') + '-hand side of a transformation rule. '
                 + (lhs
                   ? 'Note that the edge may be specified as an array of the form `[v,w,label,id]` or as an object with those properties; the two are functionally equivalent. `v` and `w` represent source and target node IDs, respectively; `label` is a query expression to match edge labels; and `id` is a temporary identifier for the edge. `label` and `id` are optional.'
-                  : ''),
+                  : 'The edge may be specified in a variety of ways, but the basic idea is to either specify a source and target (`v,w`) or an identifier referencing an existing edge (`id`), and then to replace the label completely (`label`) or update it incrementally (`update`). Specifically the edge can be a `[v,w,label]` tuple (where `v` and `w` are the source and target of the new edge), as an `{id,label}` object (where `id` is the ID of an edge introduced on the left-hand side of the transformation rule; in this and the `[v,w,label]` tuple the label is optional, and will be copied from an existing edge if one exists), as an `{id,update}` object (where `update` represents an incremental update to the existing edge label), as a `{v,w,update}` object, as a string (which will be interpreted as the ID of an existing edge), or as a `{v,w,label}` object.'),
                 anyOf: (canonical
                         ? []
                         : [{ type: 'array',
-                        description: 'A tuple describing an edge being ' + (lhs ? 'matched on the left' : 'added on the right') + '-hand side of a transformation rule.',
-			     minItems: 2,
-			     maxItems: lhs ? 4 : 3,
-			     items: [ { description: 'The source node of the edge, using the node numbering or naming scheme defined in the `node` block.', type: ['string','number'] },  // v
-				            { description: 'The target node of the edge, using the node numbering or naming scheme defined in the `node` block.', type: ['string','number'] },  // w
-				              extend ({}, labelSchema, { description: 'A query expression for matching the edge label.' }) ]  // label
+                              description: 'A tuple describing an edge being ' + (lhs ? 'matched on the left' : 'added on the right') + '-hand side of a transformation rule.',
+                              minItems: 2,
+                              maxItems: lhs ? 4 : 3,
+                              items: [ { description: 'The source node of the edge, using the node numbering or naming scheme defined in the `node` block.', type: ['string','number'] },  // v
+                                        { description: 'The target node of the edge, using the node numbering or naming scheme defined in the `node` block.', type: ['string','number'] },  // w
+                                          extend ({}, labelSchema, { description: lhs ? 'A query expression for matching the edge label.' : 'An expression for the replacement edge label.' }) ]  // label
                                   .concat (lhs ? [{description: 'A temporary identifier for the edge being matched. This is temporary in the sense that it is defined only while the transformation rule is being applied.', type:'string'}] : []) }]  // id
-                                  .concat (lhs ? [] : [
-                                    { type: 'object',
-                                      additionalProperties: false,
-                                      required: ['id'],
-                                      properties: { id: { '$ref': '#/definitions/identifier' },
-                                                    label: labelSchema }
-                                    },
-                                    { type: 'object',
-                                      additionalProperties: false,
-                                      required: ['id','update'],
-                                      properties: { id: { '$ref': '#/definitions/identifier' },
-                                                    update: labelSchema }
-                                    },
+                          .concat (lhs ? [] : [
+                            { type: 'object',
+                              description: 'An object describing an edge being added on the right-hand side of a transformation rule.',
+                              additionalProperties: false,
+                              required: ['id'],
+                              properties: { id: { description: 'An edge identifer from the subgraph matched on the left-hand side of the transformation rule.', '$ref': '#/definitions/identifier' },
+                                            label: labelSchema }
+                            },
+                            { type: 'object',
+                              description: 'An object describing an incremental update to an edge on the right-hand side of a transformation rule.',
+                              additionalProperties: false,
+                              required: ['id','update'],
+                              properties: { id: { '$ref': '#/definitions/identifier' },
+                                            update: extend ({}, labelSchema, {description:'A incremental update to the existing edge label.'}) }
+                            },
 			  { type: 'object',
-          description: 'An object describing an edge being ' + (lhs ? 'matched on the left' : 'added on the right') + '-hand side of a transformation rule',			    additionalProperties: false,
+          description: 'An object describing an incremental update to an edge on the right-hand side of a transformation rule.',
+          additionalProperties: false,
 			    required: ['v','w','update'],
 			    properties: { v: { description: 'The source node of the edge, using the node identifiers defined in the `node` block.', '$ref': '#/definitions/identifier' },
 					  w: { description: 'The target node of the edge, using the node identifiers defined in the `node` block.', '$ref': '#/definitions/identifier' },
-					  update: labelSchema }
+					  update: extend ({}, labelSchema, {description:'A incremental update to the existing edge label.'}) }
 			  },
-			  { type: 'string' }]))
+			  { description: 'An edge identifer from the subgraph matched on the left-hand side of the transformation rule. The edge will be copied unmodified.', type: 'string' }]))
                   .concat ([
                     { type: 'object',
-                      description: 'An object describing an edge being ' + (lhs ? 'matched on the left' : 'added on the right') + '-hand side of a transformation rule.',			    additionalProperties: false,
+                      description: 'An object describing an edge being ' + (lhs ? 'matched on the left' : 'added on the right') + '-hand side of a transformation rule.',
                       additionalProperties: false,
                       required: ['v','w'],
                       properties: extend ({
                         v: { description: 'The source node of the edge, using the node naming scheme defined in the `node` block.', '$ref': '#/definitions/identifier' },
                         w: { description: 'The target node of the edge, using the node naming scheme defined in the `node` block.', '$ref': '#/definitions/identifier' },
-                        label: extend ({}, labelSchema, { description: 'A query expression for matching the edge label.' })
+                        label: extend ({}, labelSchema, { description: lhs ? 'A query expression for matching the edge label.' : 'The new edge label.' })
                       }, lhs ? { id: { description: 'A temporary identifier for the edge being matched. This is temporary in the sense that it is defined only while the transformation rule is being applied.', '$ref': '#/definitions/identifier' } } : {})
                     }
                   ])
@@ -251,7 +254,7 @@ Grammar.prototype.makeGraphSchema = function (lhs) {
 
 Grammar.prototype.makeGrammarSchema = function (topLevel, staged) {
   return extend ({
-    description: (topLevel ? (staged ? 'A top-level grammar, consisting of one or more stages.' : 'A top-level grammar, consisting of just one stage.') : 'A subgrammar'),
+    description: (topLevel ? (staged ? 'A top-level grammar, consisting of one or more stages.' : 'A top-level grammar, consisting of just one stage.') : 'A subgrammar, corresponding to an individual stage of graph transformation.'),
     type: 'object',
     required: (staged ? ['stages'] : ['rules']),
     additionalProperties: false,
@@ -287,7 +290,7 @@ Grammar.prototype.makeSchema = function() {
         description: 'The list of subgraph transformation rules in this grammar.',
         type: 'array',
         items: {
-          description: 'An individual subgraph transformation rule.',
+          description: 'An individual subgraph transformation rule. Each rule proceeds by matching a subgraph whose pattern is specified on the left-hand side (the `lhs`), and replacing it with a subgraph specified on the right-hand side (`rhs`). There are various different syntactical forms depending on the complexity and topology of the matching and replacement subgraphs, and whether properties (like edges and labels) are to be changed or copied over unmodified.',
           type: 'object',
           required: ['lhs','rhs'],
           additionalProperties: false,
@@ -845,18 +848,20 @@ Matcher.prototype.labelMatch = function (gLabel, sLabel, opts) {
 // schema for label evaluations (used in 'condition' & 'weight' on LHS of rules, and 'label' on RHS of rules)
 Matcher.prototype.makeRhsLabelSchema = function (ref) {
   return {
-    oneOf: [{ type: ['string','number','boolean','array'] },
+    oneOf: [{ description: 'Generates a label with exactly the specified type and value. For string-valued labels, or arrays that include strings, the string may include substrings of the form `${id.label}` where `id` is an identifier that has been assigned, during this transformation rule, to a previously referenced node or edge.', type: ['string','number','boolean','array'] },
             { type: 'object',
+              description: 'Generates a label using a functional expression that typically involves evaluating a string as JavaScript. The JavaScript may refer to the labels of nodes or edges that have previously been assigned IDs, using the syntax `$id.label`.',
               maxProperties: 1,
               additionalProperties: false,
               properties: {
-                '$eval': { type: ['string','array','object'] },
-                '$extend': { type: 'array', minItems: 2, items: ref },
-                '$assign': { type: 'array', minItems: 2, items: ref },
-                '$merge': { type: 'array', minItems: 2, items: ref }
+                '$eval': { description: 'Generates a label by evaluating a JavaScript string.', type: ['string','array','object'] },
+                '$extend': { description: 'Generates a label by applying `extend` to its arguments, where the semantics of `extend` skip undefined values.', type: 'array', minItems: 2, items: ref },
+                '$assign': { description: 'Generates a label by applying the Lodash `assign` function to its arguments, where the semantics of `assign` do *not* skip undefined values.', type: 'array', minItems: 2, items: ref },
+                '$merge': { description: 'Generates a label by applying the Lodash `merge` function to its arguments, i.e. performing a recursive traversal and attempting to merge at each level.', type: 'array', minItems: 2, items: ref }
               }
             },
             { type: 'object',
+              description: 'Generates a JSON object with the given key(s), mapping to value(s) which are themselves label expressions.',
               additionalProperties: false,
               patternProperties: {
                 '^[^$].*$': ref
