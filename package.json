@@ -5,26 +5,15 @@
   "main": "index.js",
   "dependencies": {
     "colors": "1.1.2",
-    "cytoscape": "^3.15.2",
-    "cytoscape-dagre": "^2.2.2",
-    "extend": "3.0.0",
+    "extend": "^3.0.2",
     "graphlib": "~2.1.1",
     "jsonschema": "~1.1.1",
-    "lodash": "~4.11.1",
+    "lodash": "^4.17.21",
     "mersennetwister": "~0.2.3",
     "node-getopt": "~0.2.3",
     "tmp": "~0.0.33"
   },
-  "devDependencies": {
-    "@jukben/emoji-search": "^2.0.1",
-    "bracery": "^1.1.2",
-    "emojilib": "^2.4.0",
-    "mocha": "~3.2.0",
-    "should": "~11.1.2"
-  },
-  "scripts": {
-    "test": "node ./node_modules/mocha/bin/mocha test/bootstrap.test.js test/integration/**/*.test.js"
-  },
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ihh/graphgram.git"
