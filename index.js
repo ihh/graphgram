@@ -14,13 +14,19 @@ function isArray (obj) {
  * Represents a graph grammar.
  * @constructor
  * @param {Object} json A description of the graph grammar, matching the [JSON schema]{@link https://ihh.github.io/graphgram/schema_doc.html}.
- * @param {Object} [opts] Options that will be passed to [evolve]{@link Grammar#evolve}.
- * 
+ * @param {Object} [opts] Options
+ * @param {Boolean} [opts.canonical] If true, the grammar JSON must be strictly canonical: both LHS and RHS must have full `node` and `edge` sections
+ * @param {Boolean} [opts.no_llm] If true, the command-line LLM plugin will not be registered
+ * @param {Boolean} [opts.llm] Command-line interface to the LLM plugin. The default is `llm`
  */
 function Grammar (json, opts) {
   if (opts)
     extend (this, opts)
-  this.matcher = this.matcher || new Matcher()
+  if (!this.matcher) {
+    this.matcher = new Matcher()
+    if (!this.no_llm)
+      this.registerRhsLabelExecFunction ('llm', opts.llm || 'llm', "Generate text using command-line LLM interface. By default this is llm, which must be separately installed: https://github.com/simonw/llm", true)
+  }
 
   this.rules = []
   if (json) {
@@ -29,6 +35,26 @@ function Grammar (json, opts) {
   }
 
   this.init()
+}
+
+Grammar.prototype.registerRhsLabelFunction = function (funcName, func, schema) {
+  this.matcher.rhsLabelFunc['$' + funcName] = { func, schema }
+}
+
+Grammar.prototype.registerRhsLabelExecFunction = function (funcName, command, description, quoteFlag) {
+  const execSync = require('child_process').execSync
+  const argDesc = 'Argument to \'' + command + '\''
+  const warn = this.warn.bind(this)
+  this.registerRhsLabelFunction (funcName, 
+    function() {
+      let args = _.flattenDeep(Array.prototype.slice.call(arguments,0));
+      if (quoteFlag)
+       args = '"' + args.join(' ').replace(/(["'$`\\])/g,'\\$1') + '"'
+      let cmd = command + ' ' + args
+      warn(colors.yellow(cmd));
+      return execSync(cmd).toString()
+    },
+    { description, oneOf: [{ description: argDesc, type: 'string' }, { type: 'array', items: { description: argDesc, type: 'string' }}] })
 }
 
 /**
@@ -147,7 +173,7 @@ Grammar.prototype.makeGraphSchema = function (lhs) {
     oneOf: (canonical
       ? []
             : [{ description: 'An array of node labels. The ' + (lhs ? 'matched' : 'replacement') + ' subgraph is a chain of nodes.' + (lhs ? '' : ' The `head` and `tail` properties will be automatically set to (respectively) the first and last nodes on the left-hand side of the rule.'), type: 'array', items: { description: 'A node label.', type: 'string' } },
-               { description: 'A single node label. The ' + (lhs ? 'matched' : 'replacement') + ' subgraph contains exactly one node.' + (lhs ? '' : ' The `head` and `tail` properties will automatically be set to (respectively) the first and last nodes on the left-hand side of the rule.'), type: 'string' }])
+               { description: 'A single node label. The ' + (lhs ? 'matched' : 'replacement') + ' subgraph contains exactly one node.' + (lhs ? 'The string can be a regular expression, to be matched against the node label.' : ' The `head` and `tail` properties will automatically be set to (respectively) the first and last nodes on the left-hand side of the rule.'), type: 'string' }])
       .concat ([
         { type: 'object',
           description: 'A full description, including nodes and edges, of the subgraph to be ' + (lhs ? 'matched.' : 'used for replacement. If the `node` block is absent, it will be copied from the left-hand side.'),
@@ -268,6 +294,12 @@ Grammar.prototype.makeGrammarSchema = function (topLevel, staged) {
      topLevel ? {start:{ description: 'The start node label for the default initial graph.' }} : {})
   })
 }
+
+/**
+ * @function{Grammar#makeSchema}
+ * @description Get the JSON schema for a graph grammar.
+ * @returns {Object} The JSON schema.
+ */
 
 Grammar.prototype.makeSchema = function() {
   return {
@@ -483,6 +515,11 @@ Grammar.prototype.canonicalGraphJson = function (graph, lhs) {
   return { node: graph.node, edge: graph.edge }
 }
 
+/**
+ * @function{Grammar#canonicalJson}
+ * @description Returns the canonical JSON for a graph grammar.
+ * @returns {Object} The JSON representation of the grammar.
+ */
 Grammar.prototype.canonicalJson = function() {
   var grammar = this
   var grammarProps = ['name','limit','induced','start']
@@ -719,7 +756,10 @@ function Matcher() {
     evalKey:  '$eval',
     extendKey:  '$extend',  // skips undefined values
     assignKey:  '$assign',  // does not skip undefined values
-    mergeKey:  '$merge'  // is recursive
+    mergeKey:  '$merge',  // is recursive
+
+    // plugins
+    rhsLabelFunc: {}
   })
 }
 
@@ -847,18 +887,20 @@ Matcher.prototype.labelMatch = function (gLabel, sLabel, opts) {
 
 // schema for label evaluations (used in 'condition' & 'weight' on LHS of rules, and 'label' on RHS of rules)
 Matcher.prototype.makeRhsLabelSchema = function (ref) {
+  const rhsLabelKeys = Object.keys(this.rhsLabelFunc).sort()
   return {
     oneOf: [{ description: 'Generates a label with exactly the specified type and value. For string-valued labels, or arrays that include strings, the string may include substrings of the form `${id.label}` where `id` is an identifier that has been assigned, during this transformation rule, to a previously referenced node or edge.', type: ['string','number','boolean','array'] },
             { type: 'object',
               description: 'Generates a label using a functional expression that typically involves evaluating a string as JavaScript. The JavaScript may refer to the labels of nodes or edges that have previously been assigned IDs, using the syntax `$id.label`.',
               maxProperties: 1,
               additionalProperties: false,
-              properties: {
+              properties: extend ({
                 '$eval': { description: 'Generates a label by evaluating a JavaScript string.', type: ['string','array','object'] },
                 '$extend': { description: 'Generates a label by applying `extend` to its arguments, where the semantics of `extend` skip undefined values.', type: 'array', minItems: 2, items: ref },
                 '$assign': { description: 'Generates a label by applying the Lodash `assign` function to its arguments, where the semantics of `assign` do *not* skip undefined values.', type: 'array', minItems: 2, items: ref },
                 '$merge': { description: 'Generates a label by applying the Lodash `merge` function to its arguments, i.e. performing a recursive traversal and attempting to merge at each level.', type: 'array', minItems: 2, items: ref }
-              }
+              },
+              _.zipObject (rhsLabelKeys, rhsLabelKeys.map((key)=>this.rhsLabelFunc[key].schema)))
             },
             { type: 'object',
               description: 'Generates a JSON object with the given key(s) (which can be any string that does not begin with a "$" character), mapping to value(s) which are themselves label expressions.',
@@ -900,14 +942,21 @@ Matcher.prototype.newLabel = function (isomorph, expr) {
   } else if (isArray(expr))
     return expr.map (newLabelForIsomorph)
   else if (typeof(expr) === 'object') {
-    if (expr[this.evalKey])
-      return this.evalMatchExpr (isomorph, expr[this.evalKey])
-    if (expr[this.extendKey])
-      return extend.apply (null, expr[this.extendKey].map (newLabelForIsomorph))
-    if (expr[this.assignKey])
-      return _.assign.apply (null, expr[this.assignKey].map (newLabelForIsomorph))
-    if (expr[this.mergeKey])
-      return _.merge.apply (null, expr[this.mergeKey].map (newLabelForIsomorph))
+    if (Object.keys(expr).length === 1 && Object.keys(expr)[0][0] === '$') {
+      const key = Object.keys(expr)[0]
+      const value = expr[key]
+      if (key === this.evalKey)
+        return this.evalMatchExpr (isomorph, value)
+      if (key === this.extendKey)
+        return extend.apply (null, value.map (newLabelForIsomorph))
+      if (key === this.assignKey)
+        return _.assign.apply (null, value.map (newLabelForIsomorph))
+      if (key === this.mergeKey)
+        return _.merge.apply (null, value.map (newLabelForIsomorph))
+      if (this.rhsLabelFunc[key])
+        return this.rhsLabelFunc[key].func.apply (null, isArray(value) ? value.map (newLabelForIsomorph) : [newLabelForIsomorph(value)])
+      // unknown '$func' key... fall through to default case
+    }
     return this.mapObject (expr, newLabelForIsomorph)
   } else
     return expr

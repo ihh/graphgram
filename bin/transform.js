@@ -10,6 +10,7 @@ var fs = require('fs'),
     Grammar = require('../index').Grammar
 
 var defaultGrammarFilename = 'grammars/dungeon.js'
+var defaultLLM = 'llm'
 
 var opt = getopt.create([
   ['g' , 'grammar=PATH'    , 'read grammar file (default "' + defaultGrammarFilename + '")'],
@@ -21,6 +22,7 @@ var opt = getopt.create([
   ['d' , 'dot=PATH'        , 'write graphviz DOT file'],
   ['L' , 'limit=N'         , 'limit number of rule applications'],
   ['S' , 'stage=N'         , 'only run one stage'],
+  ['m' , 'llm=COMMAND'     , 'command-line interface to LLM (default "' + defaultLLM + '")'],
   ['s' , 'seed=N'          , 'seed random number generator'],
   ['q' , 'quiet'           , 'do not print pretty log messages'],
   ['v' , 'verbose'         , 'print MORE pretty log messages'],
@@ -29,16 +31,21 @@ var opt = getopt.create([
     .bindHelp()     // bind option 'help' to default action
     .parseSystem() // parse command line
 
-var grammarOpts = { canonical: opt.options.canonical }
+var verbosity = opt.options.quiet ? 0 : (opt.options.verbose ? 2 : 1)
+var grammarOpts = { canonical: opt.options.canonical, llm: opt.options.llm || defaultLLM, verbose: verbosity }
+function makeGrammar (json) {
+  return new Grammar (json, grammarOpts)
+}
+
 if (opt.options.schema) {
-  fs.writeFileSync (opt.options.schema, JSON.stringify (new Grammar(null,grammarOpts).makeSchema(), null, 2))
+  fs.writeFileSync (opt.options.schema, JSON.stringify (makeGrammar(null).makeSchema(), null, 2))
   process.exit()
 }
 
 var grammarFilename = opt.options.grammar || defaultGrammarFilename
 var grammarText = fs.readFileSync(grammarFilename).toString()
 var grammarJson = eval ('(' + grammarText + ')')
-var grammar = new Grammar (grammarJson, grammarOpts)
+var grammar = makeGrammar (grammarJson)
 
 if (opt.options.canonize)
   fs.writeFileSync (opt.options.canonize, JSON.stringify (grammar.canonicalJson(), null, 2))
@@ -54,7 +61,7 @@ if (typeof(seed) === 'undefined') {
 }
 
 var info = grammar.evolve ({ graph: graph,
-			     verbose: opt.options.quiet ? 0 : (opt.options.verbose ? 2 : 1),
+			     verbose: verbosity,
 			     limit: opt.options.limit,
 			     stage: opt.options.stage,
 			     seed: seed })

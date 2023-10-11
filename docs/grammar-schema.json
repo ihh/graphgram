@@ -201,6 +201,22 @@
               "items": {
                 "$ref": "#/definitions/rhs_label"
               }
+            },
+            "$llm": {
+              "description": "Generate text using command-line LLM interface. By default this is llm, which must be separately installed: https://github.com/simonw/llm",
+              "oneOf": [
+                {
+                  "description": "Argument to 'llm'",
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "description": "Argument to 'llm'",
+                    "type": "string"
+                  }
+                }
+              ]
             }
           }
         },
@@ -244,7 +260,7 @@
                 }
               },
               {
-                "description": "A single node label. The matched subgraph contains exactly one node.",
+                "description": "A single node label. The matched subgraph contains exactly one node.The string can be a regular expression, to be matched against the node label.",
                 "type": "string"
               },
               {
