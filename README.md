@@ -1,6 +1,6 @@
 # graphgram
 A graph grammar library.
-Transforms [graphlib](https://github.com/cpettitt/graphlib) graphs
+Transforms [graphlib](https://github.com/dagrejs/graphlib) graphs
 using a configurable, JSON-described graph grammar
 (see e.g. [these slides by Matilde Marcolli](http://www.its.caltech.edu/~matilde/GraphGrammarsLing.pdf),
  or [this RPS article](https://www.rockpapershotgun.com/2017/03/10/how-unexplored-generates-great-roguelike-dungeons/) about Joris Dormans' _Unexplored_ (which uses the technique to generate "cyclic" levels),
@@ -34,7 +34,7 @@ var grammar = new Grammar (grammarJson)
 var graph = grammar.evolve().graph
 ~~~~
 
-The resulting `graph` is a [graphlib](https://github.com/cpettitt/graphlib) object.
+The resulting `graph` is a [graphlib](https://github.com/dagrejs/graphlib) object.
 
 ## Command-line usage
 
