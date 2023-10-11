@@ -1,12 +1,17 @@
 # graphgram
-A graph grammar library.
-Transforms [graphlib](https://github.com/dagrejs/graphlib) graphs
+More complete documentation is available at the following links:
+- [Getting started guide](https://ihh.github.io/graphgram/jsdoc/tutorial-getting-started.html)
+- [API documentation](https://ihh.github.io/graphgram/jsdoc/Grammar.html)
+- [JSON schema documentation](https://ihh.github.io/graphgram/schema_doc.html)
+
+`graphgram` is a graph grammar library.
+It transforms [graphlib](https://github.com/dagrejs/graphlib) graphs
 using a configurable, JSON-described graph grammar
 (see e.g. [these slides by Matilde Marcolli](http://www.its.caltech.edu/~matilde/GraphGrammarsLing.pdf),
  or [this RPS article](https://www.rockpapershotgun.com/2017/03/10/how-unexplored-generates-great-roguelike-dungeons/) about Joris Dormans' _Unexplored_ (which uses the technique to generate "cyclic" levels),
  or [this Wikipedia page](https://en.wikipedia.org/wiki/Graph_rewriting)).
 
-Can be used for game levels, procedural content, simulations, etc.
+It can be used for game levels, procedural content, simulations, etc.
 
 ## Scripts
 

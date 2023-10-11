@@ -13,7 +13,7 @@ function isArray (obj) {
 /**
  * Represents a graph grammar.
  * @constructor
- * @param {Object} json A description of the graph grammar, matching the JSON schema.
+ * @param {Object} json A description of the graph grammar, matching the [JSON schema]{@link https://ihh.github.io/graphgram/schema_doc.html}.
  * @param {Object} [opts] Options that will be passed to [evolve]{@link Grammar#evolve}.
  * 
  */
