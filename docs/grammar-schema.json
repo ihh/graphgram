@@ -1,0 +1,640 @@
+{
+  "description": "Specification of a `graphgram` stochastic grammar for graph transformation.",
+  "oneOf": [
+    {
+      "description": "A top-level grammar, consisting of just one stage.",
+      "type": "object",
+      "required": [
+        "rules"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "rules": {
+          "$ref": "#/definitions/rules"
+        },
+        "name": {
+          "description": "The name of this grammar.",
+          "type": "string"
+        },
+        "limit": {
+          "description": "The maximum number of rule applications.",
+          "type": "number"
+        },
+        "induced": {
+          "description": "Default value of the `induced` parameter, which governs the specificty of subgraph-matching. Can be overridden by the `induced` parameter for stages and rules.",
+          "type": "boolean"
+        },
+        "start": {
+          "description": "The start node label for the default initial graph."
+        }
+      }
+    },
+    {
+      "description": "A top-level grammar, consisting of one or more stages.",
+      "type": "object",
+      "required": [
+        "stages"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "stages": {
+          "description": "The successive stages to be applied. Each stage is a separate subgrammar of transformations.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/subgrammar"
+          }
+        },
+        "name": {
+          "description": "The name of this grammar.",
+          "type": "string"
+        },
+        "limit": {
+          "description": "The maximum number of rule applications.",
+          "type": "number"
+        },
+        "induced": {
+          "description": "Default value of the `induced` parameter, which governs the specificty of subgraph-matching. Can be overridden by the `induced` parameter for stages and rules.",
+          "type": "boolean"
+        },
+        "start": {
+          "description": "The start node label for the default initial graph."
+        }
+      }
+    }
+  ],
+  "definitions": {
+    "identifier": {
+      "description": "An identifier",
+      "type": "string",
+      "pattern": "^[a-zA-Z_0-9]+$"
+    },
+    "identifier_list": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/identifier"
+      }
+    },
+    "identifier_or_list": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/definitions/identifier_list"
+        }
+      ]
+    },
+    "lhs_label": {
+      "description": "A query for matching a label in a graph entity (i.e. a node or edge).",
+      "oneOf": [
+        {
+          "description": "This query will match any label that has exactly the specified type and value.",
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "array"
+          ]
+        },
+        {
+          "type": "object",
+          "description": "A compound query expression that is formed by combining, or modifying, one or more constituent query expressions.",
+          "maxProperties": 1,
+          "additionalProperties": false,
+          "properties": {
+            "$equals": {
+              "$ref": "#/definitions/lhs_label",
+              "description": "The label object must exactly match the given query expression, with no additional properties."
+            },
+            "$contains": {
+              "$ref": "#/definitions/lhs_label",
+              "description": "The label object must match the given query expression, but is allowed to contain additional properties."
+            },
+            "$find": {
+              "$ref": "#/definitions/lhs_label",
+              "description": "A recursive descent search of the label object must find an element that matches the given query expression."
+            },
+            "$not": {
+              "$ref": "#/definitions/lhs_label",
+              "description": "The label must NOT match the given query expression."
+            },
+            "$and": {
+              "description": "The label must match all of the query expressions given in the list.",
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/definitions/lhs_label"
+              }
+            },
+            "$or": {
+              "description": "The label must match one of the query expressions given in the list.",
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/definitions/lhs_label"
+              }
+            },
+            "$test": {
+              "description": "A flexible user-defined query. The text value of this query expression, when `eval`'d, defines a JavaScript function which, when called with the label as its sole argument, must return a truthy value.",
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "description": "The label must be a JSON object, it must have a key that matches the given key (which can be any string that does not begin with a \"$\" character), and the value must match the query expression associated with that key.",
+          "additionalProperties": false,
+          "patternProperties": {
+            "^[^$].*$": {
+              "$ref": "#/definitions/lhs_label"
+            }
+          }
+        }
+      ]
+    },
+    "rhs_label": {
+      "oneOf": [
+        {
+          "description": "Generates a label with exactly the specified type and value. For string-valued labels, or arrays that include strings, the string may include substrings of the form `${id.label}` where `id` is an identifier that has been assigned, during this transformation rule, to a previously referenced node or edge.",
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "array"
+          ]
+        },
+        {
+          "type": "object",
+          "description": "Generates a label using a functional expression that typically involves evaluating a string as JavaScript. The JavaScript may refer to the labels of nodes or edges that have previously been assigned IDs, using the syntax `$id.label`.",
+          "maxProperties": 1,
+          "additionalProperties": false,
+          "properties": {
+            "$eval": {
+              "description": "Generates a label by evaluating a JavaScript string.",
+              "type": [
+                "string",
+                "array",
+                "object"
+              ]
+            },
+            "$extend": {
+              "description": "Generates a label by applying `extend` to its arguments, where the semantics of `extend` skip undefined values.",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "$ref": "#/definitions/rhs_label"
+              }
+            },
+            "$assign": {
+              "description": "Generates a label by applying the Lodash `assign` function to its arguments, where the semantics of `assign` do *not* skip undefined values.",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "$ref": "#/definitions/rhs_label"
+              }
+            },
+            "$merge": {
+              "description": "Generates a label by applying the Lodash `merge` function to its arguments, i.e. performing a recursive traversal and attempting to merge at each level.",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "$ref": "#/definitions/rhs_label"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "description": "Generates a JSON object with the given key(s) (which can be any string that does not begin with a \"$\" character), mapping to value(s) which are themselves label expressions.",
+          "additionalProperties": false,
+          "patternProperties": {
+            "^[^$].*$": {
+              "$ref": "#/definitions/rhs_label"
+            }
+          }
+        }
+      ]
+    },
+    "rules": {
+      "description": "The list of subgraph transformation rules in this grammar.",
+      "type": "array",
+      "items": {
+        "description": "An individual subgraph transformation rule. Each rule proceeds by matching a subgraph whose pattern is specified on the left-hand side (the `lhs`), and replacing it with a subgraph specified on the right-hand side (`rhs`). There are various different syntactical forms depending on the complexity and topology of the matching and replacement subgraphs, and whether properties (like edges and labels) are to be changed or copied over unmodified.",
+        "type": "object",
+        "required": [
+          "lhs",
+          "rhs"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "description": "The name of this rule.",
+            "type": "string"
+          },
+          "lhs": {
+            "description": "This block specifies a pattern with which to match the subgraph on the left-hand side of the transformation rule.",
+            "oneOf": [
+              {
+                "description": "An array of node labels. The matched subgraph is a chain of nodes.",
+                "type": "array",
+                "items": {
+                  "description": "A node label.",
+                  "type": "string"
+                }
+              },
+              {
+                "description": "A single node label. The matched subgraph contains exactly one node.",
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "description": "A full description, including nodes and edges, of the subgraph to be matched.",
+                "required": [
+                  "node"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "node": {
+                    "description": "The set of nodes in the matching subgraph.",
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "oneOf": [
+                        {
+                          "description": "A node label.This pattern will match any node that has the corresponding string label.",
+                          "type": "string"
+                        },
+                        {
+                          "description": "A (node ID, node label) pair; both are strings. The ID can be used to reference the node elsewhere in the rule.",
+                          "type": "array",
+                          "minItems": 2,
+                          "maxItems": 2,
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "description": "A pattern for matching a node in a subgraph.",
+                          "additionalProperties": false,
+                          "properties": {
+                            "id": {
+                              "description": "A node identifier that can be used to reference the node elsewhere in the rule.",
+                              "$ref": "#/definitions/identifier"
+                            },
+                            "label": {
+                              "description": "A query expression for matching a label on the left-hand side of a subgraph transformation rule.",
+                              "$ref": "#/definitions/lhs_label"
+                            },
+                            "strict": {
+                              "description": "If true, then any graph node that matches this pattern rule cannot have any neighbors that are not also in the subgraph defined by the pattern rule",
+                              "type": "boolean"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "edge": {
+                    "description": "The set of edges in the matching subgraph. Note that, unless the `induce` property is set (within this rule or at a higher level in the grammar), this match is permissive rather than strict: the subgraph is allowed to contain more edges than specified here. In contrast, if `induce` is set, then ONLY the edges in this subgraph are allowed for a match.",
+                    "type": "array",
+                    "items": {
+                      "description": "An edge being matched on the left-hand side of a transformation rule. Note that the edge may be specified as an array of the form `[v,w,label,id]` or as an object with those properties; the two are functionally equivalent. `v` and `w` represent source and target node IDs, respectively; `label` is a query expression to match edge labels; and `id` is a temporary identifier for the edge. `label` and `id` are optional.",
+                      "anyOf": [
+                        {
+                          "type": "array",
+                          "description": "A tuple describing an edge being matched on the left-hand side of a transformation rule.",
+                          "minItems": 2,
+                          "maxItems": 4,
+                          "items": [
+                            {
+                              "description": "The source node of the edge, using the node numbering or naming scheme defined in the `node` block.",
+                              "type": [
+                                "string",
+                                "number"
+                              ]
+                            },
+                            {
+                              "description": "The target node of the edge, using the node numbering or naming scheme defined in the `node` block.",
+                              "type": [
+                                "string",
+                                "number"
+                              ]
+                            },
+                            {
+                              "description": "A query expression for matching the edge label.",
+                              "$ref": "#/definitions/lhs_label"
+                            },
+                            {
+                              "description": "A temporary identifier for the edge being matched. This is temporary in the sense that it is defined only while the transformation rule is being applied.",
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "description": "An object describing an edge being matched on the left-hand side of a transformation rule.",
+                          "additionalProperties": false,
+                          "required": [
+                            "v",
+                            "w"
+                          ],
+                          "properties": {
+                            "v": {
+                              "description": "The source node of the edge, using the node naming scheme defined in the `node` block.",
+                              "$ref": "#/definitions/identifier"
+                            },
+                            "w": {
+                              "description": "The target node of the edge, using the node naming scheme defined in the `node` block.",
+                              "$ref": "#/definitions/identifier"
+                            },
+                            "label": {
+                              "description": "A query expression for matching the edge label.",
+                              "$ref": "#/definitions/lhs_label"
+                            },
+                            "id": {
+                              "description": "A temporary identifier for the edge being matched. This is temporary in the sense that it is defined only while the transformation rule is being applied.",
+                              "$ref": "#/definitions/identifier"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "rhs": {
+            "description": "This block specifies the subgraph generated on the right-hand side of the transformation rule, replacing the matched subgraph on the left-hand side.",
+            "oneOf": [
+              {
+                "description": "An array of node labels. The replacement subgraph is a chain of nodes. The `head` and `tail` properties will be automatically set to (respectively) the first and last nodes on the left-hand side of the rule.",
+                "type": "array",
+                "items": {
+                  "description": "A node label.",
+                  "type": "string"
+                }
+              },
+              {
+                "description": "A single node label. The replacement subgraph contains exactly one node. The `head` and `tail` properties will automatically be set to (respectively) the first and last nodes on the left-hand side of the rule.",
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "description": "A full description, including nodes and edges, of the subgraph to be used for replacement. If the `node` block is absent, it will be copied from the left-hand side.",
+                "required": [],
+                "additionalProperties": false,
+                "properties": {
+                  "node": {
+                    "description": "The set of nodes in the replacement subgraph.",
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "oneOf": [
+                        {
+                          "description": "A node label.",
+                          "type": "string"
+                        },
+                        {
+                          "description": "A (node ID, node label) pair; both are strings. The ID either refers to a node that was matched on the left-hand side of the rule, or is completely new.",
+                          "type": "array",
+                          "minItems": 2,
+                          "maxItems": 2,
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "description": "An incremental update to a node in the matched subgraph.",
+                          "additionalProperties": false,
+                          "required": [
+                            "id",
+                            "update"
+                          ],
+                          "properties": {
+                            "id": {
+                              "description": "A node identifier that refers to a node that was matched on the left-hand side of the rule.",
+                              "$ref": "#/definitions/identifier"
+                            },
+                            "update": {
+                              "description": "An update to the existing node label, whose properties will be copied over to the existing node label using Lodash `assign` semantics. It follows that this update will typically be an object rather than another type of value (though the schema also allows string-valued, array-valued, or numeric values here).",
+                              "$ref": "#/definitions/rhs_label"
+                            },
+                            "head": {
+                              "$ref": "#/definitions/identifier_or_list"
+                            },
+                            "tail": {
+                              "$ref": "#/definitions/identifier_or_list"
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "description": "A description of a node in the replacement subgraph.",
+                          "additionalProperties": false,
+                          "properties": {
+                            "id": {
+                              "description": "A node identifier that either refers to a node that was matched on the left-hand side of the rule, or is completely new.",
+                              "$ref": "#/definitions/identifier"
+                            },
+                            "label": {
+                              "description": "A recipe for generating a label on the right-hand side of a subgraph transformation rule.",
+                              "$ref": "#/definitions/rhs_label"
+                            },
+                            "head": {
+                              "$ref": "#/definitions/identifier_or_list"
+                            },
+                            "tail": {
+                              "$ref": "#/definitions/identifier_or_list"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "edge": {
+                    "description": "The set of edges in the replacement subgraph. (Note that under some circumstances, edges will be automatically added even if not specified here. Specifically, if the `node` property is array-valued, then a chain of edges will be added automatically between consecutive nodes in the list.)",
+                    "type": "array",
+                    "items": {
+                      "description": "An edge being added on the right-hand side of a transformation rule. The edge may be specified in a variety of ways, but the basic idea is to either specify a source and target (`v,w`) or an identifier referencing an existing edge (`id`), and then to replace the label completely (`label`) or update it incrementally (`update`). Specifically the edge can be a `[v,w,label]` tuple (where `v` and `w` are the source and target of the new edge), as an `{id,label}` object (where `id` is the ID of an edge introduced on the left-hand side of the transformation rule; in this and the `[v,w,label]` tuple the label is optional, and will be copied from an existing edge if one exists), as an `{id,update}` object (where `update` represents an incremental update to the existing edge label), as a `{v,w,update}` object, as a string (which will be interpreted as the ID of an existing edge), or as a `{v,w,label}` object.",
+                      "anyOf": [
+                        {
+                          "type": "array",
+                          "description": "A tuple describing an edge being added on the right-hand side of a transformation rule.",
+                          "minItems": 2,
+                          "maxItems": 3,
+                          "items": [
+                            {
+                              "description": "The source node of the edge, using the node numbering or naming scheme defined in the `node` block.",
+                              "type": [
+                                "string",
+                                "number"
+                              ]
+                            },
+                            {
+                              "description": "The target node of the edge, using the node numbering or naming scheme defined in the `node` block.",
+                              "type": [
+                                "string",
+                                "number"
+                              ]
+                            },
+                            {
+                              "description": "An expression for the replacement edge label.",
+                              "$ref": "#/definitions/rhs_label"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "description": "An object describing an edge being added on the right-hand side of a transformation rule.",
+                          "additionalProperties": false,
+                          "required": [
+                            "id"
+                          ],
+                          "properties": {
+                            "id": {
+                              "description": "An edge identifer from the subgraph matched on the left-hand side of the transformation rule.",
+                              "$ref": "#/definitions/identifier"
+                            },
+                            "label": {
+                              "description": "A recipe for generating a label on the right-hand side of a subgraph transformation rule.",
+                              "$ref": "#/definitions/rhs_label"
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "description": "An object describing an incremental update to an edge on the right-hand side of a transformation rule.",
+                          "additionalProperties": false,
+                          "required": [
+                            "id",
+                            "update"
+                          ],
+                          "properties": {
+                            "id": {
+                              "$ref": "#/definitions/identifier"
+                            },
+                            "update": {
+                              "description": "A incremental update to the existing edge label.",
+                              "$ref": "#/definitions/rhs_label"
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "description": "An object describing an incremental update to an edge on the right-hand side of a transformation rule.",
+                          "additionalProperties": false,
+                          "required": [
+                            "v",
+                            "w",
+                            "update"
+                          ],
+                          "properties": {
+                            "v": {
+                              "description": "The source node of the edge, using the node identifiers defined in the `node` block.",
+                              "$ref": "#/definitions/identifier"
+                            },
+                            "w": {
+                              "description": "The target node of the edge, using the node identifiers defined in the `node` block.",
+                              "$ref": "#/definitions/identifier"
+                            },
+                            "update": {
+                              "description": "A incremental update to the existing edge label.",
+                              "$ref": "#/definitions/rhs_label"
+                            }
+                          }
+                        },
+                        {
+                          "description": "An edge identifer from the subgraph matched on the left-hand side of the transformation rule. The edge will be copied unmodified.",
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "description": "An object describing an edge being added on the right-hand side of a transformation rule.",
+                          "additionalProperties": false,
+                          "required": [
+                            "v",
+                            "w"
+                          ],
+                          "properties": {
+                            "v": {
+                              "description": "The source node of the edge, using the node naming scheme defined in the `node` block.",
+                              "$ref": "#/definitions/identifier"
+                            },
+                            "w": {
+                              "description": "The target node of the edge, using the node naming scheme defined in the `node` block.",
+                              "$ref": "#/definitions/identifier"
+                            },
+                            "label": {
+                              "description": "The new edge label.",
+                              "$ref": "#/definitions/rhs_label"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "induced": {
+            "description": "If true, then the subgraph induced by the nodes on the left-hand side of the rule must exactly match the subgraph as specified in the rule: no additional nodes within the subgraph are allowed.",
+            "type": "boolean"
+          },
+          "condition": {
+            "description": "A string that will be passed to JavaScript's `eval` for evaluation, to test whether the match should proceed. Use $id.label for labels, $id.match[n] for n'th matching group, $$iter for iteration#, $$graph for graph.",
+            "type": "string"
+          },
+          "weight": {
+            "description": "A probabilistic weight that is used to determine which rules should be randomly applied, in the event that multiple patterns match.",
+            "type": [
+              "string",
+              "number"
+            ]
+          },
+          "limit": {
+            "description": "The maximum number of times this rule can be used to transform the graph.",
+            "type": "number"
+          },
+          "type": {
+            "description": "If a `type` is specified, then any `limit` specified for this rule is interpreted as the maximum number of times any rule with the same `type` can be used.",
+            "type": "string"
+          },
+          "delay": {
+            "description": "The minimum number of times another transformation rule must be applied to the graph before this rule can be used.",
+            "type": "number"
+          }
+        }
+      }
+    },
+    "subgrammar": {
+      "description": "A subgrammar, corresponding to an individual stage of graph transformation.",
+      "type": "object",
+      "required": [
+        "rules"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "rules": {
+          "$ref": "#/definitions/rules"
+        },
+        "name": {
+          "description": "The name of this subgrammar.",
+          "type": "string"
+        },
+        "limit": {
+          "description": "The maximum number of rule applications.",
+          "type": "number"
+        },
+        "induced": {
+          "description": "Default value of the `induced` parameter, which governs the specificty of subgraph-matching. Can be overridden by the `induced` parameter for stages and rules.",
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
