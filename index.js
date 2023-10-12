@@ -16,17 +16,12 @@ function isArray (obj) {
  * @param {Object} json A description of the graph grammar, matching the [JSON schema]{@link https://ihh.github.io/graphgram/schema_doc.html}.
  * @param {Object} [opts] Options
  * @param {Boolean} [opts.canonical] If true, the grammar JSON must be strictly canonical: both LHS and RHS must have full `node` and `edge` sections
- * @param {Boolean} [opts.no_llm] If true, the command-line LLM plugin will not be registered
- * @param {Boolean} [opts.llm] Command-line interface to the LLM plugin. The default is `llm`
  */
 function Grammar (json, opts) {
   if (opts)
     extend (this, opts)
-  if (!this.matcher) {
+  if (!this.matcher)
     this.matcher = new Matcher()
-    if (!this.no_llm)
-      this.registerRhsLabelExecFunction ('llm', opts.llm || 'llm', "Generate text using command-line LLM interface. By default this is llm, which must be separately installed: https://github.com/simonw/llm", true)
-  }
 
   this.rules = []
   if (json) {

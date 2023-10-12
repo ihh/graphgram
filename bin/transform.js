@@ -34,7 +34,9 @@ var opt = getopt.create([
 var verbosity = opt.options.quiet ? 0 : (opt.options.verbose ? 2 : 1)
 var grammarOpts = { canonical: opt.options.canonical, llm: opt.options.llm || defaultLLM, verbose: verbosity }
 function makeGrammar (json) {
-  return new Grammar (json, grammarOpts)
+  let g = new Grammar (json, grammarOpts)
+  g.registerRhsLabelExecFunction ('llm', opt.options.llm || 'llm', "Generate text using command-line LLM interface. This option is only enabled in the command-line tool. The default LLM toolname is llm, which must be separately installed: https://github.com/simonw/llm", true)
+  return g
 }
 
 if (opt.options.schema) {
