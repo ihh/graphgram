@@ -67,19 +67,46 @@
   #text-pane .links a.return { background: #c4e2ff; border-color: #5088b8; }
   #text-pane .links a.backtrack { background: #e8e8e8; border-color: #999; }
   #text-pane .links a.look { background: #f8f4e8; border-color: #b0a890; }
-  #graph-pane {
+  #right-pane {
     flex: 1 1 50%;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid #c0b8a8;
+    min-width: 0;
+  }
+  #zoom-bar {
+    flex: 0 0 auto;
+    padding: 4px 8px;
+    background: #f0e8d5;
+    border-bottom: 1px solid #c0b8a8;
+    font-family: "Menlo", "Consolas", monospace;
+    font-size: 12px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  #zoom-bar button {
+    border: 1px solid #b0a890;
+    background: #eadfc8;
+    width: 24px; height: 22px;
+    cursor: pointer;
+    font-size: 14px;
+    border-radius: 3px;
+  }
+  #zoom-bar button:hover { background: #d9ca9e; }
+  #zoom-bar #zoom-level { color: #554f40; }
+  #graph-pane {
+    flex: 1 1 auto;
     padding: 8px;
     overflow: auto;
-    border-left: 1px solid #c0b8a8;
     background: #fff;
   }
-  #graph-pane svg { width: 100%; height: auto; }
+  #graph-pane svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
   #graph-pane .current > ellipse,
   #graph-pane .current > polygon,
   #graph-pane .current > path {
-    stroke: #e06010;
-    stroke-width: 3;
+    stroke: #e06010 !important;
+    stroke-width: 3 !important;
   }
   #graph-pane .visited > ellipse,
   #graph-pane .visited > polygon {
@@ -87,13 +114,18 @@
     stroke-width: 2;
   }
   #graph-pane .traversed > path {
-    stroke: #2a6;
-    stroke-width: 2;
+    stroke: #2a6 !important;
+    stroke-width: 2 !important;
   }
   #graph-pane .traversed > polygon {
-    fill: #2a6;
-    stroke: #2a6;
+    fill: #2a6 !important;
+    stroke: #2a6 !important;
   }
+  #graph-pane .frontier > ellipse,
+  #graph-pane .frontier > polygon {
+    opacity: 0.55;
+  }
+  #graph-pane .frontier > text { fill: #777; }
   #error {
     position: fixed; bottom: 8px; left: 8px; right: 8px;
     background: #a33; color: white; padding: 6px 10px; border-radius: 3px;
@@ -104,8 +136,10 @@
 <body>
   <div id="status"><span>Loading...</span></div>
   <div id="panes">
-    <div id="text-pane"><p>Loading graph…</p></div>
-    <div id="graph-pane"><p>Loading viz…</p></div>
+    <div id="text-pane"></div>
+    <div id="right-pane">
+      <div id="graph-pane"><p style="color:#999">Loading viz…</p></div>
+    </div>
   </div>
   <div id="error"></div>
 

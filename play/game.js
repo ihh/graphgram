@@ -481,25 +481,86 @@
     }
   }
 
+  // Radius (in edges) of the neighborhood to show around the current node.
+  // 1 = just current node + immediate neighbors; 2 = also two-hop nodes.
+  // Increase to feel less claustrophobic, decrease to reduce clutter in
+  // dense battle subgraphs.
+  let graphRadius = 2
+
+  // Build a DOT string for the subgraph within `graphRadius` edges of the
+  // current node, traversing in both directions. Nodes at the frontier
+  // (exactly `graphRadius` away) are drawn but their further neighbors are
+  // not — instead we hint at them with a "..." pseudo-node when they have
+  // unshown neighbors.
   function dotForGraph () {
     const lines = ['digraph G {']
+    lines.push('  rankdir=LR;')
     lines.push('  node [fontname="Helvetica",fontsize=10];')
     lines.push('  edge [fontname="Helvetica",fontsize=9];')
-    for (const n of GRAPH.nodes) {
-      const label = n.value || {}
-      const attrs = nodeDotAttrs(n.v, label)
-      lines.push('  ' + n.v + ' ' + attrs + ';')
+
+    const center = state.currentNode
+    const distance = new Map()
+    distance.set(center, 0)
+    // BFS on undirected adjacency out to graphRadius.
+    const queue = [center]
+    while (queue.length) {
+      const v = queue.shift()
+      const d = distance.get(v)
+      if (d >= graphRadius) continue
+      const neighbors = new Set()
+      for (const e of (outgoing[v] || [])) neighbors.add(e.w)
+      for (const e of GRAPH.edges) if (e.w === v) neighbors.add(e.v)
+      for (const u of neighbors) {
+        if (!distance.has(u)) {
+          distance.set(u, d + 1)
+          queue.push(u)
+        }
+      }
     }
+    const visibleSet = distance
+
+    // Emit visible nodes.
+    for (const [v, d] of visibleSet) {
+      const label = nodeById[v] || {}
+      const attrs = nodeDotAttrs(v, label, d)
+      lines.push('  ' + v + ' ' + attrs + ';')
+    }
+
+    // Emit edges whose both endpoints are visible.
+    const emittedEdgeKeys = new Set()
     for (const e of GRAPH.edges) {
+      if (!visibleSet.has(e.v) || !visibleSet.has(e.w)) continue
       const label = e.value || {}
-      const attrs = edgeDotAttrs(e, label)
+      const attrs = edgeDotAttrs({ v: e.v, w: e.w, label }, label)
       lines.push('  ' + e.v + ' -> ' + e.w + ' ' + attrs + ';')
+      emittedEdgeKeys.add(e.v + '>' + e.w)
     }
+
+    // For each frontier node (at distance graphRadius), hint at its
+    // off-screen neighbors with an anonymous "..." node.
+    let stubId = 0
+    for (const [v, d] of visibleSet) {
+      if (d !== graphRadius) continue
+      let hiddenOut = 0, hiddenIn = 0
+      for (const e of (outgoing[v] || [])) if (!visibleSet.has(e.w)) hiddenOut++
+      for (const e of GRAPH.edges) if (e.w === v && !visibleSet.has(e.v)) hiddenIn++
+      if (hiddenOut) {
+        const sid = '__out_' + (stubId++)
+        lines.push('  ' + sid + ' [label="... +' + hiddenOut + '",shape="plain",fontcolor="#888"];')
+        lines.push('  ' + v + ' -> ' + sid + ' [style="dotted",color="#aaa",arrowhead="open"];')
+      }
+      if (hiddenIn) {
+        const sid = '__in_' + (stubId++)
+        lines.push('  ' + sid + ' [label="+' + hiddenIn + ' ...",shape="plain",fontcolor="#888"];')
+        lines.push('  ' + sid + ' -> ' + v + ' [style="dotted",color="#aaa",arrowhead="open"];')
+      }
+    }
+
     lines.push('}')
     return lines.join('\n')
   }
 
-  function nodeDotAttrs (v, label) {
+  function nodeDotAttrs (v, label, distance) {
     const d = label.dot || {}
     const parts = []
     parts.push('label="' + dotEscape(d.label || label.type || v) + '"')
@@ -509,6 +570,8 @@
     const cls = []
     if (v === state.currentNode) cls.push('current')
     if (label.nodeId && state.visited.has(label.nodeId)) cls.push('visited')
+    // Fade frontier nodes a bit so the eye is drawn inward.
+    if (distance != null && distance >= graphRadius) cls.push('frontier')
     if (cls.length) parts.push('class="' + cls.join(' ') + '"')
     return '[' + parts.join(',') + ']'
   }
@@ -552,7 +615,33 @@
   }
 
   // ------------------------------------------------------------------
-  // Kick off.
+  // Zoom controls.
   // ------------------------------------------------------------------
-  document.addEventListener('DOMContentLoaded', start)
+  function setupZoomControls () {
+    const pane = document.getElementById('graph-pane')
+    const bar = document.createElement('div')
+    bar.id = 'zoom-bar'
+    bar.innerHTML =
+      '<button id="zoom-out">–</button>' +
+      '<span id="zoom-level">radius ' + graphRadius + '</span>' +
+      '<button id="zoom-in">+</button>'
+    pane.parentNode.insertBefore(bar, pane)
+    document.getElementById('zoom-in').addEventListener('click', function () {
+      graphRadius = Math.min(6, graphRadius + 1)
+      document.getElementById('zoom-level').textContent = 'radius ' + graphRadius
+      renderGraph()
+    })
+    document.getElementById('zoom-out').addEventListener('click', function () {
+      graphRadius = Math.max(1, graphRadius - 1)
+      document.getElementById('zoom-level').textContent = 'radius ' + graphRadius
+      renderGraph()
+    })
+  }
+
+  // ------------------------------------------------------------------
+  // Kick off. Script is at end of <body>, so the DOM is ready; no need
+  // to wait for DOMContentLoaded (and it may well have already fired).
+  // ------------------------------------------------------------------
+  setupZoomControls()
+  start()
 })()
