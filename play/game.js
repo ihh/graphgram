@@ -108,7 +108,10 @@
     traversed: new Set(),       // set of label.edgeId values the player has traversed
     moves: 0,
     score: null,                // set on win
-    gameOver: false
+    gameOver: false,
+    // Full per-step trace: alternating node/edge events from start to
+    // current. Used for the dump-trace debug affordance.
+    history: []
   }
 
   // A battle is delimited by a set of nodes created in one rule application.
@@ -243,47 +246,124 @@
     })
   }
 
-  // Diagnostic dump: describes the current position, outgoing edges with
-  // access status, and why each inaccessible edge was blocked. Prints to
-  // both the text pane and the console so the user can copy-paste it.
+  // Shallow-clone a label so that snapshots into the history don't share
+  // references with live graph objects (and don't carry the `dot` subtree,
+  // which is pure presentation bloat).
+  function shallowLabel (label) {
+    if (!label || typeof label !== 'object') return label
+    const out = {}
+    for (const k of Object.keys(label)) if (k !== 'dot') out[k] = label[k]
+    return out
+  }
+
+  // Diagnostic dump: the full history of node / edge visits from start
+  // to the current position, plus outgoing edges with access status and
+  // per-edge reasons for any blocks. Prints to the text pane, logs to
+  // console, and triggers a download of the whole state as JSON.
   function dumpTrace () {
     const curLabel = nodeById[state.currentNode] || {}
     const curOut = outgoing[state.currentNode] || []
-    const lines = []
-    lines.push('--- dump trace ---')
-    lines.push('current host id: ' + state.currentNode)
-    lines.push('current label:   ' + JSON.stringify(curLabel))
-    lines.push('HP: ' + state.playerHP + '   monster HP: ' + state.monsterHP)
-    lines.push('moves: ' + state.moves)
-    lines.push('visited (' + state.visited.size + '): ' + Array.from(state.visited).sort().join(', '))
-    lines.push('traversed edgeIds (' + state.traversed.size + '): ' + Array.from(state.traversed).sort().join(', '))
-    lines.push('outgoing edges: ' + curOut.length)
-    for (const edge of curOut) {
+    const outgoingReport = curOut.map(function (edge) {
       const access = edgeAccessible(edge)
-      let why = ''
-      if (!access) {
-        const p = edge.label.prereq || {}
-        if (p.traversed) {
-          why = ' (needs traversed=' + p.traversed
-                + ', present? ' + state.traversed.has(p.traversed)
-                + ', exists in graph? ' + allEdgeIds.has(p.traversed) + ')'
-        } else if (p.visited) {
-          why = ' (needs visited=' + p.visited
-                + ', present? ' + state.visited.has(p.visited)
-                + ', exists in graph? ' + !!nodeIdToHostId[p.visited] + ')'
-        } else if (p.pairId) {
-          why = ' (needs key with pairId=' + p.pairId + ')'
+      const p = edge.label.prereq || null
+      const report = {
+        v: edge.v, w: edge.w,
+        type: edge.label.type, edgeId: edge.label.edgeId || null,
+        accessible: access,
+        prereq: p
+      }
+      if (!access && p) {
+        if (p.traversed != null) {
+          report.block = {
+            needs: 'traversed', value: p.traversed,
+            present: state.traversed.has(p.traversed),
+            existsInGraph: allEdgeIds.has(p.traversed)
+          }
+        } else if (p.visited != null) {
+          report.block = {
+            needs: 'visited', value: p.visited,
+            present: state.visited.has(p.visited),
+            existsInGraph: !!nodeIdToHostId[p.visited]
+          }
+        } else if (p.pairId != null) {
+          report.block = { needs: 'key with pairId', value: p.pairId }
         }
       }
-      lines.push('  ' + (access ? '+' : '-') + ' ' + edge.v + ' -> ' + edge.w
-        + ' [' + (edge.label.type || '?') + ']'
-        + (edge.label.edgeId ? ' edgeId=' + edge.label.edgeId : '')
-        + why)
+      return report
+    })
+    const summary = {
+      time: new Date().toISOString(),
+      currentHostId: state.currentNode,
+      currentLabel: shallowLabel(curLabel),
+      playerHP: state.playerHP,
+      monsterHP: state.monsterHP,
+      moves: state.moves,
+      score: state.score,
+      inBattleGroup: state.inBattleGroup,
+      visited: Array.from(state.visited).sort(),
+      traversed: Array.from(state.traversed).sort(),
+      outgoing: outgoingReport,
+      history: state.history
+    }
+
+    // On-screen: a compact tabular rendering of the full trace + a short
+    // outgoing-edges audit.
+    const lines = ['--- trace (' + state.history.length + ' steps) ---']
+    for (const ev of state.history) {
+      if (ev.kind === 'node') {
+        const l = ev.label || {}
+        const name = l.nodeId || l.type || ev.hostId
+        const firstTag = ev.firstVisit ? ' *' : ''
+        lines.push(pad(ev.step, 3) + '. node   ' + pad(ev.hostId, 5)
+          + ' [' + (l.type || '?') + '] ' + name + firstTag
+          + '  HP=' + round(ev.playerHP * 100)
+          + (ev.monsterHP != null ? ' mHP=' + round(ev.monsterHP * 100) : ''))
+      } else {
+        const l = ev.label || {}
+        lines.push(pad(ev.step, 3) + '. edge   ' + pad(ev.v, 5) + ' -> ' + pad(ev.w, 5)
+          + ' [' + (l.type || '?') + ']'
+          + (l.edgeId ? ' edgeId=' + l.edgeId : '')
+          + (l.playerDamage ? ' pd=' + l.playerDamage : '')
+          + (l.monsterDamage ? ' md=' + l.monsterDamage : '')
+          + (l.correct != null ? ' correct=' + l.correct : ''))
+      }
+    }
+    lines.push('')
+    lines.push('--- current outgoing (' + outgoingReport.length + ') ---')
+    for (const r of outgoingReport) {
+      let line = (r.accessible ? '+' : '-') + ' '
+        + pad(r.v, 5) + ' -> ' + pad(r.w, 5)
+        + ' [' + (r.type || '?') + ']'
+        + (r.edgeId ? ' edgeId=' + r.edgeId : '')
+      if (r.block) {
+        line += '  blocked: needs ' + r.block.needs + '=' + r.block.value
+             + (r.block.present != null ? ' present=' + r.block.present : '')
+             + (r.block.existsInGraph != null ? ' existsInGraph=' + r.block.existsInGraph : '')
+      }
+      lines.push(line)
     }
     const text = lines.join('\n')
     console.log(text)
-    appendEvent('<pre style="font-family:Menlo,monospace;font-size:11px;background:#eee;padding:6px;white-space:pre-wrap;">'
-      + escapeHtml(text) + '</pre>')
+    console.log('full trace JSON:', summary)
+    appendEvent('<pre class="trace">' + escapeHtml(text) + '</pre>')
+
+    // Download the whole summary as a JSON file for offline inspection.
+    const ts = summary.time.replace(/[:.]/g, '-')
+    downloadJSON('graphgram-trace-' + ts + '.json', summary)
+  }
+  function pad (s, n) {
+    s = String(s)
+    while (s.length < n) s = ' ' + s
+    return s
+  }
+  function round (n) { return Math.round(n) }
+  function downloadJSON (filename, data) {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = filename
+    document.body.appendChild(a); a.click(); document.body.removeChild(a)
+    setTimeout(function () { URL.revokeObjectURL(url) }, 1000)
   }
 
   // ------------------------------------------------------------------
@@ -301,6 +381,16 @@
     const label = nodeById[nodeId] || {}
     const wasFirstVisit = !state.visited.has(label.nodeId)
     state.currentNode = nodeId
+
+    // Record the step in the trace BEFORE applying effects, so that the
+    // history reads as alternating node/edge/node/... and each node
+    // entry reflects the player's HP / monster HP at arrival time.
+    state.history.push({
+      kind: 'node', step: state.history.length,
+      hostId: nodeId, label: shallowLabel(label),
+      playerHP: state.playerHP, monsterHP: state.monsterHP, moves: state.moves,
+      firstVisit: wasFirstVisit
+    })
 
     // Node-entry effects.
     applyNodeEntryEffects(label, wasFirstVisit)
@@ -417,6 +507,11 @@
   function takeEdge (edge) {
     state.moves++
     if (edge.label.edgeId) state.traversed.add(edge.label.edgeId)
+
+    state.history.push({
+      kind: 'edge', step: state.history.length,
+      v: edge.v, w: edge.w, label: shallowLabel(edge.label)
+    })
 
     // Print narrative text for the edge.
     const firstTime = edge.label.edgeId
