@@ -23,6 +23,14 @@ const EDGE_RETURN = 'return'
 const EDGE_PASSAGE = 'passage'
 const EDGE_MONSTER = 'monster'
 const EDGE_PUZZLE = 'puzzle'
+// Edge types used inside expanded monster/puzzle mini-games:
+//   choice      — player picks from alternatives at a choice node
+//   consequence — engine rolls (by `weight`) from a random node; carries
+//                 playerDamage / monsterDamage on the [0,1] scale
+//   retreat     — player-choice edge out of a battle back to its source
+const EDGE_CHOICE = 'choice'
+const EDGE_CONSEQUENCE = 'consequence'
+const EDGE_RETREAT = 'retreat'
 
 const NODE_START = 'start'
 const NODE_WIN = 'win'
@@ -30,6 +38,20 @@ const NODE_ROOM = 'room'
 const NODE_DEAD_END = 'dead_end'
 const NODE_KEY = 'key'
 const NODE_DOOR = 'door'
+// Node types created by the monster / puzzle expansion rules:
+//   choice       — player-choice node (player picks outgoing `choice` edge)
+//   random       — random / engine-roll node (engine picks outgoing
+//                  `consequence` edge by `weight`)
+//   death        — terminal sink for lethal consequences
+//   puzzle_intro — entry node for a multiple-choice puzzle
+//   distractor   — wrong-answer node that routes back to the puzzle source
+//   potion       — pickup that restores HP (by `healValue`) when visited
+const NODE_CHOICE = 'choice'
+const NODE_RANDOM = 'random'
+const NODE_DEATH = 'death'
+const NODE_PUZZLE_INTRO = 'puzzle_intro'
+const NODE_DISTRACTOR = 'distractor'
+const NODE_POTION = 'potion'
 
 // Identifier generators for CYOA-style gating. Every grammar-generated node
 // carries a `nodeId` in its label so that `prereq.visited: <nodeId>` on any
@@ -475,6 +497,207 @@ function refineEdges (fromType, toTypes, opts) {
   return toTypes.map(function (t) { return refineEdge(fromType, t, opts) })
 }
 
+// --------------------------------------------------------------------
+// Flavor primitives: monster battles, puzzle quizzes, health potions.
+// --------------------------------------------------------------------
+
+// Expand a `monster` edge into a small Markov battle. The battle is a
+// bipartite graph alternating between **choice** nodes (where the player
+// picks an outgoing edge) and **random** nodes (where the play engine
+// rolls among outgoing edges weighted by `weight`). Consequence edges
+// carry `playerDamage` and `monsterDamage` on a [0,1] scale; the engine
+// subtracts from the appropriate HP. A lethal roll routes to a `death`
+// node; a victorious roll routes to `b` (the original monster edge's
+// destination). From any choice node the player can retreat back to `a`.
+//
+// Structure:
+//     a --path--> cNormal   (enter battle)
+//     cNormal <-choice-> {rAttack, rDefend}  (aggressive / defensive)
+//     cAdvantage <-choice-> {rAttack, rDefend}  (press / hold)
+//     cNormal / cAdvantage --retreat--> a
+//     rAttack / rDefend --consequence--> {cNormal, cAdvantage, b, death}
+//
+// All damage / weight numbers are tuned for a demo and can be overridden
+// via opts.tune — pass an object keyed by consequence-edge role.
+function monsterBattle (opts) {
+  opts = opts || {}
+  const monsterType = opts.monsterType || EDGE_MONSTER
+  const pathType = opts.pathType || EDGE_PATH
+  const choiceType = opts.choiceType || EDGE_CHOICE
+  const consequenceType = opts.consequenceType || EDGE_CONSEQUENCE
+  const retreatType = opts.retreatType || EDGE_RETREAT
+  const choiceNodeType = opts.choiceNodeType || NODE_CHOICE
+  const randomNodeType = opts.randomNodeType || NODE_RANDOM
+  const deathNodeType = opts.deathNodeType || NODE_DEATH
+  const retreatStyle = { label: retreatType, style: 'dashed', color: 'orange' }
+  // Default consequence tuning. Keys match the `role` field we set on each
+  // consequence edge so users can override individual weights / damages.
+  const tune = opts.tune || {}
+  function c (role, defaults) {
+    const d = tune[role] || {}
+    return Object.assign({
+      type: consequenceType, role,
+      weight: defaults.weight,
+      playerDamage: defaults.playerDamage || 0,
+      monsterDamage: defaults.monsterDamage || 0
+    }, d)
+  }
+  return withOpts({
+    name: 'monster-battle',
+    lhs: {
+      node: [{ id: 'a' }, { id: 'b' }],
+      edge: [{ v: 'a', w: 'b', label: { type: monsterType }, id: 'e' }]
+    },
+    rhs: {
+      node: [
+        { id: 'a' }, { id: 'b' },
+        { id: 'cN', label: {
+            type: choiceNodeType, state: 'normal',
+            nodeId: nodeIdExpr('battle_normal'),
+            dot: { label: 'battle (normal)', shape: 'box', color: 'orange' } } },
+        { id: 'cA', label: {
+            type: choiceNodeType, state: 'advantage',
+            nodeId: nodeIdExpr('battle_advantage'),
+            dot: { label: 'battle (advantage)', shape: 'box', color: 'darkgreen' } } },
+        { id: 'rA', label: {
+            type: randomNodeType, flavor: 'attack',
+            nodeId: nodeIdExpr('roll_attack'),
+            dot: { label: 'roll (attack)', shape: 'ellipse', color: 'purple' } } },
+        { id: 'rD', label: {
+            type: randomNodeType, flavor: 'defend',
+            nodeId: nodeIdExpr('roll_defend'),
+            dot: { label: 'roll (defend)', shape: 'ellipse', color: 'purple' } } },
+        { id: 'death', label: {
+            type: deathNodeType, nodeId: nodeIdExpr('death'),
+            dot: { label: 'you died', shape: 'doublecircle', color: 'red' } } }
+      ],
+      edge: [
+        // Enter battle (replaces the original monster edge).
+        { v: 'a', w: 'cN', label: { type: pathType } },
+        // Player choices at cNormal.
+        { v: 'cN', w: 'rA', label: {
+            type: choiceType, flavor: 'aggressive', risk: 0.7,
+            dot: { label: 'attack', color: 'purple' } } },
+        { v: 'cN', w: 'rD', label: {
+            type: choiceType, flavor: 'defensive', risk: 0.2,
+            dot: { label: 'defend', color: 'purple' } } },
+        { v: 'cN', w: 'a', label: { type: retreatType, dot: retreatStyle } },
+        // Player choices at cAdvantage.
+        { v: 'cA', w: 'rA', label: {
+            type: choiceType, flavor: 'press-attack', risk: 0.3,
+            dot: { label: 'press attack', color: 'purple' } } },
+        { v: 'cA', w: 'rD', label: {
+            type: choiceType, flavor: 'hold-position', risk: 0.1,
+            dot: { label: 'hold position', color: 'purple' } } },
+        { v: 'cA', w: 'a', label: { type: retreatType, dot: retreatStyle } },
+        // Consequences of an attack roll.
+        { v: 'rA', w: 'cN', label: c('attack-stalemate', { weight: 0.4, playerDamage: 0.2, monsterDamage: 0.3 }) },
+        { v: 'rA', w: 'cA', label: c('attack-advantage', { weight: 0.2, monsterDamage: 0.5 }) },
+        { v: 'rA', w: 'b', label: c('attack-victory', { weight: 0.3, monsterDamage: 1.0 }) },
+        { v: 'rA', w: 'death', label: c('attack-death', { weight: 0.1, playerDamage: 1.0 }) },
+        // Consequences of a defend roll.
+        { v: 'rD', w: 'cN', label: c('defend-stalemate', { weight: 0.5 }) },
+        { v: 'rD', w: 'cA', label: c('defend-advantage', { weight: 0.3 }) },
+        { v: 'rD', w: 'b', label: c('defend-victory', { weight: 0.1, monsterDamage: 1.0 }) },
+        { v: 'rD', w: 'death', label: c('defend-death', { weight: 0.1, playerDamage: 0.5 }) }
+      ]
+    }
+  }, opts)
+}
+
+// Expand a `puzzle` edge into a multiple-choice quiz. The LHS matches
+// a --puzzle--> b; the RHS adds:
+//   a -> puzzle_intro         (path, forward into the quiz)
+//   puzzle_intro -> b         (the one correct `choice` edge)
+//   puzzle_intro -> distractor_i (for each wrong answer)
+//   distractor_i -> a         (auto-routes back to the puzzle source)
+//
+// The engine presents choices at `puzzle_intro`; picking `correct: true`
+// advances to `b`, picking a distractor sends the player back to `a` to
+// try again (each attempt costs a move). Score = moves to reach win.
+function puzzleChoice (opts) {
+  opts = opts || {}
+  const puzzleType = opts.puzzleType || EDGE_PUZZLE
+  const pathType = opts.pathType || EDGE_PATH
+  const choiceType = opts.choiceType || EDGE_CHOICE
+  const introType = opts.introType || NODE_PUZZLE_INTRO
+  const distractorType = opts.distractorType || NODE_DISTRACTOR
+  const numDistractors = typeof opts.numDistractors === 'number' ? opts.numDistractors : 3
+  const rhsNodes = [
+    { id: 'a' }, { id: 'b' },
+    { id: 'p', label: {
+        type: introType, nodeId: nodeIdExpr('puzzle'),
+        dot: { label: 'puzzle', shape: 'diamond', color: 'gold' } } }
+  ]
+  const rhsEdges = [
+    { v: 'a', w: 'p', label: { type: pathType } },
+    { v: 'p', w: 'b', label: {
+        type: choiceType, correct: true,
+        dot: { label: 'correct', color: 'darkgreen' } } }
+  ]
+  for (let i = 1; i <= numDistractors; i++) {
+    const did = 'd' + i
+    rhsNodes.push({ id: did, label: {
+        type: distractorType, nodeId: nodeIdExpr('distractor' + i),
+        dot: { label: 'wrong', shape: 'octagon', color: 'gray' } } })
+    rhsEdges.push({ v: 'p', w: did, label: {
+        type: choiceType, correct: false, index: i,
+        dot: { label: 'distractor ' + i, color: 'gray' } } })
+    rhsEdges.push({ v: did, w: 'a', label: {
+        type: pathType, dot: { label: 'back to puzzle', style: 'dotted', color: 'gray' } } })
+  }
+  return withOpts({
+    name: 'puzzle-choice',
+    lhs: {
+      node: [{ id: 'a' }, { id: 'b' }],
+      edge: [{ v: 'a', w: 'b', label: { type: puzzleType }, id: 'e' }]
+    },
+    rhs: { node: rhsNodes, edge: rhsEdges }
+  }, opts)
+}
+
+// Attach a health-potion pickup as a side-branch off a path edge's
+// source, with a paired backtrack. Structurally identical to deadEnd
+// but the attached node carries a `healValue` (default 0.3) so the
+// play engine can restore that fraction of HP when the player visits.
+function healthPotion (opts) {
+  opts = opts || {}
+  const pathType = opts.pathType || EDGE_PATH
+  const backtrackType = opts.backtrackType || EDGE_BACKTRACK
+  const potionType = opts.potionType || NODE_POTION
+  const healValue = typeof opts.healValue !== 'undefined' ? opts.healValue : 0.3
+  const idAP = edgeIdExpr('ap')
+  return withOpts({
+    name: 'health-potion',
+    lhs: {
+      node: [{ id: 'a' }, { id: 'b' }],
+      edge: [{
+        v: 'a', w: 'b',
+        label: { $and: [{ type: pathType }, { $not: { edgeId: '(.+)' } }] },
+        id: 'e'
+      }]
+    },
+    rhs: {
+      node: [
+        { id: 'a' }, { id: 'b' },
+        { id: 'p', label: {
+            type: potionType,
+            nodeId: nodeIdExpr('potion'),
+            healValue: healValue,
+            dot: { label: 'potion (+' + healValue + ')', shape: 'invtriangle', color: 'darkgreen' } } }
+      ],
+      edge: [
+        'e',
+        { v: 'a', w: 'p', label: { type: pathType, edgeId: idAP } },
+        { v: 'p', w: 'a', label: {
+            type: backtrackType,
+            prereq: { traversed: idAP },
+            dot: { label: backtrackType, style: 'dashed', color: 'gray' } } }
+      ]
+    }
+  }, opts)
+}
+
 // Everything-and-the-kitchen-sink default: returns the full list of
 // dungeon primitives ready to drop into a grammar stage. Accepts
 // per-factory overrides via opts.{midpointRoom,deadEnd,parallelPath,keyDoor,refinements}.
@@ -555,6 +778,9 @@ module.exports = {
   parallelPath,
   keyDoor,
   cycleCloseShortcut,
+  healthPotion,
+  monsterBattle,
+  puzzleChoice,
   refineEdge,
   refineEdges,
   defaultRules,
@@ -567,10 +793,19 @@ module.exports = {
   EDGE_PASSAGE,
   EDGE_MONSTER,
   EDGE_PUZZLE,
+  EDGE_CHOICE,
+  EDGE_CONSEQUENCE,
+  EDGE_RETREAT,
   NODE_START,
   NODE_WIN,
   NODE_ROOM,
   NODE_DEAD_END,
   NODE_KEY,
-  NODE_DOOR
+  NODE_DOOR,
+  NODE_CHOICE,
+  NODE_RANDOM,
+  NODE_DEATH,
+  NODE_PUZZLE_INTRO,
+  NODE_DISTRACTOR,
+  NODE_POTION
 }

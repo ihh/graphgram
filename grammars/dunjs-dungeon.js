@@ -21,7 +21,7 @@
       dp.initStartGoalStage(),
 
       { name: 'expand',
-        limit: 20,
+        limit: 25,
         rules: [
           // Two-way midpoint: bidirectionally traversable, the default CYOA
           // choice. One-way midpoint: only fires inside existing cycles
@@ -31,7 +31,8 @@
           dp.midpointRoom({ oneWay: true, weight: 1 }),
           dp.deadEnd({ weight: 1 }),
           dp.parallelPath({ weight: 1 }),
-          dp.keyDoor({ weight: 1, narrate: false, limit: 3 })
+          dp.keyDoor({ weight: 1, narrate: false, limit: 3 }),
+          dp.healthPotion({ weight: 1, limit: 3 })
         ]
       },
 
@@ -49,6 +50,17 @@
         rules: dp.refineEdges(dp.EDGE_PATH,
           [dp.EDGE_PASSAGE, dp.EDGE_MONSTER, dp.EDGE_PUZZLE],
           { weight: 1 })
+      },
+
+      // Expand every flavored-corridor edge into a mini-game: monster edges
+      // become Markov battles (choice / random / consequence), puzzle edges
+      // become multiple-choice quizzes. Runs until every monster and puzzle
+      // edge has been consumed.
+      { name: 'flavor',
+        rules: [
+          dp.monsterBattle({ weight: 1 }),
+          dp.puzzleChoice({ weight: 1 })
+        ]
       },
 
       dp.dotDecorationStage()

@@ -33,6 +33,120 @@ function runDungeon (seed, expandLimit) {
   return g.evolve({ seed }).graph
 }
 
+// --- Flavor primitives: monster battles, puzzles, potions ---------------
+
+test('grammar: monsterBattle expands a monster edge into a Markov battle graph', () => {
+  const graphlib = require('graphlib')
+  const seeded = new graphlib.Graph()
+  seeded.setNode('A', { type: 'room', nodeId: 'A' })
+  seeded.setNode('B', { type: 'room', nodeId: 'B' })
+  seeded.setEdge('A', 'B', { type: dp.EDGE_MONSTER })
+  const g = new Grammar({
+    start: 'START',
+    rules: [dp.monsterBattle()],
+    limit: 1
+  })
+  const out = g.evolve({ seed: 1, graph: seeded }).graph
+  const nodeTypes = out.nodes().map(n => (out.node(n) || {}).type).sort()
+  // Two choice states, two random nodes, one death, plus the original A and B.
+  assert.deepStrictEqual(
+    nodeTypes,
+    ['choice', 'choice', 'death', 'random', 'random', 'room', 'room']
+  )
+  // Every consequence edge has weight, playerDamage, monsterDamage and sits on a random->* edge.
+  const consequences = out.edges()
+    .map(e => ({ e, l: out.edge(e) }))
+    .filter(x => x.l && x.l.type === dp.EDGE_CONSEQUENCE)
+  assert.strictEqual(consequences.length, 8, '8 consequence edges (4 per random node)')
+  consequences.forEach(x => {
+    assert.strictEqual(typeof x.l.weight, 'number')
+    assert.ok(x.l.weight > 0 && x.l.weight <= 1)
+    assert.ok(x.l.playerDamage >= 0 && x.l.playerDamage <= 1)
+    assert.ok(x.l.monsterDamage >= 0 && x.l.monsterDamage <= 1)
+    assert.strictEqual((out.node(x.e.v) || {}).type, dp.NODE_RANDOM, 'sourced at a random node')
+  })
+  // Weights sum to 1.0 per random node.
+  const perRandom = {}
+  consequences.forEach(x => { perRandom[x.e.v] = (perRandom[x.e.v] || 0) + x.l.weight })
+  Object.values(perRandom).forEach(total => {
+    assert.ok(Math.abs(total - 1.0) < 1e-9, 'consequence weights sum to 1.0, got ' + total)
+  })
+  // Every choice node has a retreat edge to A.
+  const retreats = out.edges()
+    .map(e => ({ e, l: out.edge(e) }))
+    .filter(x => x.l && x.l.type === dp.EDGE_RETREAT)
+  assert.strictEqual(retreats.length, 2)
+  retreats.forEach(x => {
+    assert.strictEqual((out.node(x.e.v) || {}).type, dp.NODE_CHOICE)
+    assert.strictEqual((out.node(x.e.w) || {}).type, 'room')
+  })
+  // Each random node has exactly one consequence to the death sink and one to B (victory).
+  const randomNodes = out.nodes().filter(n => (out.node(n) || {}).type === dp.NODE_RANDOM)
+  randomNodes.forEach(r => {
+    const out1 = out.successors(r).map(s => ({ s, l: out.edge(r, s) }))
+    const toDeath = out1.filter(x => (out.node(x.s) || {}).type === dp.NODE_DEATH)
+    const toVictory = out1.filter(x => (out.node(x.s) || {}).type === 'room' && x.s !== 'A')
+    assert.strictEqual(toDeath.length, 1, 'one death consequence from each random node')
+    assert.strictEqual(toVictory.length, 1, 'one victory consequence from each random node')
+    assert.strictEqual(toVictory[0].l.monsterDamage, 1.0, 'victory edge deals 1.0 monster damage')
+  })
+})
+
+test('grammar: puzzleChoice expands a puzzle edge into an intro + N distractors', () => {
+  const graphlib = require('graphlib')
+  const seeded = new graphlib.Graph()
+  seeded.setNode('A', { type: 'room', nodeId: 'A' })
+  seeded.setNode('B', { type: 'room', nodeId: 'B' })
+  seeded.setEdge('A', 'B', { type: dp.EDGE_PUZZLE })
+  const g = new Grammar({
+    start: 'START',
+    rules: [dp.puzzleChoice({ numDistractors: 3 })],
+    limit: 1
+  })
+  const out = g.evolve({ seed: 1, graph: seeded }).graph
+  const intro = out.nodes().find(n => (out.node(n) || {}).type === dp.NODE_PUZZLE_INTRO)
+  assert.ok(intro, 'puzzle_intro node created')
+  const distractors = out.nodes().filter(n => (out.node(n) || {}).type === dp.NODE_DISTRACTOR)
+  assert.strictEqual(distractors.length, 3, '3 distractors')
+  // From puzzle_intro: 1 correct choice + 3 distractor choices.
+  const choicesOut = (out.successors(intro) || []).map(s => ({ s, l: out.edge(intro, s) }))
+  assert.strictEqual(choicesOut.length, 4)
+  const correct = choicesOut.filter(x => x.l.correct === true)
+  assert.strictEqual(correct.length, 1, 'exactly one correct choice')
+  assert.strictEqual((out.node(correct[0].s) || {}).type, 'room', 'correct routes to a room (B)')
+  // Every distractor routes back to A.
+  distractors.forEach(d => {
+    const target = out.successors(d)[0]
+    assert.strictEqual((out.node(target) || {}).nodeId, 'A', 'distractor routes back to source A')
+  })
+})
+
+test('grammar: healthPotion attaches a potion node with healValue and paired backtrack', () => {
+  const graphlib = require('graphlib')
+  const seeded = new graphlib.Graph()
+  seeded.setNode('A', { type: 'room', nodeId: 'A' })
+  seeded.setNode('B', { type: 'room', nodeId: 'B' })
+  seeded.setEdge('A', 'B', { type: 'path' })
+  const g = new Grammar({
+    start: 'START',
+    rules: [dp.healthPotion({ healValue: 0.5 })],
+    limit: 1
+  })
+  const out = g.evolve({ seed: 1, graph: seeded }).graph
+  const potion = out.nodes().find(n => (out.node(n) || {}).type === dp.NODE_POTION)
+  assert.ok(potion, 'potion node created')
+  const plabel = out.node(potion)
+  assert.strictEqual(plabel.healValue, 0.5)
+  assert.ok(plabel.nodeId, 'potion has a nodeId')
+  // Forward and paired backtrack.
+  const forward = out.edge('A', potion) || out.edge(out.predecessors(potion)[0], potion)
+  assert.ok(forward && forward.edgeId, 'forward has edgeId')
+  const back = out.edge(potion, out.successors(potion)[0])
+  assert.strictEqual(back.type, dp.EDGE_BACKTRACK)
+  assert.strictEqual(back.prereq.traversed, forward.edgeId,
+    'backtrack prereq.traversed points to forward edgeId')
+})
+
 // --- CYOA gating invariants: nodeIds, edge pairing, prereqs --------------
 
 // A richer expand stage for invariant tests — parallelPath is essential
