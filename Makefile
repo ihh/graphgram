@@ -29,6 +29,16 @@ rebuild$(SIZE):
 	bin/graph2dot.js -o graphs/lev$(SIZE).json
 
 
+# Generate play/graph.js from a specific seed:  make play/graph.js SEED=42
+# Writes `window.GRAPH = {...};` so play/index.html can load the graph
+# without a server (works over file://).
+SEED ?= 42
+play/graph.js: grammars/dunjs-dungeon.js
+	@mkdir -p play
+	@printf 'window.GRAPH = ' > $@
+	bin/transform.js -g $< --no-llm -q -s $(SEED) -o /dev/stdout >> $@
+	@printf ';\n' >> $@
+
 # README
 README.md: bin/transform.js
 	bin/transform.js -h | perl -pe 's/</&lt;/g;s/>/&gt;/g;' | perl -e 'open FILE,"<README.md";while(<FILE>){last if/<pre>/;print}close FILE;print"<pre><code>\n";while(<>){print};print"</code></pre>\n"' >temp.md

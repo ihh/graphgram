@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>graphgram — dungeon play</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; font-family: Georgia, serif; }
+  body { display: flex; flex-direction: column; background: #f7f3ee; }
+  #status {
+    flex: 0 0 auto;
+    padding: 8px 12px;
+    background: #2b2a28;
+    color: #f0eadf;
+    font-family: "Menlo", "Consolas", monospace;
+    font-size: 14px;
+    display: flex;
+    gap: 18px;
+    align-items: baseline;
+    border-bottom: 1px solid #000;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  #status .chip { border: 1px solid #5a574e; padding: 1px 8px; border-radius: 3px; }
+  #status .dead { color: #f77; }
+  #status .mon { color: #fc9; }
+  #status .moves { color: #cfc; }
+  #status .score { color: #eea; }
+  #status .inv { color: #9cf; }
+  #panes {
+    flex: 1 1 auto;
+    display: flex;
+    min-height: 0;
+  }
+  #text-pane {
+    flex: 1 1 50%;
+    padding: 16px 22px;
+    overflow-y: auto;
+    line-height: 1.45;
+    background: #f7f3ee;
+    color: #1e1c18;
+  }
+  #text-pane .event { margin-bottom: 10px; }
+  #text-pane .verbose { font-style: normal; }
+  #text-pane .brief { color: #4d4a43; }
+  #text-pane .narrative { color: #2e2a1f; }
+  #text-pane .damage { color: #a33; font-variant: small-caps; font-size: 12px; }
+  #text-pane .heal { color: #1a7; font-variant: small-caps; font-size: 12px; }
+  #text-pane .death { color: #a33; font-weight: bold; font-size: 18px; margin-top: 18px; }
+  #text-pane .victory { color: #190; font-weight: bold; font-size: 18px; margin-top: 18px; }
+  #text-pane .divider { border-top: 1px dashed #c0b8a8; margin: 12px 0; }
+  #text-pane .links { margin-top: 6px; }
+  #text-pane .links a {
+    display: inline-block;
+    margin: 4px 6px 4px 0;
+    padding: 4px 10px;
+    background: #eadfc8;
+    color: #2e2a1f;
+    border: 1px solid #b0a890;
+    border-radius: 3px;
+    text-decoration: none;
+    font-variant: small-caps;
+    letter-spacing: 0.04em;
+  }
+  #text-pane .links a:hover { background: #d9ca9e; }
+  #text-pane .links a.choice { background: #e2d3ff; border-color: #9078c0; }
+  #text-pane .links a.retreat { background: #ffe0c2; border-color: #b88850; }
+  #text-pane .links a.return { background: #c4e2ff; border-color: #5088b8; }
+  #text-pane .links a.backtrack { background: #e8e8e8; border-color: #999; }
+  #text-pane .links a.look { background: #f8f4e8; border-color: #b0a890; }
+  #graph-pane {
+    flex: 1 1 50%;
+    padding: 8px;
+    overflow: auto;
+    border-left: 1px solid #c0b8a8;
+    background: #fff;
+  }
+  #graph-pane svg { width: 100%; height: auto; }
+  #graph-pane .current > ellipse,
+  #graph-pane .current > polygon,
+  #graph-pane .current > path {
+    stroke: #e06010;
+    stroke-width: 3;
+  }
+  #graph-pane .visited > ellipse,
+  #graph-pane .visited > polygon {
+    stroke: #2a6;
+    stroke-width: 2;
+  }
+  #graph-pane .traversed > path {
+    stroke: #2a6;
+    stroke-width: 2;
+  }
+  #graph-pane .traversed > polygon {
+    fill: #2a6;
+    stroke: #2a6;
+  }
+  #error {
+    position: fixed; bottom: 8px; left: 8px; right: 8px;
+    background: #a33; color: white; padding: 6px 10px; border-radius: 3px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+  <div id="status"><span>Loading...</span></div>
+  <div id="panes">
+    <div id="text-pane"><p>Loading graph…</p></div>
+    <div id="graph-pane"><p>Loading viz…</p></div>
+  </div>
+  <div id="error"></div>
+
+  <!-- viz.js for Graphviz layout in-browser -->
+  <script src="https://unpkg.com/@viz-js/viz@3.11.0/lib/viz-standalone.js"></script>
+  <!-- graph.js sets window.GRAPH = { nodes: [...], edges: [...] } -->
+  <script src="graph.js"></script>
+  <!--
+    To override text, add a sibling `text.js` that sets:
+      window.TEXT = { node: { nodeIdOrType: { verbose, brief, status } },
+                      edge: { edgeIdOrType: { initial, link, repeat } } }
+    (optional; defaults come from game.js).
+  -->
+  <script src="game.js"></script>
+</body>
+</html>
