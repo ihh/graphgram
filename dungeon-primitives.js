@@ -14,6 +14,7 @@
 
 const EDGE_PATH = 'path'
 const EDGE_BACKTRACK = 'backtrack'
+const EDGE_SHORTCUT = 'shortcut'
 const EDGE_PASSAGE = 'passage'
 const EDGE_MONSTER = 'monster'
 const EDGE_PUZZLE = 'puzzle'
@@ -24,6 +25,24 @@ const NODE_ROOM = 'room'
 const NODE_DEAD_END = 'dead_end'
 const NODE_KEY = 'key'
 const NODE_DOOR = 'door'
+
+// Identifier generators for CYOA-style gating. Every grammar-generated node
+// carries a `nodeId` in its label so that `prereq.visited: <nodeId>` on any
+// edge references a stable, player-trackable identity. Every forward /
+// backtrack edge pair carries a shared `edgeId` so that a `prereq.traversed`
+// on the backtrack references exactly the corresponding forward edge.
+//
+// $$iter is the current iteration counter of the enclosing stage. It resets
+// at each stage boundary, so we qualify IDs with a stage-role string to
+// avoid collisions with init-stage hardcoded IDs. Within the expand stage
+// (which owns almost all ID-generating rules) every rule application
+// advances $$iter, so `<role>_<iter>` pairs are unique.
+function nodeIdExpr (role) {
+  return { $eval: '"' + role + '_" + ($$iter + 1)' }
+}
+function edgeIdExpr (role) {
+  return { $eval: '"e_' + role + '_" + ($$iter + 1)' }
+}
 
 // Copy common rule-level options onto a rule object without clobbering
 // fields that the factory itself populated.
@@ -53,36 +72,49 @@ function midpointRoom (opts) {
   const roomType = opts.roomType || NODE_ROOM
   const winType = opts.winType || NODE_WIN
   const oneWay = !!opts.oneWay
-  // Return edges are `backtrack`-typed (not `path`) so the refine stage
-  // leaves them alone — return corridors shouldn't be flavored as
-  // monster / puzzle / passage obstacles.
-  const backtrackLabel = {
-    type: backtrackType,
-    dot: { label: backtrackType, style: 'dashed', color: 'gray' }
+  const idAM = edgeIdExpr('am')
+  const idMB = edgeIdExpr('mb')
+  function backtrackLabel (traversedId) {
+    return {
+      type: backtrackType,
+      prereq: { traversed: traversedId },
+      dot: { label: backtrackType, style: 'dashed', color: 'gray' }
+    }
   }
+  // Forward edges carry an `edgeId`; return edges carry the corresponding
+  // `prereq.traversed` so the player can only walk them after having taken
+  // the paired forward edge.
   const edges = [
-    { v: 'a', w: 'm', label: { type: pathType } },
-    { v: 'm', w: 'b', label: { type: pathType } }
+    { v: 'a', w: 'm', label: { type: pathType, edgeId: idAM } },
+    { v: 'm', w: 'b', label: { type: pathType, edgeId: idMB } }
   ]
   // LHS guard: only guard b against being `win` in the two-way case, since
   // only the two-way variant adds an edge sourced at b.
   const lhsNodes = [{ id: 'a' }, { id: 'b' }]
   if (!oneWay) {
-    edges.push({ v: 'b', w: 'm', label: backtrackLabel })
-    edges.push({ v: 'm', w: 'a', label: backtrackLabel })
+    edges.push({ v: 'b', w: 'm', label: backtrackLabel(idMB) })
+    edges.push({ v: 'm', w: 'a', label: backtrackLabel(idAM) })
     lhsNodes[1] = { id: 'b', label: { $not: { type: winType } } }
+  }
+  // Refuse to split any edge that already has an edgeId — those are paired
+  // with a backtrack elsewhere, and splitting would leave the backtrack's
+  // `prereq.traversed` referencing a forward edge that no longer exists.
+  // (Anonymous path edges, including the initial start->win and the
+  // preserved a->b in parallelPath / deadEnd, are still fair game.)
+  const edgePattern = {
+    $and: [{ type: pathType }, { $not: { edgeId: '(.+)' } }]
   }
   const rule = {
     name: oneWay ? 'midpoint-room-oneway' : 'midpoint-room',
     lhs: {
       node: lhsNodes,
-      edge: [{ v: 'a', w: 'b', label: { type: pathType } }]
+      edge: [{ v: 'a', w: 'b', label: edgePattern }]
     },
     rhs: {
       node: [
         { id: 'a' },
         { id: 'b' },
-        { id: 'm', label: { type: roomType } }
+        { id: 'm', label: { type: roomType, nodeId: nodeIdExpr('room') } }
       ],
       edge: edges
     }
@@ -105,32 +137,38 @@ function deadEnd (opts) {
   const backtrackType = opts.backtrackType || EDGE_BACKTRACK
   const deadEndType = opts.deadEndType || NODE_DEAD_END
   const withBacktrack = !opts.noBacktrack
+  const idAD = edgeIdExpr('ad')
   const edges = [
     { v: 'a', w: 'b', label: { type: pathType } },
-    { v: 'a', w: 'd', label: { type: pathType } }
+    { v: 'a', w: 'd', label: { type: pathType, edgeId: idAD } }
   ]
   if (withBacktrack) {
     edges.push({
       v: 'd', w: 'a',
       label: {
         type: backtrackType,
+        prereq: { traversed: idAD },
         dot: { label: backtrackType, style: 'dashed', color: 'gray' }
       }
     })
   }
+  // Preserve the a->b edge's label (in particular its edgeId, if any) by
+  // giving it an LHS id and referencing it unchanged on the RHS. Without
+  // this, the RHS would clobber the label — and any backtrack elsewhere in
+  // the graph pointing at the old edgeId would go dangling.
   return withOpts({
     name: 'dead-end',
     lhs: {
       node: [{ id: 'a' }, { id: 'b' }],
-      edge: [{ v: 'a', w: 'b', label: { type: pathType } }]
+      edge: [{ v: 'a', w: 'b', label: { type: pathType }, id: 'e' }]
     },
     rhs: {
       node: [
         { id: 'a' },
         { id: 'b' },
-        { id: 'd', label: { type: deadEndType } }
+        { id: 'd', label: { type: deadEndType, nodeId: nodeIdExpr('deadend') } }
       ],
-      edge: edges
+      edge: ['e'].concat(edges.slice(1))
     }
   }, opts)
 }
@@ -142,20 +180,21 @@ function parallelPath (opts) {
   opts = opts || {}
   const pathType = opts.pathType || EDGE_PATH
   const roomType = opts.roomType || NODE_ROOM
+  // Preserve a->b's label (including any edgeId) via the LHS id='e' trick.
   return withOpts({
     name: 'parallel-path',
     lhs: {
       node: [{ id: 'a' }, { id: 'b' }],
-      edge: [{ v: 'a', w: 'b', label: { type: pathType } }]
+      edge: [{ v: 'a', w: 'b', label: { type: pathType }, id: 'e' }]
     },
     rhs: {
       node: [
         { id: 'a' },
         { id: 'b' },
-        { id: 'm', label: { type: roomType } }
+        { id: 'm', label: { type: roomType, nodeId: nodeIdExpr('room') } }
       ],
       edge: [
-        { v: 'a', w: 'b', label: { type: pathType } },
+        'e',
         { v: 'a', w: 'm', label: { type: pathType } },
         { v: 'm', w: 'b', label: { type: pathType } }
       ]
@@ -209,19 +248,29 @@ function keyDoor (opts) {
   const keyLabel = {
     type: keyType,
     pairId: pairId,
+    nodeId: nodeIdExpr('key'),
     text: bundled('keyText', 'There is a key here. You pick it up.'),
     dot: { label: pairLabel(keyType), shape: 'diamond' }
   }
   const doorLabel = {
     type: doorType,
     pairId: pairId,
+    nodeId: nodeIdExpr('door'),
     text: bundled('shutText', 'There is a door here. It is closed and locked.'),
     dot: { label: pairLabel(doorType), shape: 'house' }
   }
   if (narrate) doorLabel.theme = { $kdBundle: [iterArg, 'theme'] }
 
+  // Edge IDs for the three forward-edge-to-backtrack pairs:
+  //   a->k / k->a  (branch out to the key and back)
+  //   a->d / d->a  (approach the door and retreat)
+  //   d->b / b->d  (unlock the door forward, and come back through once open)
+  const idAK = edgeIdExpr('ak')
+  const idAD = edgeIdExpr('ad')
+  const idDB = edgeIdExpr('db')
   const branchEdgeLabel = {
     type: pathType,
+    edgeId: idAK,
     before: bundled('before', 'You see a passage.'),
     link: bundled('link', 'Take the passage.'),
     // dot.label is deliberately omitted so the decorate stage can fill
@@ -232,6 +281,7 @@ function keyDoor (opts) {
   }
   const lockedEdgeLabel = {
     type: pathType,
+    edgeId: idDB,
     prereq: {
       pairId: pairId,
       link: bundled('unlock', 'Unlock the door with the key.'),
@@ -239,17 +289,26 @@ function keyDoor (opts) {
     },
     dot: { label: pairLabel('locked'), style: 'bold', color: 'red' }
   }
+  // k -> a  (backtrack, requires having taken the a->k forward edge)
   const backtrackEdgeLabel = {
     type: backtrackType,
+    prereq: { traversed: idAK },
     dot: { label: backtrackType, style: 'dashed', color: 'gray' }
   }
-
-  // Door backtracks:  d -> a   (retreat from the door, key or no key)
-  //                   b -> d   (once unlocked, the door stays open — having
-  //                             visited the key is equivalent to having it
-  //                             in the inventory, so no prereq on the return)
-  const doorBacktrackLabel = {
+  // Door backtracks:  d -> a   (retreat from the door before unlocking it;
+  //                             requires having walked a->d forward)
+  //                   b -> d   (once unlocked, the door stays open — gated
+  //                             on having traversed d->b, which itself
+  //                             required the key. No double-gating: traversed
+  //                             d->b implies the player had the key.)
+  const doorFrontBacktrack = {
     type: backtrackType,
+    prereq: { traversed: idAD },
+    dot: { label: backtrackType, style: 'dashed', color: 'gray' }
+  }
+  const doorBackBacktrack = {
+    type: backtrackType,
+    prereq: { traversed: idDB },
     dot: { label: backtrackType, style: 'dashed', color: 'gray' }
   }
 
@@ -262,7 +321,11 @@ function keyDoor (opts) {
         // otherwise give `win` an outgoing edge.
         { id: 'b', label: { $not: { type: winType } } }
       ],
-      edge: [{ v: 'a', w: 'b', label: { type: pathType } }]
+      // Refuse edges that already carry an edgeId — keyDoor replaces the
+      // a->b edge with a longer a->d->b chain, so splitting a paired edge
+      // would leave its backtrack's prereq.traversed dangling.
+      edge: [{ v: 'a', w: 'b',
+               label: { $and: [{ type: pathType }, { $not: { edgeId: '(.+)' } }] } }]
     },
     rhs: {
       node: [
@@ -274,10 +337,10 @@ function keyDoor (opts) {
       edge: [
         { v: 'a', w: 'k', label: branchEdgeLabel },
         { v: 'k', w: 'a', label: backtrackEdgeLabel },
-        { v: 'a', w: 'd', label: { type: pathType } },
-        { v: 'd', w: 'a', label: doorBacktrackLabel },
+        { v: 'a', w: 'd', label: { type: pathType, edgeId: idAD } },
+        { v: 'd', w: 'a', label: doorFrontBacktrack },
         { v: 'd', w: 'b', label: lockedEdgeLabel },
-        { v: 'b', w: 'd', label: doorBacktrackLabel }
+        { v: 'b', w: 'd', label: doorBackBacktrack }
       ]
     }
   }, opts)
@@ -285,29 +348,41 @@ function keyDoor (opts) {
 
 // Cycle-closing shortcut: match a two-edge path a --path--> m --path--> b
 // where a already has a key hanging off it (from a prior keyDoor
-// application), and add a locked shortcut edge b --path--> a that reuses the
-// existing key's pairId. This turns tree-shaped dungeons into cyclic ones —
-// the player finds the key on the outward journey, rounds the corner, and
-// unlocks a shortcut back. (Dormans' "cyclic" generation pattern.)
+// application), and add a shortcut edge b --> a. This turns tree-shaped
+// dungeons into cyclic ones — the player walks the long way round, and the
+// shortcut back becomes available after they've reached a.
 //
-// The key's pairId is captured from its label via the LHS regex `(pair_.*)`
-// and templated onto the new edge's prereq via the ${k.match.pairId[1]}
-// expansion — so structurally the new door is tied to the existing key.
+// Unlike a `backtrack` (gated by traversing its paired forward edge), a
+// `shortcut` is gated by having *visited the destination node* — i.e. the
+// player must have been at `a` at some point before they can take the
+// shortcut from `b`. This matches the Dormans cyclic-generation intent:
+// you're not unwinding a specific corridor you came down, you're discovering
+// a loop.
 //
-// Guarded by `condition` against re-closing an already-closed cycle. Intended
-// to run in a stage AFTER keyDoor has populated keys (otherwise it matches
-// nothing) and BEFORE refineEdges rewrites path edges (otherwise the LHS's
-// `type: path` probe fails). See grammars/dunjs-dungeon.js for placement.
+// The edge gets `type: shortcut` (not `path` or `backtrack`), so the refine
+// stage — which rewrites `path` edges into passage/monster/puzzle — leaves
+// it alone. Add a refine rule for EDGE_SHORTCUT if you want shortcuts to be
+// flavored as full corridors.
+//
+// Structurally requires an existing key at `a` so that the shortcut has
+// narrative motivation, even though the gating is destination-visit rather
+// than key-pickup.
+//
+// Guarded by `condition` against re-closing an already-closed cycle.
+// Intended to run AFTER keyDoor has populated keys and BEFORE refineEdges
+// rewrites path edges.
 function cycleCloseShortcut (opts) {
   opts = opts || {}
   const pathType = opts.pathType || EDGE_PATH
+  const shortcutType = opts.shortcutType || EDGE_SHORTCUT
   const keyType = opts.keyType || NODE_KEY
   const winType = opts.winType || NODE_WIN
   return withOpts({
     name: 'cycle-close-shortcut',
     lhs: {
       node: [
-        { id: 'a' },
+        // Capture a's `nodeId` so the shortcut's prereq can reference it.
+        { id: 'a', label: { nodeId: '(.+)' } },
         { id: 'm' },
         // Do not make `win` a source of a shortcut — the goal node must not
         // have any outgoing edges. This $not guard also tolerates nodes
@@ -315,10 +390,13 @@ function cycleCloseShortcut (opts) {
         { id: 'b', label: { $not: { type: winType } } },
         { id: 'k', label: { $and: [{ type: keyType }, { pairId: '(pair_.*)' }] } }
       ],
+      // LHS edges get ids so RHS can preserve their labels (edgeIds etc.)
+      // unchanged — the shortcut only ADDS a b->a edge, it doesn't modify
+      // the existing structure.
       edge: [
-        { v: 'a', w: 'm', label: { type: pathType } },
-        { v: 'm', w: 'b', label: { type: pathType } },
-        { v: 'a', w: 'k', label: { type: pathType } }
+        { v: 'a', w: 'm', label: { type: pathType }, id: 'eam' },
+        { v: 'm', w: 'b', label: { type: pathType }, id: 'emb' },
+        { v: 'a', w: 'k', label: { type: pathType }, id: 'eak' }
       ]
     },
     // Do not fire if a direct b->a edge already exists (either as a shortcut
@@ -328,15 +406,15 @@ function cycleCloseShortcut (opts) {
     rhs: {
       node: [{ id: 'a' }, { id: 'm' }, { id: 'b' }, { id: 'k' }],
       edge: [
-        { v: 'a', w: 'm', label: { type: pathType } },
-        { v: 'm', w: 'b', label: { type: pathType } },
-        { v: 'a', w: 'k', label: { type: pathType } },
-        // The new locked shortcut. prereq.pairId reuses the key's captured
-        // pairId, so existing graph viz / prose code that keys off pairId
-        // sees the shortcut and the original key as linked.
+        'eam',
+        'emb',
+        'eak',
+        // New shortcut: type=shortcut, gated on having visited a.
+        // The dot label still advertises the paired key so the cyclic
+        // structure reads visually in rendered graphs.
         { v: 'b', w: 'a', label: {
-            type: pathType,
-            prereq: { pairId: '${k.match.pairId[1]}' },
+            type: shortcutType,
+            prereq: { visited: '${a.match.nodeId[1]}' },
             dot: {
               label: { $eval: '"shortcut (" + $k.label.pairId + ")"' },
               style: 'bold',
@@ -439,9 +517,12 @@ function initStartGoalStage (opts) {
       name: 'spawn-start-goal',
       lhs: startLabel,
       rhs: {
+        // `nodeId` is hardcoded for the two singleton init nodes so that
+        // downstream rules can reference them via `prereq.visited: 'start'`
+        // or similar without worrying about iter-derived collisions.
         node: [
-          { id: 's', label: { type: startType } },
-          { id: 'g', label: { type: winType } }
+          { id: 's', label: { type: startType, nodeId: 'start' } },
+          { id: 'g', label: { type: winType, nodeId: 'win' } }
         ],
         edge: [{ v: 's', w: 'g', label: { type: pathType } }]
       }
@@ -463,6 +544,7 @@ module.exports = {
   // type constants
   EDGE_PATH,
   EDGE_BACKTRACK,
+  EDGE_SHORTCUT,
   EDGE_PASSAGE,
   EDGE_MONSTER,
   EDGE_PUZZLE,

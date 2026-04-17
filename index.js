@@ -445,9 +445,12 @@ Grammar.prototype.init = function() {
 		  e.label = e.update
 		  ? grammar.matcher.makeLabelUpdate (e.id, e.update)
 		  : grammar.matcher.makeLabelEval (e.id)
-		// if v or w is undefined, copy those over
-		if (typeof(e.v) === 'undefined') e.v = lhsInfo.isEdgeId[e.id].v
-		if (typeof(e.w) === 'undefined') e.w = lhsInfo.isEdgeId[e.id].w
+		// if v or w is unset, copy from the matched LHS edge. NB: the
+		// `e.v = typeof(...) !== 'undefined' && String(e.v)` line above
+		// coerces undefined to false (not undefined), so we check falsy
+		// here rather than strictly-undefined.
+		if (!e.v) e.v = lhsInfo.isEdgeId[e.id].v
+		if (!e.w) e.w = lhsInfo.isEdgeId[e.id].w
 	      }
 	      // remove noncanonical sugary properties from RHS edges
 	      delete e.id

@@ -33,6 +33,100 @@ function runDungeon (seed, expandLimit) {
   return g.evolve({ seed }).graph
 }
 
+// --- CYOA gating invariants: nodeIds, edge pairing, prereqs --------------
+
+// A richer expand stage for invariant tests — parallelPath is essential
+// because it creates edgeId-free, non-win-target path edges that
+// midpointRoom and keyDoor can then grow from (both of them now guard
+// their LHS against both win-targets and already-paired edgeId-bearing
+// edges).
+function richExpandGrammar () {
+  return new Grammar({
+    start: 'START',
+    stages: [
+      dp.initStartGoalStage(),
+      { name: 'expand', limit: 25, rules: [
+        dp.parallelPath({ weight: 1 }),
+        dp.deadEnd({ weight: 1 }),
+        dp.midpointRoom({ weight: 2 }),
+        dp.keyDoor({ weight: 2, limit: 3 })
+      ] }
+    ]
+  })
+}
+
+test('grammar: every grammar-generated node carries a nodeId', () => {
+  const graph = richExpandGrammar().evolve({ seed: 3 }).graph
+  const missing = graph.nodes().filter(n => !(graph.node(n) || {}).nodeId)
+  assert.deepStrictEqual(missing, [], 'nodes missing nodeId: ' + missing.join(','))
+  const ids = graph.nodes().map(n => graph.node(n).nodeId)
+  assert.strictEqual(new Set(ids).size, ids.length, 'nodeIds are unique')
+})
+
+test('grammar: every backtrack edge has a prereq.traversed pointing to a real edgeId', () => {
+  const graph = richExpandGrammar().evolve({ seed: 3 }).graph
+
+  // Collect every edgeId present in the graph.
+  const edgeIds = new Set()
+  graph.edges().forEach(e => {
+    const l = graph.edge(e)
+    if (l && l.edgeId) edgeIds.add(l.edgeId)
+  })
+
+  // Every backtrack edge must reference an existing edgeId via prereq.traversed.
+  const backs = graph.edges()
+    .map(e => ({ e, label: graph.edge(e) }))
+    .filter(x => x.label && x.label.type === dp.EDGE_BACKTRACK)
+  assert.ok(backs.length > 0, 'at least some backtracks exist')
+  backs.forEach(x => {
+    assert.ok(x.label.prereq, 'backtrack ' + x.e.v + '->' + x.e.w + ' has prereq')
+    assert.ok(x.label.prereq.traversed,
+      'backtrack ' + x.e.v + '->' + x.e.w + ' prereq.traversed present')
+    assert.ok(edgeIds.has(x.label.prereq.traversed),
+      'prereq.traversed "' + x.label.prereq.traversed + '" names a real edgeId')
+  })
+})
+
+test('grammar: every shortcut edge has prereq.visited pointing to an existing nodeId', () => {
+  // Needs parallelPath in the expand stage for the dungeon to grow past the
+  // initial start->win edge (see richExpandGrammar comment above).
+  let graph = null
+  for (const s of [1, 2, 3, 4, 5, 7, 42, 100]) {
+    const candidate = new Grammar({
+      start: 'START',
+      stages: [
+        dp.initStartGoalStage(),
+        { name: 'expand', limit: 30, rules: [
+          dp.parallelPath({ weight: 1 }),
+          dp.deadEnd({ weight: 1 }),
+          dp.midpointRoom({ weight: 2 }),
+          dp.keyDoor({ weight: 5, limit: 3 })
+        ] },
+        { name: 'close-cycles', limit: 5, rules: [dp.cycleCloseShortcut()] }
+      ]
+    }).evolve({ seed: s }).graph
+    const hasShortcut = candidate.edges().some(e =>
+      (candidate.edge(e) || {}).type === dp.EDGE_SHORTCUT)
+    if (hasShortcut) { graph = candidate; break }
+  }
+  assert.ok(graph, 'found a seed that produces at least one shortcut')
+
+  const nodeIds = new Set(graph.nodes().map(n => (graph.node(n) || {}).nodeId))
+  const shortcuts = graph.edges()
+    .map(e => ({ e, label: graph.edge(e) }))
+    .filter(x => x.label && x.label.type === dp.EDGE_SHORTCUT)
+  shortcuts.forEach(x => {
+    assert.ok(x.label.prereq && x.label.prereq.visited,
+      'shortcut has prereq.visited')
+    assert.ok(nodeIds.has(x.label.prereq.visited),
+      'prereq.visited "' + x.label.prereq.visited + '" names a real nodeId')
+    // The referenced nodeId is specifically the destination of the shortcut.
+    const destNodeId = (graph.node(x.e.w) || {}).nodeId
+    assert.strictEqual(x.label.prereq.visited, destNodeId,
+      'prereq.visited references the destination node')
+  })
+})
+
 test('grammar: init-only produces start-->win', () => {
   const g = new Grammar({
     start: 'START',
@@ -291,16 +385,16 @@ test('grammar: cycleCloseShortcut refuses to make win a source', () => {
     'win node has no outgoing edges')
 })
 
-test('grammar: cycleCloseShortcut rewrites a pre-built a->m->b + a->k seed into a cycle', () => {
+test('grammar: cycleCloseShortcut adds a type=shortcut edge gated on visiting the destination', () => {
   // Build the exact topology cycleCloseShortcut expects: a -> m -> b plus a
-  // key k hanging off a. Apply only the cycle-close rule and assert that the
-  // shortcut back-edge (b -> a, sharing the key's pairId) is added.
+  // key k hanging off a. `a` carries a nodeId, which the rule captures via a
+  // regex and templates onto the shortcut's prereq.visited.
   const graphlib = require('graphlib')
   const seed = new graphlib.Graph()
-  seed.setNode('A', { type: 'room' })
-  seed.setNode('M', { type: 'room' })
-  seed.setNode('B', { type: 'room' })
-  seed.setNode('K', { type: 'key', pairId: 'pair_9' })
+  seed.setNode('A', { type: 'room', nodeId: 'room_hub' })
+  seed.setNode('M', { type: 'room', nodeId: 'room_mid' })
+  seed.setNode('B', { type: 'room', nodeId: 'room_far' })
+  seed.setNode('K', { type: 'key', pairId: 'pair_9', nodeId: 'key_9' })
   seed.setEdge('A', 'M', { type: 'path' })
   seed.setEdge('M', 'B', { type: 'path' })
   seed.setEdge('A', 'K', { type: 'path' })
@@ -312,29 +406,26 @@ test('grammar: cycleCloseShortcut rewrites a pre-built a->m->b + a->k seed into 
   })
   const out = g.evolve({ seed: 1, graph: seed }).graph
 
-  // The cycle-close rule re-creates the four LHS nodes with fresh IDs (rhs
-  // nodes that reference lhs IDs get auto-copied labels), so we find them
-  // again by label.
-  const nodeByType = (t) => out.nodes().filter(n => (out.node(n) || {}).type === t)
-  const keys = nodeByType('key')
-  assert.strictEqual(keys.length, 1, 'the single key survives')
-  assert.strictEqual(out.node(keys[0]).pairId, 'pair_9')
-
-  // A single forward b -> a back-edge should have been added.
   const shortcuts = out.edges()
     .map(e => ({ e, label: out.edge(e) }))
-    .filter(x => x.label && x.label.prereq
-                 && x.label.prereq.pairId === 'pair_9'
-                 && x.label.dot && x.label.dot.color === 'blue')
-  assert.strictEqual(shortcuts.length, 1, 'exactly one blue shortcut')
+    .filter(x => x.label && x.label.type === dp.EDGE_SHORTCUT)
+  assert.strictEqual(shortcuts.length, 1, 'exactly one shortcut edge')
+  const s = shortcuts[0]
 
-  // And that shortcut should close the cycle: its source is B, destination A.
-  const { e } = shortcuts[0]
-  assert.strictEqual((out.node(e.v) || {}).type, 'room', 'shortcut source is a room')
-  assert.strictEqual((out.node(e.w) || {}).type, 'room', 'shortcut target is a room')
-  // Target should have an outgoing path edge (it's A, the start of the original
-  // chain, which keeps its out-edge to M and to K).
-  assert.ok((out.successors(e.w) || []).length >= 2, 'cycle target keeps both outgoing edges')
+  // prereq: visited <destination nodeId>. Destination is `a` (room_hub).
+  assert.ok(s.label.prereq, 'shortcut has prereq')
+  assert.strictEqual(s.label.prereq.visited, 'room_hub',
+    'prereq.visited references the destination nodeId')
+  // No pairId prereq anymore — the key-gate was replaced with a visit-gate.
+  assert.strictEqual(s.label.prereq.pairId, undefined, 'no key prereq on shortcut')
+
+  // Source is B (room_far), destination is A (room_hub).
+  assert.strictEqual((out.node(s.e.v) || {}).nodeId, 'room_far')
+  assert.strictEqual((out.node(s.e.w) || {}).nodeId, 'room_hub')
+
+  // Visual styling intact.
+  assert.strictEqual(s.label.dot.color, 'blue')
+  assert.strictEqual(s.label.dot.style, 'bold')
 })
 
 test('grammar: dotDecorationStage populates label.dot.label on every node and edge', () => {
