@@ -1647,6 +1647,7 @@ window.GRAPH = {
       "value": {
         "type": "choice",
         "correct": true,
+        "edgeId": "e_ad_4",
         "dot": {
           "label": "correct",
           "color": "darkgreen"
@@ -1698,6 +1699,7 @@ window.GRAPH = {
       "value": {
         "type": "choice",
         "correct": true,
+        "edgeId": "e_ap_5",
         "dot": {
           "label": "correct",
           "color": "darkgreen"
@@ -1821,6 +1823,7 @@ window.GRAPH = {
       "value": {
         "type": "choice",
         "correct": true,
+        "edgeId": "e_ad_1",
         "dot": {
           "label": "correct",
           "color": "darkgreen"
@@ -1872,6 +1875,7 @@ window.GRAPH = {
       "value": {
         "type": "choice",
         "correct": true,
+        "edgeId": "e_ad_3",
         "dot": {
           "label": "correct",
           "color": "darkgreen"
@@ -2534,6 +2538,7 @@ window.GRAPH = {
       "value": {
         "type": "choice",
         "correct": true,
+        "edgeId": "e_ad_25",
         "dot": {
           "label": "correct",
           "color": "darkgreen"
@@ -2899,6 +2904,7 @@ window.GRAPH = {
         "weight": 0.3,
         "playerDamage": 0,
         "monsterDamage": 1,
+        "edgeId": "e_ak_21",
         "dot": {
           "label": "consequence"
         }
@@ -2925,6 +2931,7 @@ window.GRAPH = {
         "weight": 0.1,
         "playerDamage": 0,
         "monsterDamage": 1,
+        "edgeId": "e_ap_8",
         "dot": {
           "label": "consequence"
         }
@@ -2936,6 +2943,7 @@ window.GRAPH = {
       "value": {
         "type": "choice",
         "correct": true,
+        "edgeId": "e_ad_21",
         "dot": {
           "label": "correct",
           "color": "darkgreen"
@@ -3162,6 +3170,7 @@ window.GRAPH = {
       "value": {
         "type": "choice",
         "correct": true,
+        "edgeId": "e_ad_24",
         "dot": {
           "label": "correct",
           "color": "darkgreen"
@@ -3205,6 +3214,7 @@ window.GRAPH = {
         "weight": 0.1,
         "playerDamage": 0,
         "monsterDamage": 1,
+        "edgeId": "e_ak_21",
         "dot": {
           "label": "consequence"
         }
@@ -3449,6 +3459,7 @@ window.GRAPH = {
         "weight": 0.1,
         "playerDamage": 0,
         "monsterDamage": 1,
+        "edgeId": "e_ad_23",
         "dot": {
           "label": "consequence"
         }
@@ -3654,6 +3665,7 @@ window.GRAPH = {
         "weight": 0.3,
         "playerDamage": 0,
         "monsterDamage": 1,
+        "edgeId": "e_ad_15",
         "dot": {
           "label": "consequence"
         }
@@ -3765,6 +3777,7 @@ window.GRAPH = {
         "weight": 0.1,
         "playerDamage": 0,
         "monsterDamage": 1,
+        "edgeId": "e_ad_12",
         "dot": {
           "label": "consequence"
         }
@@ -3779,6 +3792,7 @@ window.GRAPH = {
         "weight": 0.3,
         "playerDamage": 0,
         "monsterDamage": 1,
+        "edgeId": "e_ad_12",
         "dot": {
           "label": "consequence"
         }
@@ -3807,6 +3821,7 @@ window.GRAPH = {
         "weight": 0.3,
         "playerDamage": 0,
         "monsterDamage": 1,
+        "edgeId": "e_ad_23",
         "dot": {
           "label": "consequence"
         }
@@ -3911,6 +3926,7 @@ window.GRAPH = {
       "value": {
         "type": "choice",
         "correct": true,
+        "edgeId": "e_ad_16",
         "dot": {
           "label": "correct",
           "color": "darkgreen"
@@ -3954,6 +3970,7 @@ window.GRAPH = {
         "weight": 0.3,
         "playerDamage": 0,
         "monsterDamage": 1,
+        "edgeId": "e_ap_8",
         "dot": {
           "label": "consequence"
         }
@@ -4292,6 +4309,7 @@ window.GRAPH = {
         "weight": 0.1,
         "playerDamage": 0,
         "monsterDamage": 1,
+        "edgeId": "e_mb_13",
         "dot": {
           "label": "consequence"
         }
@@ -4306,6 +4324,7 @@ window.GRAPH = {
         "weight": 0.3,
         "playerDamage": 0,
         "monsterDamage": 1,
+        "edgeId": "e_mb_13",
         "dot": {
           "label": "consequence"
         }
@@ -4478,6 +4497,7 @@ window.GRAPH = {
         "weight": 0.3,
         "playerDamage": 0,
         "monsterDamage": 1,
+        "edgeId": "e_mb_17",
         "dot": {
           "label": "consequence"
         }
@@ -4492,6 +4512,7 @@ window.GRAPH = {
         "weight": 0.1,
         "playerDamage": 0,
         "monsterDamage": 1,
+        "edgeId": "e_mb_17",
         "dot": {
           "label": "consequence"
         }
@@ -4567,6 +4588,7 @@ window.GRAPH = {
         "weight": 0.1,
         "playerDamage": 0,
         "monsterDamage": 1,
+        "edgeId": "e_mb_14",
         "dot": {
           "label": "consequence"
         }
@@ -4591,6 +4613,7 @@ window.GRAPH = {
         "weight": 0.3,
         "playerDamage": 0,
         "monsterDamage": 1,
+        "edgeId": "e_mb_14",
         "dot": {
           "label": "consequence"
         }
@@ -4620,6 +4643,7 @@ window.GRAPH = {
         "weight": 0.1,
         "playerDamage": 0,
         "monsterDamage": 1,
+        "edgeId": "e_ad_15",
         "dot": {
           "label": "consequence"
         }
@@ -5249,6 +5273,7 @@ window.GRAPH = {
       "value": {
         "type": "choice",
         "correct": true,
+        "edgeId": "e_ad_7",
         "dot": {
           "label": "correct",
           "color": "darkgreen"

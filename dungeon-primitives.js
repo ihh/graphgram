@@ -542,6 +542,17 @@ function monsterBattle (opts) {
       monsterDamage: defaults.monsterDamage || 0
     }, d)
   }
+  // Victory consequences should inherit any edgeId the original monster
+  // edge carried (often left over from refine rewriting a paired path
+  // edge into `monster`). Otherwise the paired backtrack's
+  // prereq.traversed will never be satisfied — the player defeated the
+  // monster, but the graph's "you traversed the connection from a to b"
+  // flag was attached to an edge that no longer exists.
+  function vic (role, defaults) {
+    const base = c(role, defaults)
+    base.edgeId = { $eval: '$e.label.edgeId' }
+    return base
+  }
   return withOpts({
     name: 'monster-battle',
     lhs: {
@@ -593,12 +604,12 @@ function monsterBattle (opts) {
         // Consequences of an attack roll.
         { v: 'rA', w: 'cN', label: c('attack-stalemate', { weight: 0.4, playerDamage: 0.2, monsterDamage: 0.3 }) },
         { v: 'rA', w: 'cA', label: c('attack-advantage', { weight: 0.2, monsterDamage: 0.5 }) },
-        { v: 'rA', w: 'b', label: c('attack-victory', { weight: 0.3, monsterDamage: 1.0 }) },
+        { v: 'rA', w: 'b', label: vic('attack-victory', { weight: 0.3, monsterDamage: 1.0 }) },
         { v: 'rA', w: 'death', label: c('attack-death', { weight: 0.1, playerDamage: 1.0 }) },
         // Consequences of a defend roll.
         { v: 'rD', w: 'cN', label: c('defend-stalemate', { weight: 0.5 }) },
         { v: 'rD', w: 'cA', label: c('defend-advantage', { weight: 0.3 }) },
-        { v: 'rD', w: 'b', label: c('defend-victory', { weight: 0.1, monsterDamage: 1.0 }) },
+        { v: 'rD', w: 'b', label: vic('defend-victory', { weight: 0.1, monsterDamage: 1.0 }) },
         { v: 'rD', w: 'death', label: c('defend-death', { weight: 0.1, playerDamage: 0.5 }) }
       ]
     }
@@ -629,10 +640,17 @@ function puzzleChoice (opts) {
         type: introType, nodeId: nodeIdExpr('puzzle'),
         dot: { label: 'puzzle', shape: 'diamond', color: 'gold' } } }
   ]
+  // If the matched puzzle edge carried an `edgeId` (e.g. because it was
+  // originally a paired forward edge of a deadEnd / keyDoor / midpoint
+  // that then got refined from `path` to `puzzle`), propagate that id
+  // onto the `correct` choice so the paired backtrack's
+  // prereq.traversed is still reachable once the player solves the
+  // puzzle. Without this the backtrack goes permanently dangling.
   const rhsEdges = [
     { v: 'a', w: 'p', label: { type: pathType } },
     { v: 'p', w: 'b', label: {
         type: choiceType, correct: true,
+        edgeId: { $eval: '$e.label.edgeId' },
         dot: { label: 'correct', color: 'darkgreen' } } }
   ]
   for (let i = 1; i <= numDistractors; i++) {

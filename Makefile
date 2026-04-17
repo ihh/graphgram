@@ -33,7 +33,7 @@ rebuild$(SIZE):
 # Writes `window.GRAPH = {...};` so play/index.html can load the graph
 # without a server (works over file://).
 SEED ?= 42
-play/graph.js: grammars/dunjs-dungeon.js
+play/graph.js: grammars/dunjs-dungeon.js dungeon-primitives.js narrator.js index.js subgraph.js
 	@mkdir -p play
 	@printf 'window.GRAPH = ' > $@
 	bin/transform.js -g $< --no-llm -q -s $(SEED) -o /dev/stdout >> $@

@@ -235,7 +235,55 @@
     if (inv.length) {
       chips.push('<span class="chip inv">' + inv.map(escapeHtml).join(', ') + '</span>')
     }
+    chips.push('<a class="chip debug" href="#" id="dump-trace">dump trace</a>')
     status.innerHTML = chips.join('')
+    document.getElementById('dump-trace').addEventListener('click', function (ev) {
+      ev.preventDefault()
+      dumpTrace()
+    })
+  }
+
+  // Diagnostic dump: describes the current position, outgoing edges with
+  // access status, and why each inaccessible edge was blocked. Prints to
+  // both the text pane and the console so the user can copy-paste it.
+  function dumpTrace () {
+    const curLabel = nodeById[state.currentNode] || {}
+    const curOut = outgoing[state.currentNode] || []
+    const lines = []
+    lines.push('--- dump trace ---')
+    lines.push('current host id: ' + state.currentNode)
+    lines.push('current label:   ' + JSON.stringify(curLabel))
+    lines.push('HP: ' + state.playerHP + '   monster HP: ' + state.monsterHP)
+    lines.push('moves: ' + state.moves)
+    lines.push('visited (' + state.visited.size + '): ' + Array.from(state.visited).sort().join(', '))
+    lines.push('traversed edgeIds (' + state.traversed.size + '): ' + Array.from(state.traversed).sort().join(', '))
+    lines.push('outgoing edges: ' + curOut.length)
+    for (const edge of curOut) {
+      const access = edgeAccessible(edge)
+      let why = ''
+      if (!access) {
+        const p = edge.label.prereq || {}
+        if (p.traversed) {
+          why = ' (needs traversed=' + p.traversed
+                + ', present? ' + state.traversed.has(p.traversed)
+                + ', exists in graph? ' + allEdgeIds.has(p.traversed) + ')'
+        } else if (p.visited) {
+          why = ' (needs visited=' + p.visited
+                + ', present? ' + state.visited.has(p.visited)
+                + ', exists in graph? ' + !!nodeIdToHostId[p.visited] + ')'
+        } else if (p.pairId) {
+          why = ' (needs key with pairId=' + p.pairId + ')'
+        }
+      }
+      lines.push('  ' + (access ? '+' : '-') + ' ' + edge.v + ' -> ' + edge.w
+        + ' [' + (edge.label.type || '?') + ']'
+        + (edge.label.edgeId ? ' edgeId=' + edge.label.edgeId : '')
+        + why)
+    }
+    const text = lines.join('\n')
+    console.log(text)
+    appendEvent('<pre style="font-family:Menlo,monospace;font-size:11px;background:#eee;padding:6px;white-space:pre-wrap;">'
+      + escapeHtml(text) + '</pre>')
   }
 
   // ------------------------------------------------------------------
