@@ -227,6 +227,7 @@ function keyDoor (opts) {
   const backtrackType = opts.backtrackType || EDGE_BACKTRACK
   const keyType = opts.keyType || NODE_KEY
   const doorType = opts.doorType || NODE_DOOR
+  const startType = opts.startType || NODE_START
   const winType = opts.winType || NODE_WIN
   const narrate = !!opts.narrate
 
@@ -321,7 +322,12 @@ function keyDoor (opts) {
     name: 'key-door',
     lhs: {
       node: [
-        { id: 'a' },
+        // Don't place the key on the start node: cycleCloseShortcut's
+        // non-start guard would then never match a key-bearing `a`, and
+        // returns would never fire. keyDoor therefore waits until
+        // parallelPath / midpointRoom have produced at least one path
+        // edge whose source isn't start.
+        { id: 'a', label: { $not: { type: startType } } },
         // Don't make the goal node a source: the b -> d backtrack would
         // otherwise give `win` an outgoing edge.
         { id: 'b', label: { $not: { type: winType } } }

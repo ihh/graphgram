@@ -31,10 +31,7 @@
           dp.midpointRoom({ oneWay: true, weight: 1 }),
           dp.deadEnd({ weight: 1 }),
           dp.parallelPath({ weight: 1 }),
-          // delay keyDoor so midpoint/parallel have time to shape interior
-          // rooms first — otherwise keyDoor pins `a` to start and then
-          // cycleCloseShortcut's non-start guard blocks every cycle match.
-          dp.keyDoor({ weight: 1, narrate: false, limit: 3, delay: 4 })
+          dp.keyDoor({ weight: 1, narrate: false, limit: 3 })
         ]
       },
 
