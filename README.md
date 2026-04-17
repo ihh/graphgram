@@ -17,9 +17,11 @@ It can be used for game levels, procedural content, simulations, etc.
 
 The `grammars/dunjs-dungeon.js` example ships a full dungeon builder ported
 from [dunjs](https://github.com/ihh/dunjs) — midpoint rooms, dead-ends,
-parallel paths, key/door pairs (with shared `pairId`), and path refinements
-into passage / monster / puzzle edges. Key and door nodes render as
-diamond/house shapes, the locked edge shows bold red with its pair ID.
+parallel paths, key/door pairs (with shared `pairId`), cycle-closing
+shortcuts that turn the tree into a small Metroidvania-style graph, and path
+refinements into passage / monster / puzzle edges. Key and door nodes render
+as diamond/house shapes, the locked edge shows bold red with its pair ID,
+and the cycle-closing shortcut shows bold blue with the reused pair ID.
 
 One-liners (requires [graphviz](https://graphviz.org/)'s `dot`):
 
@@ -67,6 +69,7 @@ const g = new Grammar({
       dp.parallelPath(),
       dp.keyDoor({ narrate: true, limit: 3 })
     ]},
+    { name: 'close-cycles', limit: 2, rules: [dp.cycleCloseShortcut()] },
     { name: 'refine', rules: dp.refineEdges(
       dp.EDGE_PATH,
       [dp.EDGE_PASSAGE, dp.EDGE_MONSTER, dp.EDGE_PUZZLE]
@@ -82,6 +85,13 @@ Every factory accepts the usual `{ name, weight, limit, type, delay,
 condition }` rule options. `keyDoor({ narrate: true })` draws its `text`,
 `before`, `link`, `after` fields from the `$kdBundle` narrator helper —
 register narrator functions first (see `narrator.js`).
+
+## Tests and benchmarks
+
+~~~~
+npm test          # run the test suite (node:test, zero deps)
+npm run bench     # wall-clock benchmark on a representative dungeon workload
+~~~~
 
 ## Scripts
 

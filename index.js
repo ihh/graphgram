@@ -754,8 +754,64 @@ function Matcher() {
     mergeKey:  '$merge',  // is recursive
 
     // plugins
-    rhsLabelFunc: {}
+    rhsLabelFunc: {},
+
+    // caches for compiled predicates — avoids re-parsing the same string on
+    // every candidate check. Keyed by the source string, so different rules
+    // sharing a predicate also share the compiled form.
+    regexCache: new Map(),         // string -> RegExp('^'+s+'$')
+    testFuncCache: new Map(),      // $test source -> function(label)
+    evalFuncCache: new Map(),      // $eval / condition / weight source -> function($ctx)
+    templatePathCache: new Map()   // "a.match[1]" -> function($ctx)
   })
+}
+
+// Compile a regex once. Labels are matched as ^...$, so we cache with those anchors.
+Matcher.prototype.getRegex = function (src) {
+  var re = this.regexCache.get(src)
+  if (!re) {
+    re = new RegExp('^' + src + '$')
+    this.regexCache.set(src, re)
+  }
+  return re
+}
+
+// Compile a $test predicate source once. The source evaluates to a function
+// of the label under inspection. We cache the *function* it produces.
+Matcher.prototype.getTestFunc = function (src) {
+  var f = this.testFuncCache.get(src)
+  if (!f) {
+    f = eval(src)
+    this.testFuncCache.set(src, f)
+  }
+  return f
+}
+
+// Compile an evaluation expression once. The compiled form takes an
+// extended-context object and uses `with` to make $a, $b, $$iter, etc.
+// directly accessible — matching the semantics of the previous
+// `var $a=JSON.stringify(...);eval(expr)` path, but without re-parsing on
+// every call.
+Matcher.prototype.getEvalFunc = function (src) {
+  var f = this.evalFuncCache.get(src)
+  if (!f) {
+    // sloppy-mode function so `with` is legal. `new Function` bodies are sloppy by default.
+    f = new Function('$ctx', 'with ($ctx) { return (' + src + ') }')
+    this.evalFuncCache.set(src, f)
+  }
+  return f
+}
+
+// Compile a ${...} template variable path (e.g. "a.match[1]") into a function
+// that pulls the value out of an extended context. Falls back to '' if
+// anything along the path is undefined — preserves the original semantics.
+Matcher.prototype.getTemplatePathFunc = function (path) {
+  var f = this.templatePathCache.get(path)
+  if (!f) {
+    f = new Function('$ctx', 'try { return $ctx.' + path + ' } catch (_) { return undefined }')
+    this.templatePathCache.set(path, f)
+  }
+  return f
 }
 
 Matcher.prototype.mapObject = function (obj, f) {
@@ -820,7 +876,7 @@ Matcher.prototype.labelMatch = function (gLabel, sLabel, opts) {
   var typesMatch = (typeof(sLabel) === typeof(gLabel))
   if (typeof(sLabel) === 'string') {
     var match
-    return typesMatch && (match = new RegExp('^'+sLabel+'$').exec (gLabel)) && { match: match.slice(0) }
+    return typesMatch && (match = this.getRegex(sLabel).exec (gLabel)) && { match: match.slice(0) }
   } else if (isArray(sLabel)) {
     if (!isArray(gLabel) || sLabel.length !== gLabel.length)
       return false
@@ -863,7 +919,7 @@ Matcher.prototype.labelMatch = function (gLabel, sLabel, opts) {
       return find (gLabel)
     }
     if (sLabel[this.testKey])
-      return (eval(sLabel[this.testKey]) (gLabel)) && {}
+      return (this.getTestFunc(sLabel[this.testKey]) (gLabel)) && {}
 
     var allMatch = typesMatch && (!opts.exact || Object.keys(gLabel).length == Object.keys(sLabel).length)
     Object.keys(sLabel).forEach (function (k) {
@@ -914,10 +970,15 @@ Matcher.prototype.evalMatchExpr = function (isomorph, expr) {
     return defaultVal
   else if (typeof(expr) === 'string') {
     var extendedContext = this.makeExtendedContext(isomorph)
-    var defs = Object.keys(extendedContext).map (function (key) {
-      return '$' + key + '=' + JSON.stringify(extendedContext[key]) + ';'
-    }).join('')
-    return eval(defs + expr)
+    // Build a `with`-accessible context. The previous implementation declared
+    // `$a`, `$b`, `$$iter` etc. via JSON.stringify + eval on every call; we
+    // now compile the expression once and feed it a fresh context object each
+    // time. Keys in the extended context are the user's IDs (e.g. "a", "iter"
+    // already prefixed with "$"), so we prepend "$" here so user code that
+    // writes `$a.label` / `$$iter` continues to work unchanged.
+    var ctx = {}
+    for (var k in extendedContext) ctx['$' + k] = extendedContext[k]
+    return this.getEvalFunc(expr)(ctx)
   } else if (isArray(expr))
     return expr.map (evalMatchExprForIsomorph)
   else if (typeof(expr) === 'object')
@@ -931,8 +992,9 @@ Matcher.prototype.newLabel = function (isomorph, expr) {
   var newLabelForIsomorph = this.newLabel.bind (this, isomorph)
   if (typeof(expr) === 'string') {
     var extendedContext = this.makeExtendedContext(isomorph)
+    var matcher = this
     return expr.replace (/\${([a-zA-Z_0-9\.\$\[\]]+)}/g, function (_m, v) {
-      return eval ('extendedContext.' + v) || ''
+      return matcher.getTemplatePathFunc(v)(extendedContext) || ''
     })
   } else if (isArray(expr))
     return expr.map (newLabelForIsomorph)

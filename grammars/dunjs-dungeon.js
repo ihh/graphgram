@@ -30,6 +30,15 @@
         ]
       },
 
+      // After structural expansion, before the path edges get refined into
+      // passage/monster/puzzle, close a couple of cycles: wherever there's an
+      // a->m->b chain and a key at a, add a locked b->a shortcut sharing the
+      // key's pairId. Tree becomes Metroidvania.
+      { name: 'close-cycles',
+        limit: 2,
+        rules: [ dp.cycleCloseShortcut({ weight: 1 }) ]
+      },
+
       { name: 'refine',
         rules: dp.refineEdges(dp.EDGE_PATH,
           [dp.EDGE_PASSAGE, dp.EDGE_MONSTER, dp.EDGE_PUZZLE],

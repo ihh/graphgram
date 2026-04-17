@@ -219,6 +219,67 @@ function keyDoor (opts) {
   }, opts)
 }
 
+// Cycle-closing shortcut: match a two-edge path a --path--> m --path--> b
+// where a already has a key hanging off it (from a prior keyDoor
+// application), and add a locked shortcut edge b --path--> a that reuses the
+// existing key's pairId. This turns tree-shaped dungeons into cyclic ones —
+// the player finds the key on the outward journey, rounds the corner, and
+// unlocks a shortcut back. (Dormans' "cyclic" generation pattern.)
+//
+// The key's pairId is captured from its label via the LHS regex `(pair_.*)`
+// and templated onto the new edge's prereq via the ${k.match.pairId[1]}
+// expansion — so structurally the new door is tied to the existing key.
+//
+// Guarded by `condition` against re-closing an already-closed cycle. Intended
+// to run in a stage AFTER keyDoor has populated keys (otherwise it matches
+// nothing) and BEFORE refineEdges rewrites path edges (otherwise the LHS's
+// `type: path` probe fails). See grammars/dunjs-dungeon.js for placement.
+function cycleCloseShortcut (opts) {
+  opts = opts || {}
+  const pathType = opts.pathType || EDGE_PATH
+  const keyType = opts.keyType || NODE_KEY
+  return withOpts({
+    name: 'cycle-close-shortcut',
+    lhs: {
+      node: [
+        { id: 'a' },
+        { id: 'm' },
+        { id: 'b' },
+        { id: 'k', label: { $and: [{ type: keyType }, { pairId: '(pair_.*)' }] } }
+      ],
+      edge: [
+        { v: 'a', w: 'm', label: { type: pathType } },
+        { v: 'm', w: 'b', label: { type: pathType } },
+        { v: 'a', w: 'k', label: { type: pathType } }
+      ]
+    },
+    // Do not fire if a direct b->a edge already exists (either as a shortcut
+    // we added previously, or as part of some other cycle). Without this, the
+    // rule would try to re-match on its own output and duplicate edges.
+    condition: '!$$graph.hasEdge($b.id, $a.id)',
+    rhs: {
+      node: [{ id: 'a' }, { id: 'm' }, { id: 'b' }, { id: 'k' }],
+      edge: [
+        { v: 'a', w: 'm', label: { type: pathType } },
+        { v: 'm', w: 'b', label: { type: pathType } },
+        { v: 'a', w: 'k', label: { type: pathType } },
+        // The new locked shortcut. prereq.pairId reuses the key's captured
+        // pairId, so existing graph viz / prose code that keys off pairId
+        // sees the shortcut and the original key as linked.
+        { v: 'b', w: 'a', label: {
+            type: pathType,
+            prereq: { pairId: '${k.match.pairId[1]}' },
+            dot: {
+              label: { $eval: '"shortcut (" + $k.label.pairId + ")"' },
+              style: 'bold',
+              color: 'blue'
+            }
+        } }
+      ]
+    }
+  }, opts)
+}
+
 // Rewrite the label of any `fromType` edge to be of `toType` (e.g.
 // path -> passage / monster / puzzle). Useful for turning the neutral
 // `path` substrate into flavored dungeon encounters. Other label fields
@@ -325,6 +386,7 @@ module.exports = {
   deadEnd,
   parallelPath,
   keyDoor,
+  cycleCloseShortcut,
   refineEdge,
   refineEdges,
   defaultRules,
