@@ -13,8 +13,13 @@
 // narrator helper (register that with `narrator.registerNarrator()` first).
 
 const EDGE_PATH = 'path'
+// Two distinct ways an edge can be unlocked retroactively:
+//   backtrack — unlocked by having traversed a specific forward edge
+//               (referenced via prereq.traversed = <edgeId>)
+//   return   — unlocked by having visited the destination node
+//               (referenced via prereq.visited = <nodeId>)
 const EDGE_BACKTRACK = 'backtrack'
-const EDGE_SHORTCUT = 'shortcut'
+const EDGE_RETURN = 'return'
 const EDGE_PASSAGE = 'passage'
 const EDGE_MONSTER = 'monster'
 const EDGE_PUZZLE = 'puzzle'
@@ -346,27 +351,29 @@ function keyDoor (opts) {
   }, opts)
 }
 
-// Cycle-closing shortcut: match a two-edge path a --path--> m --path--> b
+// Cycle-closing return edge: match a two-edge path a --path--> m --path--> b
 // where a already has a key hanging off it (from a prior keyDoor
-// application), and add a shortcut edge b --> a. This turns tree-shaped
+// application), and add a `return` edge b --> a. This turns tree-shaped
 // dungeons into cyclic ones — the player walks the long way round, and the
-// shortcut back becomes available after they've reached a.
+// return becomes available after they've reached a.
 //
-// Unlike a `backtrack` (gated by traversing its paired forward edge), a
-// `shortcut` is gated by having *visited the destination node* — i.e. the
+// Unlike a `backtrack` (gated on traversing its paired forward edge), a
+// `return` is gated on having *visited the destination node* — i.e. the
 // player must have been at `a` at some point before they can take the
-// shortcut from `b`. This matches the Dormans cyclic-generation intent:
+// return from `b`. This matches the Dormans cyclic-generation intent:
 // you're not unwinding a specific corridor you came down, you're discovering
 // a loop.
 //
-// The edge gets `type: shortcut` (not `path` or `backtrack`), so the refine
+// The edge gets `type: return` (not `path` or `backtrack`), so the refine
 // stage — which rewrites `path` edges into passage/monster/puzzle — leaves
-// it alone. Add a refine rule for EDGE_SHORTCUT if you want shortcuts to be
+// it alone. Add a refine rule for EDGE_RETURN if you want returns to be
 // flavored as full corridors.
 //
-// Structurally requires an existing key at `a` so that the shortcut has
+// Structurally requires an existing key at `a` so that the return has
 // narrative motivation, even though the gating is destination-visit rather
-// than key-pickup.
+// than key-pickup. `a` is also constrained to be a non-start room: if `a`
+// were the start node, `prereq.visited: start` would be trivially true the
+// whole game, which defeats the "you discovered a loop" purpose.
 //
 // Guarded by `condition` against re-closing an already-closed cycle.
 // Intended to run AFTER keyDoor has populated keys and BEFORE refineEdges
@@ -374,17 +381,23 @@ function keyDoor (opts) {
 function cycleCloseShortcut (opts) {
   opts = opts || {}
   const pathType = opts.pathType || EDGE_PATH
-  const shortcutType = opts.shortcutType || EDGE_SHORTCUT
+  const returnType = opts.returnType || EDGE_RETURN
   const keyType = opts.keyType || NODE_KEY
+  const startType = opts.startType || NODE_START
   const winType = opts.winType || NODE_WIN
   return withOpts({
-    name: 'cycle-close-shortcut',
+    name: 'cycle-close-return',
     lhs: {
       node: [
-        // Capture a's `nodeId` so the shortcut's prereq can reference it.
-        { id: 'a', label: { nodeId: '(.+)' } },
+        // Capture a's `nodeId` so the return's prereq can reference it,
+        // AND require a not to be the start node — otherwise the return is
+        // trivially always unlocked since the player starts on `a`.
+        { id: 'a', label: { $and: [
+          { nodeId: '(.+)' },
+          { $not: { type: startType } }
+        ] } },
         { id: 'm' },
-        // Do not make `win` a source of a shortcut — the goal node must not
+        // Do not make `win` a source of a return — the goal node must not
         // have any outgoing edges. This $not guard also tolerates nodes
         // without object labels (e.g. the transient raw START node).
         { id: 'b', label: { $not: { type: winType } } },
@@ -409,14 +422,14 @@ function cycleCloseShortcut (opts) {
         'eam',
         'emb',
         'eak',
-        // New shortcut: type=shortcut, gated on having visited a.
+        // New return edge: type=return, gated on having visited a.
         // The dot label still advertises the paired key so the cyclic
         // structure reads visually in rendered graphs.
         { v: 'b', w: 'a', label: {
-            type: shortcutType,
+            type: returnType,
             prereq: { visited: '${a.match.nodeId[1]}' },
             dot: {
-              label: { $eval: '"shortcut (" + $k.label.pairId + ")"' },
+              label: { $eval: '"return (" + $k.label.pairId + ")"' },
               style: 'bold',
               color: 'blue'
             }
@@ -544,7 +557,7 @@ module.exports = {
   // type constants
   EDGE_PATH,
   EDGE_BACKTRACK,
-  EDGE_SHORTCUT,
+  EDGE_RETURN,
   EDGE_PASSAGE,
   EDGE_MONSTER,
   EDGE_PUZZLE,

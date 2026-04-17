@@ -106,7 +106,7 @@ test('grammar: every shortcut edge has prereq.visited pointing to an existing no
       ]
     }).evolve({ seed: s }).graph
     const hasShortcut = candidate.edges().some(e =>
-      (candidate.edge(e) || {}).type === dp.EDGE_SHORTCUT)
+      (candidate.edge(e) || {}).type === dp.EDGE_RETURN)
     if (hasShortcut) { graph = candidate; break }
   }
   assert.ok(graph, 'found a seed that produces at least one shortcut')
@@ -114,7 +114,7 @@ test('grammar: every shortcut edge has prereq.visited pointing to an existing no
   const nodeIds = new Set(graph.nodes().map(n => (graph.node(n) || {}).nodeId))
   const shortcuts = graph.edges()
     .map(e => ({ e, label: graph.edge(e) }))
-    .filter(x => x.label && x.label.type === dp.EDGE_SHORTCUT)
+    .filter(x => x.label && x.label.type === dp.EDGE_RETURN)
   shortcuts.forEach(x => {
     assert.ok(x.label.prereq && x.label.prereq.visited,
       'shortcut has prereq.visited')
@@ -408,7 +408,7 @@ test('grammar: cycleCloseShortcut adds a type=shortcut edge gated on visiting th
 
   const shortcuts = out.edges()
     .map(e => ({ e, label: out.edge(e) }))
-    .filter(x => x.label && x.label.type === dp.EDGE_SHORTCUT)
+    .filter(x => x.label && x.label.type === dp.EDGE_RETURN)
   assert.strictEqual(shortcuts.length, 1, 'exactly one shortcut edge')
   const s = shortcuts[0]
 

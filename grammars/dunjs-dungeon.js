@@ -31,16 +31,20 @@
           dp.midpointRoom({ oneWay: true, weight: 1 }),
           dp.deadEnd({ weight: 1 }),
           dp.parallelPath({ weight: 1 }),
-          dp.keyDoor({ weight: 1, narrate: false, limit: 3 })
+          // delay keyDoor so midpoint/parallel have time to shape interior
+          // rooms first — otherwise keyDoor pins `a` to start and then
+          // cycleCloseShortcut's non-start guard blocks every cycle match.
+          dp.keyDoor({ weight: 1, narrate: false, limit: 3, delay: 4 })
         ]
       },
 
       // After structural expansion, before the path edges get refined into
-      // passage/monster/puzzle, close a couple of cycles: wherever there's an
-      // a->m->b chain and a key at a, add a locked b->a shortcut sharing the
-      // key's pairId. Tree becomes Metroidvania.
+      // passage/monster/puzzle, close a few cycles: wherever there's an
+      // a->m->b chain and a key at a (with a NOT the start node), add a
+      // b->a `return` edge gated on prereq.visited=a.nodeId. Tree becomes
+      // Metroidvania.
       { name: 'close-cycles',
-        limit: 2,
+        limit: 3,
         rules: [ dp.cycleCloseShortcut({ weight: 1 }) ]
       },
 
