@@ -606,45 +606,22 @@
   }
 
   // ------------------------------------------------------------------
-  // Graphviz rendering.
+  // Dagre-based graph rendering: compute a layered DAG layout in pure JS,
+  // then draw the resulting SVG ourselves so we can keep full control over
+  // shapes and styling. No WASM, no external layout binary.
   // ------------------------------------------------------------------
-  let vizInstance = null
-  Viz.instance().then(function (viz) { vizInstance = viz; renderGraph() })
-
-  function renderGraph () {
-    if (!vizInstance) return
-    const dot = dotForGraph()
-    try {
-      const svg = vizInstance.renderSVGElement(dot)
-      const pane = document.getElementById('graph-pane')
-      pane.innerHTML = ''
-      pane.appendChild(svg)
-    } catch (e) {
-      showError('Graph render: ' + e.message)
-    }
-  }
 
   // Radius (in edges) of the neighborhood to show around the current node.
   // 1 = just current node + immediate neighbors; 2 = also two-hop nodes.
-  // Increase to feel less claustrophobic, decrease to reduce clutter in
-  // dense battle subgraphs.
   let graphRadius = 2
 
-  // Build a DOT string for the subgraph within `graphRadius` edges of the
-  // current node, traversing in both directions. Nodes at the frontier
-  // (exactly `graphRadius` away) are drawn but their further neighbors are
-  // not — instead we hint at them with a "..." pseudo-node when they have
-  // unshown neighbors.
-  function dotForGraph () {
-    const lines = ['digraph G {']
-    lines.push('  rankdir=LR;')
-    lines.push('  node [fontname="Helvetica",fontsize=10];')
-    lines.push('  edge [fontname="Helvetica",fontsize=9];')
-
+  // Compute the visible subgraph: BFS from the current node on undirected
+  // adjacency, out to `graphRadius`. Returns { nodes: Map<hostId, dist>,
+  // edges: [{v,w,label}] } plus stub annotations for off-screen neighbors.
+  function visibleSubgraph () {
     const center = state.currentNode
     const distance = new Map()
     distance.set(center, 0)
-    // BFS on undirected adjacency out to graphRadius.
     const queue = [center]
     while (queue.length) {
       const v = queue.shift()
@@ -660,74 +637,264 @@
         }
       }
     }
-    const visibleSet = distance
-
-    // Emit visible nodes.
-    for (const [v, d] of visibleSet) {
-      const label = nodeById[v] || {}
-      const attrs = nodeDotAttrs(v, label, d)
-      lines.push('  ' + v + ' ' + attrs + ';')
-    }
-
-    // Emit edges whose both endpoints are visible.
-    const emittedEdgeKeys = new Set()
+    const edges = []
     for (const e of GRAPH.edges) {
-      if (!visibleSet.has(e.v) || !visibleSet.has(e.w)) continue
-      const label = e.value || {}
-      const attrs = edgeDotAttrs({ v: e.v, w: e.w, label }, label)
-      lines.push('  ' + e.v + ' -> ' + e.w + ' ' + attrs + ';')
-      emittedEdgeKeys.add(e.v + '>' + e.w)
+      if (distance.has(e.v) && distance.has(e.w)) {
+        edges.push({ v: e.v, w: e.w, label: e.value || {} })
+      }
     }
-
-    // For each frontier node (at distance graphRadius), hint at its
-    // off-screen neighbors with an anonymous "..." node.
-    let stubId = 0
-    for (const [v, d] of visibleSet) {
+    // Count hidden neighbors per frontier node.
+    const stubs = []  // {kind:'out'|'in', at: hostId, count: N}
+    for (const [v, d] of distance) {
       if (d !== graphRadius) continue
-      let hiddenOut = 0, hiddenIn = 0
-      for (const e of (outgoing[v] || [])) if (!visibleSet.has(e.w)) hiddenOut++
-      for (const e of GRAPH.edges) if (e.w === v && !visibleSet.has(e.v)) hiddenIn++
-      if (hiddenOut) {
-        const sid = '__out_' + (stubId++)
-        lines.push('  ' + sid + ' [label="... +' + hiddenOut + '",shape="plain",fontcolor="#888"];')
-        lines.push('  ' + v + ' -> ' + sid + ' [style="dotted",color="#aaa",arrowhead="open"];')
-      }
-      if (hiddenIn) {
-        const sid = '__in_' + (stubId++)
-        lines.push('  ' + sid + ' [label="+' + hiddenIn + ' ...",shape="plain",fontcolor="#888"];')
-        lines.push('  ' + sid + ' -> ' + v + ' [style="dotted",color="#aaa",arrowhead="open"];')
-      }
+      let hOut = 0, hIn = 0
+      for (const e of (outgoing[v] || [])) if (!distance.has(e.w)) hOut++
+      for (const e of GRAPH.edges) if (e.w === v && !distance.has(e.v)) hIn++
+      if (hOut) stubs.push({ kind: 'out', at: v, count: hOut })
+      if (hIn)  stubs.push({ kind: 'in', at: v, count: hIn })
+    }
+    return { distance, edges, stubs }
+  }
+
+  // Approximate pixel width of a label rendered at `fontSize` in Helvetica.
+  // Used so dagre can lay nodes out with a sensible size.
+  function approxTextWidth (s, fontSize) {
+    return Math.max(4, String(s).length) * fontSize * 0.6
+  }
+  const NODE_FONT = 10
+  const NODE_VPAD = 10  // vertical padding around text
+  const NODE_HPAD = 14  // horizontal padding
+
+  function labelText (label, fallback) {
+    return (label.dot && label.dot.label) || label.type || fallback || ''
+  }
+
+  function renderGraph () {
+    if (typeof dagre === 'undefined') return  // script still loading
+    const pane = document.getElementById('graph-pane')
+    pane.innerHTML = ''
+
+    const sub = visibleSubgraph()
+
+    // Build the dagre graph.
+    const g = new dagre.graphlib.Graph({ multigraph: false })
+    g.setGraph({ rankdir: 'LR', nodesep: 24, ranksep: 40, marginx: 12, marginy: 12 })
+    g.setDefaultEdgeLabel(function () { return {} })
+
+    for (const [v] of sub.distance) {
+      const label = nodeById[v] || {}
+      const text = labelText(label, v)
+      const w = approxTextWidth(text, NODE_FONT) + NODE_HPAD * 2
+      const h = NODE_FONT + NODE_VPAD * 2
+      g.setNode(v, { text, w, h, width: w, height: h, hostId: v, labelObj: label })
+    }
+    // Stub nodes for off-screen neighbors.
+    sub.stubs.forEach(function (s, i) {
+      const text = s.kind === 'out' ? ('+' + s.count + ' →') : ('← +' + s.count)
+      const id = '__stub_' + i
+      const w = approxTextWidth(text, NODE_FONT) + 8
+      const h = NODE_FONT + 8
+      g.setNode(id, { text, w, h, width: w, height: h, stub: true })
+      if (s.kind === 'out') g.setEdge(s.at, id, { stub: true })
+      else g.setEdge(id, s.at, { stub: true })
+    })
+    for (const e of sub.edges) {
+      g.setEdge(e.v, e.w, { labelObj: e.label, text: (e.label.dot || {}).label || '' })
     }
 
-    lines.push('}')
-    return lines.join('\n')
+    dagre.layout(g)
+
+    // Compute SVG viewBox from the layout bounds.
+    const gInfo = g.graph()
+    const width = Math.max(100, gInfo.width || 0)
+    const height = Math.max(100, gInfo.height || 0)
+
+    const svgNS = 'http://www.w3.org/2000/svg'
+    const svg = document.createElementNS(svgNS, 'svg')
+    svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height)
+    svg.setAttribute('width', width)
+    svg.setAttribute('height', height)
+    svg.setAttribute('class', 'graph')
+
+    // <defs> with a reusable arrow marker.
+    const defs = document.createElementNS(svgNS, 'defs')
+    defs.innerHTML =
+      '<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" ' +
+        'markerWidth="7" markerHeight="7" orient="auto">' +
+        '<path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker>' +
+      '<marker id="arrow-traversed" viewBox="0 0 10 10" refX="9" refY="5" ' +
+        'markerWidth="7" markerHeight="7" orient="auto">' +
+        '<path d="M0,0 L10,5 L0,10 z" fill="#2a6"/></marker>'
+    svg.appendChild(defs)
+
+    // Edges first so nodes sit on top.
+    const edgeLayer = document.createElementNS(svgNS, 'g')
+    edgeLayer.setAttribute('class', 'edges')
+    svg.appendChild(edgeLayer)
+
+    g.edges().forEach(function (eid) {
+      const data = g.edge(eid)
+      const pts = data.points
+      if (!pts || pts.length < 2) return
+      const d = pathFromPoints(pts)
+      const group = document.createElementNS(svgNS, 'g')
+      const classes = ['edge']
+      const label = data.labelObj || {}
+      const dot = label.dot || {}
+      if (data.stub) classes.push('stub')
+      if (label.type) classes.push('et-' + label.type)
+      if (label.edgeId && state.traversed.has(label.edgeId)) classes.push('traversed')
+      group.setAttribute('class', classes.join(' '))
+      const path = document.createElementNS(svgNS, 'path')
+      path.setAttribute('d', d)
+      path.setAttribute('fill', 'none')
+      const stroke = data.stub ? '#aaa'
+        : (classes.indexOf('traversed') >= 0 ? '#2a6' : (dot.color || '#555'))
+      path.setAttribute('stroke', stroke)
+      path.setAttribute('stroke-width', classes.indexOf('traversed') >= 0 ? 2 : 1.2)
+      if (data.stub || (dot.style || '').indexOf('dashed') >= 0) path.setAttribute('stroke-dasharray', '4 3')
+      else if ((dot.style || '').indexOf('dotted') >= 0)      path.setAttribute('stroke-dasharray', '1 3')
+      path.setAttribute('marker-end',
+        classes.indexOf('traversed') >= 0 ? 'url(#arrow-traversed)' : 'url(#arrow)')
+      group.appendChild(path)
+      if (data.text) {
+        const mid = pts[Math.floor(pts.length / 2)]
+        const t = document.createElementNS(svgNS, 'text')
+        t.setAttribute('x', mid.x)
+        t.setAttribute('y', mid.y - 2)
+        t.setAttribute('text-anchor', 'middle')
+        t.setAttribute('font-size', 9)
+        t.setAttribute('font-family', 'Helvetica,sans-serif')
+        t.setAttribute('fill', dot.color || '#444')
+        t.setAttribute('class', 'edge-label')
+        t.textContent = data.text
+        group.appendChild(t)
+      }
+      edgeLayer.appendChild(group)
+    })
+
+    // Nodes.
+    const nodeLayer = document.createElementNS(svgNS, 'g')
+    nodeLayer.setAttribute('class', 'nodes')
+    svg.appendChild(nodeLayer)
+    g.nodes().forEach(function (v) {
+      const data = g.node(v)
+      const label = data.labelObj || {}
+      const dot = label.dot || {}
+      const group = document.createElementNS(svgNS, 'g')
+      group.setAttribute('transform', 'translate(' + data.x + ',' + data.y + ')')
+      const classes = ['node']
+      if (data.stub) classes.push('stub')
+      if (label.type) classes.push('nt-' + label.type)
+      if (v === state.currentNode) classes.push('current')
+      if (label.nodeId && state.visited.has(label.nodeId)) classes.push('visited')
+      const dist = sub.distance.get(v)
+      if (dist != null && dist >= graphRadius && !data.stub) classes.push('frontier')
+      group.setAttribute('class', classes.join(' '))
+
+      if (!data.stub) {
+        appendShape(group, dot.shape || 'ellipse', data.w, data.h, dot.color)
+      }
+      const t = document.createElementNS(svgNS, 'text')
+      t.setAttribute('text-anchor', 'middle')
+      t.setAttribute('dominant-baseline', 'middle')
+      t.setAttribute('font-size', NODE_FONT)
+      t.setAttribute('font-family', 'Helvetica,sans-serif')
+      t.setAttribute('fill', data.stub ? '#888' : '#222')
+      t.textContent = data.text
+      group.appendChild(t)
+      nodeLayer.appendChild(group)
+    })
+
+    pane.appendChild(svg)
   }
 
-  function nodeDotAttrs (v, label, distance) {
-    const d = label.dot || {}
-    const parts = []
-    parts.push('label="' + dotEscape(d.label || label.type || v) + '"')
-    if (d.shape) parts.push('shape="' + d.shape + '"')
-    if (d.color) parts.push('color="' + d.color + '"')
-    // State-based class so CSS can restyle the SVG post-render.
-    const cls = []
-    if (v === state.currentNode) cls.push('current')
-    if (label.nodeId && state.visited.has(label.nodeId)) cls.push('visited')
-    // Fade frontier nodes a bit so the eye is drawn inward.
-    if (distance != null && distance >= graphRadius) cls.push('frontier')
-    if (cls.length) parts.push('class="' + cls.join(' ') + '"')
-    return '[' + parts.join(',') + ']'
+  function pathFromPoints (pts) {
+    if (pts.length === 2) {
+      return 'M' + pts[0].x + ',' + pts[0].y + ' L' + pts[1].x + ',' + pts[1].y
+    }
+    // Smooth interior with a quadratic through each interior point.
+    let d = 'M' + pts[0].x + ',' + pts[0].y
+    for (let i = 1; i < pts.length - 1; i++) {
+      const p = pts[i], q = pts[i + 1]
+      const mx = (p.x + q.x) / 2, my = (p.y + q.y) / 2
+      d += ' Q' + p.x + ',' + p.y + ' ' + mx + ',' + my
+    }
+    const last = pts[pts.length - 1]
+    d += ' L' + last.x + ',' + last.y
+    return d
   }
-  function edgeDotAttrs (e, label) {
-    const d = label.dot || {}
-    const parts = []
-    if (d.label) parts.push('label="' + dotEscape(d.label) + '"')
-    if (d.color) parts.push('color="' + d.color + '"')
-    if (d.style) parts.push('style="' + d.style + '"')
-    const cls = []
-    if (label.edgeId && state.traversed.has(label.edgeId)) cls.push('traversed')
-    if (cls.length) parts.push('class="' + cls.join(' ') + '"')
-    return parts.length ? '[' + parts.join(',') + ']' : ''
+
+  // Draw a shape centered at (0,0) with given width/height. Matches the
+  // Graphviz shape names used in dungeon-primitives.js dot attrs.
+  function appendShape (group, shape, w, h, fillHint) {
+    const svgNS = 'http://www.w3.org/2000/svg'
+    const rx = w / 2, ry = h / 2
+    const stroke = fillHint || '#555'
+    let el
+    switch (shape) {
+      case 'box':
+      case 'rect':
+        el = document.createElementNS(svgNS, 'rect')
+        el.setAttribute('x', -rx); el.setAttribute('y', -ry)
+        el.setAttribute('width', w); el.setAttribute('height', h)
+        break
+      case 'diamond':
+        el = document.createElementNS(svgNS, 'polygon')
+        el.setAttribute('points',
+          '0,' + (-ry) + ' ' + rx + ',0 0,' + ry + ' ' + (-rx) + ',0')
+        break
+      case 'house':
+        el = document.createElementNS(svgNS, 'polygon')
+        el.setAttribute('points',
+          (-rx) + ',' + ry + ' ' +
+          (-rx) + ',' + (-ry * 0.5) + ' ' +
+          '0,' + (-ry) + ' ' +
+          rx + ',' + (-ry * 0.5) + ' ' +
+          rx + ',' + ry)
+        break
+      case 'invtriangle':
+        el = document.createElementNS(svgNS, 'polygon')
+        el.setAttribute('points',
+          (-rx) + ',' + (-ry) + ' ' + rx + ',' + (-ry) + ' 0,' + ry)
+        break
+      case 'octagon': {
+        const k = 0.414  // tan(pi/8)
+        const insetX = rx * k / (1 + k)
+        const insetY = ry * k / (1 + k)
+        el = document.createElementNS(svgNS, 'polygon')
+        el.setAttribute('points',
+          (-rx + insetX) + ',' + (-ry) + ' ' +
+          (rx - insetX) + ',' + (-ry) + ' ' +
+          rx + ',' + (-ry + insetY) + ' ' +
+          rx + ',' + (ry - insetY) + ' ' +
+          (rx - insetX) + ',' + ry + ' ' +
+          (-rx + insetX) + ',' + ry + ' ' +
+          (-rx) + ',' + (ry - insetY) + ' ' +
+          (-rx) + ',' + (-ry + insetY))
+        break
+      }
+      case 'doublecircle': {
+        const outer = document.createElementNS(svgNS, 'ellipse')
+        outer.setAttribute('rx', rx); outer.setAttribute('ry', ry)
+        outer.setAttribute('fill', 'white'); outer.setAttribute('stroke', stroke)
+        group.appendChild(outer)
+        const inner = document.createElementNS(svgNS, 'ellipse')
+        inner.setAttribute('rx', rx - 3); inner.setAttribute('ry', ry - 3)
+        inner.setAttribute('fill', 'white'); inner.setAttribute('stroke', stroke)
+        group.appendChild(inner)
+        return
+      }
+      case 'plain':
+        return  // no shape, text only
+      default:
+        el = document.createElementNS(svgNS, 'ellipse')
+        el.setAttribute('rx', rx); el.setAttribute('ry', ry)
+    }
+    el.setAttribute('fill', 'white')
+    el.setAttribute('stroke', stroke)
+    el.setAttribute('stroke-width', '1.2')
+    group.appendChild(el)
   }
 
   // ------------------------------------------------------------------
@@ -787,4 +954,14 @@
   // ------------------------------------------------------------------
   setupZoomControls()
   start()
+  // dagre is a synchronous script; if it wasn't ready on the initial
+  // start() call (e.g. script still loading), schedule a single retry.
+  if (typeof dagre === 'undefined') {
+    const retry = setInterval(function () {
+      if (typeof dagre !== 'undefined') {
+        clearInterval(retry)
+        renderGraph()
+      }
+    }, 50)
+  }
 })()

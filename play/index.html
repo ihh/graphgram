@@ -117,31 +117,32 @@
     overflow: auto;
     background: #fff;
   }
-  #graph-pane svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
-  #graph-pane .current > ellipse,
-  #graph-pane .current > polygon,
-  #graph-pane .current > path {
-    stroke: #e06010 !important;
-    stroke-width: 3 !important;
+  #graph-pane svg.graph { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+  /* Nodes: stroke + stroke-width handles the border so we can override per-state. */
+  #graph-pane .node > ellipse,
+  #graph-pane .node > rect,
+  #graph-pane .node > polygon {
+    stroke-width: 1.2;
   }
-  #graph-pane .visited > ellipse,
-  #graph-pane .visited > polygon {
+  #graph-pane .node.current > ellipse,
+  #graph-pane .node.current > rect,
+  #graph-pane .node.current > polygon {
+    stroke: #e06010;
+    stroke-width: 3;
+  }
+  #graph-pane .node.visited > ellipse,
+  #graph-pane .node.visited > rect,
+  #graph-pane .node.visited > polygon {
     stroke: #2a6;
     stroke-width: 2;
   }
-  #graph-pane .traversed > path {
-    stroke: #2a6 !important;
-    stroke-width: 2 !important;
-  }
-  #graph-pane .traversed > polygon {
-    fill: #2a6 !important;
-    stroke: #2a6 !important;
-  }
-  #graph-pane .frontier > ellipse,
-  #graph-pane .frontier > polygon {
+  #graph-pane .node.frontier > ellipse,
+  #graph-pane .node.frontier > rect,
+  #graph-pane .node.frontier > polygon {
     opacity: 0.55;
   }
-  #graph-pane .frontier > text { fill: #777; }
+  #graph-pane .node.frontier > text { fill: #888; }
+  #graph-pane .node.stub > text { fill: #888; font-style: italic; }
   #error {
     position: fixed; bottom: 8px; left: 8px; right: 8px;
     background: #a33; color: white; padding: 6px 10px; border-radius: 3px;
@@ -159,8 +160,9 @@
   </div>
   <div id="error"></div>
 
-  <!-- viz.js for Graphviz layout in-browser -->
-  <script src="https://unpkg.com/@viz-js/viz@3.11.0/lib/viz-standalone.js"></script>
+  <!-- dagre for pure-JS DAG layout (returns coordinates; we render the SVG
+       ourselves so we can keep full control over shapes and styling). -->
+  <script src="https://cdn.jsdelivr.net/npm/@dagrejs/dagre@1.1.4/dist/dagre.min.js"></script>
   <!-- graph.js sets window.GRAPH = { nodes: [...], edges: [...] } -->
   <script src="graph.js"></script>
   <!--
