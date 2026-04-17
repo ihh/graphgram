@@ -7,7 +7,10 @@ var fs = require('fs'),
     graphlib = require('graphlib'),
     jsonschema = require('jsonschema'),
     colors = require('colors'),
-    Grammar = require('../index').Grammar
+    gg = require('../index'),
+    Grammar = gg.Grammar,
+    Matcher = gg.Matcher,
+    narrator = require('../narrator')
 
 var defaultGrammarFilename = 'grammars/dungeon.js'
 var defaultLLM = 'llm'
@@ -23,6 +26,7 @@ var opt = getopt.create([
   ['L' , 'limit=N'         , 'limit number of rule applications'],
   ['S' , 'stage=N'         , 'only run one stage'],
   ['m' , 'llm=COMMAND'     , 'command-line interface to LLM (default "' + defaultLLM + '")'],
+  [''  , 'no-llm'          , 'disable LLM calls; narrator helpers return placeholder text'],
   ['s' , 'seed=N'          , 'seed random number generator'],
   ['q' , 'quiet'           , 'do not print pretty log messages'],
   ['v' , 'verbose'         , 'print MORE pretty log messages'],
@@ -32,10 +36,17 @@ var opt = getopt.create([
     .parseSystem() // parse command line
 
 var verbosity = opt.options.quiet ? 0 : (opt.options.verbose ? 2 : 1)
-var grammarOpts = { canonical: opt.options.canonical, llm: opt.options.llm || defaultLLM, verbose: verbosity }
+var llmCmd = opt.options.llm || defaultLLM
+var llmDisabled = !!opt.options['no-llm']
+var grammarOpts = { canonical: opt.options.canonical, llm: llmCmd, verbose: verbosity }
 function makeGrammar (json) {
-  let g = new Grammar (json, grammarOpts)
-  g.registerRhsLabelExecFunction ('llm', opt.options.llm || 'llm', "Generate text using command-line LLM interface. This option is only enabled in the command-line tool. The default LLM toolname is llm, which must be separately installed: https://github.com/simonw/llm", true)
+  // Pre-register narrator helpers on the Matcher so that grammar JSON that
+  // references `$kdBundle`, `$themedVersion`, etc. passes validation.
+  let matcher = new Matcher()
+  narrator.registerNarrator (matcher, { llm: llmCmd, disabled: llmDisabled,
+    warn: function (msg) { if (verbosity) console.warn (colors.yellow (msg)) } })
+  let g = new Grammar (json, extend ({}, grammarOpts, { matcher: matcher }))
+  g.registerRhsLabelExecFunction ('llm', llmCmd, "Generate text using command-line LLM interface. This option is only enabled in the command-line tool. The default LLM toolname is llm, which must be separately installed: https://github.com/simonw/llm", true)
   return g
 }
 

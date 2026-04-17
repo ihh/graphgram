@@ -2,6 +2,18 @@
 grammars/%.json: grammars/%.js
 	node -e 'console.log(JSON.stringify(eval('"'"'('"'"'+fs.readFileSync("$<").toString()+'"'"')'"'"'),null,2))' >$@
 
+# Render any grammar to PDF via graphviz:  make pdf/dunjs-dungeon.pdf
+pdf/%.pdf: grammars/%.js
+	@mkdir -p pdf
+	bin/transform.js -g $< --no-llm -q -d pdf/$*.dot
+	dot -Tpdf pdf/$*.dot -o $@
+
+# Same, but with a specific RNG seed:  make pdf/dunjs-dungeon.42.pdf SEED=42
+pdf/%.$(SEED).pdf: grammars/%.js
+	@mkdir -p pdf
+	bin/transform.js -g $< --no-llm -q -s $(SEED) -d pdf/$*.$(SEED).dot
+	dot -Tpdf pdf/$*.$(SEED).dot -o $@
+
 graphs/$(SIZE)x$(SIZE).json:
 	bin/lattice.js -s $(SIZE) >$@
 

@@ -971,4 +971,7 @@ Matcher.prototype.makeLabelUpdate = function (id, update) {
   return result
 }
 
-module.exports = { Grammar }
+var dungeonPrimitives = require('./dungeon-primitives')
+var narrator = require('./narrator')
+
+module.exports = { Grammar, Matcher, dungeonPrimitives, registerNarrator: narrator.registerNarrator }
