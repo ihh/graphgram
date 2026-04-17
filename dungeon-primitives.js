@@ -35,16 +35,47 @@ function withOpts (rule, opts) {
   return rule
 }
 
-// Insert a midpoint room between the endpoints of a `path` edge.
-//   a --path--> b    =>    a --path--> room --path--> b
+// Insert a midpoint room between the endpoints of a `path` edge. By default
+// the resulting room is two-way — the player can return b -> m -> a as well
+// as go forward a -> m -> b — so that edges correspond cleanly to CYOA
+// links. Pass `{ oneWay: true }` to get the older one-way variant; that
+// variant is gated with a `condition` that requires the edge's endpoints to
+// already be connected by a direct back-edge (typically from a prior
+// cycleCloseShortcut), so one-way midpoints only deepen existing cycles
+// rather than stranding the player at b.
+//
+//   two-way (default):  a <-path-> m <-path-> b
+//   one-way:            a --path-> m --path-> b   (fires only when $$graph.hasEdge(b,a))
 function midpointRoom (opts) {
   opts = opts || {}
   const pathType = opts.pathType || EDGE_PATH
+  const backtrackType = opts.backtrackType || EDGE_BACKTRACK
   const roomType = opts.roomType || NODE_ROOM
-  return withOpts({
-    name: 'midpoint-room',
+  const winType = opts.winType || NODE_WIN
+  const oneWay = !!opts.oneWay
+  // Return edges are `backtrack`-typed (not `path`) so the refine stage
+  // leaves them alone — return corridors shouldn't be flavored as
+  // monster / puzzle / passage obstacles.
+  const backtrackLabel = {
+    type: backtrackType,
+    dot: { label: backtrackType, style: 'dashed', color: 'gray' }
+  }
+  const edges = [
+    { v: 'a', w: 'm', label: { type: pathType } },
+    { v: 'm', w: 'b', label: { type: pathType } }
+  ]
+  // LHS guard: only guard b against being `win` in the two-way case, since
+  // only the two-way variant adds an edge sourced at b.
+  const lhsNodes = [{ id: 'a' }, { id: 'b' }]
+  if (!oneWay) {
+    edges.push({ v: 'b', w: 'm', label: backtrackLabel })
+    edges.push({ v: 'm', w: 'a', label: backtrackLabel })
+    lhsNodes[1] = { id: 'b', label: { $not: { type: winType } } }
+  }
+  const rule = {
+    name: oneWay ? 'midpoint-room-oneway' : 'midpoint-room',
     lhs: {
-      node: [{ id: 'a' }, { id: 'b' }],
+      node: lhsNodes,
       edge: [{ v: 'a', w: 'b', label: { type: pathType } }]
     },
     rhs: {
@@ -53,21 +84,40 @@ function midpointRoom (opts) {
         { id: 'b' },
         { id: 'm', label: { type: roomType } }
       ],
-      edge: [
-        { v: 'a', w: 'm', label: { type: pathType } },
-        { v: 'm', w: 'b', label: { type: pathType } }
-      ]
+      edge: edges
     }
-  }, opts)
+  }
+  if (oneWay) rule.condition = '$$graph.hasEdge($b.id, $a.id)'
+  return withOpts(rule, opts)
 }
 
-// Hang a dead-end branch off the source of a `path` edge; the original
-// edge is preserved.
-//   a --path--> b    =>    a --path--> b   &   a --path--> dead_end
+// Hang a dead-end branch off the source of a `path` edge. The original edge
+// is preserved, and a `backtrack` edge is added from the dead-end back to
+// the source so the dead-end is traversable in both directions — important
+// when edges represent explicit CYOA links that the player follows. Pass
+// `{ noBacktrack: true }` for the old one-way behavior (or override
+// `backtrackType`).
+//
+//   a --path--> b  =>  a --path--> b & a --path--> dead_end & dead_end --backtrack--> a
 function deadEnd (opts) {
   opts = opts || {}
   const pathType = opts.pathType || EDGE_PATH
+  const backtrackType = opts.backtrackType || EDGE_BACKTRACK
   const deadEndType = opts.deadEndType || NODE_DEAD_END
+  const withBacktrack = !opts.noBacktrack
+  const edges = [
+    { v: 'a', w: 'b', label: { type: pathType } },
+    { v: 'a', w: 'd', label: { type: pathType } }
+  ]
+  if (withBacktrack) {
+    edges.push({
+      v: 'd', w: 'a',
+      label: {
+        type: backtrackType,
+        dot: { label: backtrackType, style: 'dashed', color: 'gray' }
+      }
+    })
+  }
   return withOpts({
     name: 'dead-end',
     lhs: {
@@ -80,10 +130,7 @@ function deadEnd (opts) {
         { id: 'b' },
         { id: 'd', label: { type: deadEndType } }
       ],
-      edge: [
-        { v: 'a', w: 'b', label: { type: pathType } },
-        { v: 'a', w: 'd', label: { type: pathType } }
-      ]
+      edge: edges
     }
   }, opts)
 }
@@ -136,6 +183,7 @@ function keyDoor (opts) {
   const backtrackType = opts.backtrackType || EDGE_BACKTRACK
   const keyType = opts.keyType || NODE_KEY
   const doorType = opts.doorType || NODE_DOOR
+  const winType = opts.winType || NODE_WIN
   const narrate = !!opts.narrate
 
   // $iter is exposed in the graphgram label-eval context (as `$$iter`
@@ -196,10 +244,24 @@ function keyDoor (opts) {
     dot: { label: backtrackType, style: 'dashed', color: 'gray' }
   }
 
+  // Door backtracks:  d -> a   (retreat from the door, key or no key)
+  //                   b -> d   (once unlocked, the door stays open — having
+  //                             visited the key is equivalent to having it
+  //                             in the inventory, so no prereq on the return)
+  const doorBacktrackLabel = {
+    type: backtrackType,
+    dot: { label: backtrackType, style: 'dashed', color: 'gray' }
+  }
+
   return withOpts({
     name: 'key-door',
     lhs: {
-      node: [{ id: 'a' }, { id: 'b' }],
+      node: [
+        { id: 'a' },
+        // Don't make the goal node a source: the b -> d backtrack would
+        // otherwise give `win` an outgoing edge.
+        { id: 'b', label: { $not: { type: winType } } }
+      ],
       edge: [{ v: 'a', w: 'b', label: { type: pathType } }]
     },
     rhs: {
@@ -213,7 +275,9 @@ function keyDoor (opts) {
         { v: 'a', w: 'k', label: branchEdgeLabel },
         { v: 'k', w: 'a', label: backtrackEdgeLabel },
         { v: 'a', w: 'd', label: { type: pathType } },
-        { v: 'd', w: 'b', label: lockedEdgeLabel }
+        { v: 'd', w: 'a', label: doorBacktrackLabel },
+        { v: 'd', w: 'b', label: lockedEdgeLabel },
+        { v: 'b', w: 'd', label: doorBacktrackLabel }
       ]
     }
   }, opts)
@@ -238,13 +302,17 @@ function cycleCloseShortcut (opts) {
   opts = opts || {}
   const pathType = opts.pathType || EDGE_PATH
   const keyType = opts.keyType || NODE_KEY
+  const winType = opts.winType || NODE_WIN
   return withOpts({
     name: 'cycle-close-shortcut',
     lhs: {
       node: [
         { id: 'a' },
         { id: 'm' },
-        { id: 'b' },
+        // Do not make `win` a source of a shortcut — the goal node must not
+        // have any outgoing edges. This $not guard also tolerates nodes
+        // without object labels (e.g. the transient raw START node).
+        { id: 'b', label: { $not: { type: winType } } },
         { id: 'k', label: { $and: [{ type: keyType }, { pairId: '(pair_.*)' }] } }
       ],
       edge: [

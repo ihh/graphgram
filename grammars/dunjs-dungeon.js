@@ -23,7 +23,12 @@
       { name: 'expand',
         limit: 20,
         rules: [
+          // Two-way midpoint: bidirectionally traversable, the default CYOA
+          // choice. One-way midpoint: only fires inside existing cycles
+          // (where a direct back-edge already exists), so the player is
+          // never stranded on a one-way passage.
           dp.midpointRoom({ weight: 2 }),
+          dp.midpointRoom({ oneWay: true, weight: 1 }),
           dp.deadEnd({ weight: 1 }),
           dp.parallelPath({ weight: 1 }),
           dp.keyDoor({ weight: 1, narrate: false, limit: 3 })
