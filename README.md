@@ -47,10 +47,12 @@ make pdf/dunjs-dungeon.42.pdf SEED=42     # reproducible
 make pdf/level.pdf                        # works for any grammar file
 ~~~~
 
-## Reusable dungeon primitives
+## Building a dungeon
 
-The dungeon rule factories are exposed as a library, so you can compose
-your own grammars:
+The `grammars/dunjs-dungeon.js` grammar builds a dungeon in six stages,
+each one a named sub-grammar operating on the output of the previous.
+This is the recommended template for CYOA-style dungeons; copy and
+tweak:
 
 ~~~~
 const { Grammar, Matcher, dungeonPrimitives: dp, registerNarrator }
@@ -62,18 +64,48 @@ registerNarrator(matcher, { disabled: true })   // or { llm: 'llm' }
 const g = new Grammar({
   start: 'START',
   stages: [
+
+    // 1. Init — spawn a single start→win edge.
     dp.initStartGoalStage(),
-    { name: 'expand', limit: 20, rules: [
-      dp.midpointRoom({ weight: 2 }),
-      dp.deadEnd(),
-      dp.parallelPath(),
-      dp.keyDoor({ narrate: true, limit: 3 })
+
+    // 2. Expand — grow structure. Weights bias the sampler; limits cap
+    //    how many times a rule can fire across the whole stage.
+    { name: 'expand', limit: 25, rules: [
+      dp.midpointRoom({ weight: 2 }),                 // two-way a<->m<->b
+      dp.midpointRoom({ oneWay: true, weight: 1 }),   // only fires inside cycles
+      dp.deadEnd({ weight: 1 }),                      // side branch with explicit return
+      dp.parallelPath({ weight: 1 }),                 // adds a second route a→m→b
+      dp.keyDoor({ weight: 1, limit: 3 }),            // lock + shared-pairId key
+      dp.healthPotion({ weight: 1, limit: 3 })        // pick-up that restores HP
     ]},
-    { name: 'close-cycles', limit: 2, rules: [dp.cycleCloseShortcut()] },
+
+    // 3. Close cycles — add gated b→a `return` edges where a key already
+    //    sits at a (interior) node a. Turns the tree into a small
+    //    Metroidvania graph. Run AFTER keys exist but BEFORE path edges
+    //    are refined away.
+    { name: 'close-cycles', limit: 3, rules: [dp.cycleCloseShortcut()] },
+
+    // 4. Refine — flavor the remaining `path` edges into passage /
+    //    monster / puzzle. Other label fields (edgeId, prereq) survive
+    //    via $assign.
     { name: 'refine', rules: dp.refineEdges(
       dp.EDGE_PATH,
       [dp.EDGE_PASSAGE, dp.EDGE_MONSTER, dp.EDGE_PUZZLE]
     )},
+
+    // 5. Flavor — expand monster / puzzle edges into mini-games.
+    //    Monster edges become Markov battles (choice↔random alternation
+    //    with weighted consequences carrying player/monster damage);
+    //    puzzle edges become multiple-choice quizzes with distractors
+    //    that route back to the puzzle's source.
+    { name: 'flavor', rules: [
+      dp.monsterBattle({ weight: 1 }),
+      dp.puzzleChoice({ weight: 1, numDistractors: 3 })
+    ]},
+
+    // 6. Decorate — populate label.dot.label on any node/edge that
+    //    doesn't already have one, so rendered DOT files have readable
+    //    captions.
     dp.dotDecorationStage()
   ]
 }, { matcher })
@@ -85,6 +117,67 @@ Every factory accepts the usual `{ name, weight, limit, type, delay,
 condition }` rule options. `keyDoor({ narrate: true })` draws its `text`,
 `before`, `link`, `after` fields from the `$kdBundle` narrator helper —
 register narrator functions first (see `narrator.js`).
+
+### Primitive cheat sheet
+
+| Factory | What it does |
+|---------|-------------|
+| `initStartGoalStage()` | Spawns `start` and `win` nodes plus the initial `start→win` path edge. |
+| `midpointRoom(opts)` | Inserts a room between a path's endpoints. Default two-way (adds backtrack returns); `{ oneWay: true }` only fires inside existing cycles. |
+| `deadEnd(opts)` | Side-branch off a path source, with an explicit backtrack return. |
+| `parallelPath(opts)` | Adds a parallel route a→m→b alongside the existing a→b. Creates edgeId-free path edges that midpoint/keyDoor can subsequently split. |
+| `keyDoor(opts)` | Key+door pair with shared `pairId`; locked door edge carries `prereq.pairId`. Door has retreat + once-open return. |
+| `cycleCloseShortcut(opts)` | Adds a gated `return` edge b→a sharing an existing key, turning tree shapes into cycles. |
+| `healthPotion(opts)` | Side-branch potion with `healValue`; the play engine heals on visit. |
+| `monsterBattle(opts)` | Expands a `monster` edge into a Markov battle: choice nodes (normal/advantage) ↔ random nodes (attack/defend) with weighted consequences, a death sink, and retreats. |
+| `puzzleChoice(opts)` | Expands a `puzzle` edge into an intro node + one `correct` choice plus N distractor nodes that route back. |
+| `refineEdges(from, [...to])` | Rewrites one edge type into a random pick from several targets, preserving all other label fields. |
+| `dotDecorationStage()` | Fills in `label.dot.label` where missing, for nice DOT rendering. |
+
+### CYOA gating model
+
+Every grammar-generated node carries a `label.nodeId` and every
+forward edge paired with a backtrack carries a `label.edgeId`. Edges
+can be gated via three prereq flavors that the play engine checks
+against the player's traversal / visit log:
+
+| `prereq` shape | Unlock condition | Used by |
+|----------------|------------------|---------|
+| `{ pairId: X }` | player has visited a key node with `pairId: X` | locked door edges |
+| `{ traversed: X }` | player has traversed the forward edge with `edgeId: X` | backtrack edges (pair with their forward) |
+| `{ visited: X }` | player has visited a node with `nodeId: X` | `return` edges (cycle shortcuts) |
+
+The `win` node has no outgoing edges; the engine treats it as a sink
+that records the final move count as a score. Choice nodes (monster
+battles) also expose a `retreat` edge back to the source of the
+original monster edge, always accessible regardless of HP.
+
+## Playing a dungeon in the browser
+
+The `play/` directory ships a single-page HTML app that reads a
+generated dungeon and lets you traverse it click-by-click. Three
+panes: status bar (HP / moves / inventory / dump-trace link), text
+(cumulative narrative with link affordances for each accessible
+outgoing edge), and a dagre-laid-out graph zoomed to a radius-N
+neighborhood around the current node.
+
+~~~~
+make play/graph.js SEED=42     # generate the dungeon
+open play/index.html           # play it (works over file://)
+~~~~
+
+Files:
+- `play/graph.js` — the dungeon (generated)
+- `play/phrasebook.js` — default text, keyed by `nodeId`/`edgeId`/`type`
+- `play/text.example.js` — copy to `play/text.js` to override any
+  entry; merged over the defaults at load time
+- `play/game.js` — the engine (~400 lines; state, transitions, render)
+- `play/index.html` — layout, styles, script loader
+
+The status bar includes a **dump trace** link that prints the full
+node/edge history to the text pane and downloads a JSON file with
+the state, outgoing-edge audit (including which prereq is blocking
+each inaccessible edge), and per-step HP snapshots.
 
 ## Tests and benchmarks
 
