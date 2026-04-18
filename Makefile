@@ -32,11 +32,33 @@ rebuild$(SIZE):
 # Generate play/graph.js from a specific seed:  make play/graph.js SEED=42
 # Writes `window.GRAPH = {...};` so play/index.html can load the graph
 # without a server (works over file://).
+#
+# Optional env vars for debug-time builds:
+#   PLACEHOLDER=1   —  narrator slots emit [theme:macro#ctx] tags
+#   PASSAGE_ONLY=1  —  skip monster/puzzle refinement + mini-game expansion
+#   NO_FLAVOR=1     —  keep monster/puzzle edges but don't expand them
+#   THEME=<name>    —  pin the theme (see `bin/transform.js --list-themes`)
 SEED ?= 42
-play/graph.js: grammars/dunjs-dungeon.js dungeon-primitives.js narrator.js index.js subgraph.js
+PLAY_OPTS :=
+ifeq ($(PLACEHOLDER),1)
+  PLAY_OPTS += --placeholder
+else
+  PLAY_OPTS += --no-llm
+endif
+ifeq ($(PASSAGE_ONLY),1)
+  PLAY_OPTS += --passage-only
+endif
+ifeq ($(NO_FLAVOR),1)
+  PLAY_OPTS += --no-flavor
+endif
+ifdef THEME
+  PLAY_OPTS += --theme $(THEME)
+endif
+
+play/graph.js: grammars/dunjs-dungeon.js dungeon-primitives.js narrator.js index.js subgraph.js themes.js debug-opts.js
 	@mkdir -p play
 	@printf 'window.GRAPH = ' > $@
-	bin/transform.js -g $< --no-llm -q -s $(SEED) -o /dev/stdout >> $@
+	bin/transform.js -g $< -q -s $(SEED) $(PLAY_OPTS) -o /dev/stdout >> $@
 	@printf ';\n' >> $@
 
 # README

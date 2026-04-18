@@ -1,3 +1,13 @@
 node_modules/
 .DS_Store
 pdf/
+
+# Secrets — never commit
+.env
+.env~
+.env.bak
+.env.local
+.env.*.local
+
+# Local LLM prompt cache
+.graphgram-cache/

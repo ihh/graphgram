@@ -122,12 +122,20 @@
     return interpolate(entry, label)
   }
   function interpolate (tmpl, label) {
-    return String(tmpl).replace(/\{([a-zA-Z0-9_]+)\}/g, function (_, k) {
-      const v = label[k]
+    // Dotted paths resolve through nested objects, so templates can read
+    // e.g. {prereq.after} from a locked edge's prereq block. Missing any
+    // link in the chain yields '' (same as the flat-key case).
+    return String(tmpl).replace(/\{([a-zA-Z0-9_.]+)\}/g, function (_, k) {
+      const parts = k.split('.')
+      let v = label
+      for (let i = 0; i < parts.length; i++) {
+        if (v == null) return ''
+        v = v[parts[i]]
+      }
       if (v == null) return ''
       if (typeof v === 'number') {
-        // Render 0..1 fractions as percentages for HP-like fields.
-        if (k === 'healValue' || k === 'playerDamage' || k === 'monsterDamage') {
+        const leaf = parts[parts.length - 1]
+        if (leaf === 'healValue' || leaf === 'playerDamage' || leaf === 'monsterDamage') {
           return Math.round(v * 100) + '%'
         }
       }

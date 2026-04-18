@@ -6,7 +6,20 @@ window.GRAPH = {
   },
   "nodes": [
     {
-      "v": "161",
+      "v": "167",
+      "value": {
+        "type": "potion",
+        "nodeId": "potion_22",
+        "healValue": 0.3,
+        "dot": {
+          "label": "potion (+0.3)",
+          "shape": "invtriangle",
+          "color": "darkgreen"
+        }
+      }
+    },
+    {
+      "v": "169",
       "value": {
         "type": "distractor",
         "nodeId": "distractor1_1",
@@ -18,7 +31,7 @@ window.GRAPH = {
       }
     },
     {
-      "v": "162",
+      "v": "170",
       "value": {
         "type": "distractor",
         "nodeId": "distractor2_1",
@@ -30,7 +43,7 @@ window.GRAPH = {
       }
     },
     {
-      "v": "163",
+      "v": "171",
       "value": {
         "type": "distractor",
         "nodeId": "distractor3_1",
@@ -42,22 +55,10 @@ window.GRAPH = {
       }
     },
     {
-      "v": "174",
-      "value": {
-        "type": "distractor",
-        "nodeId": "distractor1_3",
-        "dot": {
-          "label": "wrong",
-          "shape": "octagon",
-          "color": "gray"
-        }
-      }
-    },
-    {
       "v": "175",
       "value": {
         "type": "distractor",
-        "nodeId": "distractor2_3",
+        "nodeId": "distractor1_2",
         "dot": {
           "label": "wrong",
           "shape": "octagon",
@@ -69,7 +70,7 @@ window.GRAPH = {
       "v": "176",
       "value": {
         "type": "distractor",
-        "nodeId": "distractor3_3",
+        "nodeId": "distractor2_2",
         "dot": {
           "label": "wrong",
           "shape": "octagon",
@@ -78,7 +79,19 @@ window.GRAPH = {
       }
     },
     {
-      "v": "180",
+      "v": "177",
+      "value": {
+        "type": "distractor",
+        "nodeId": "distractor3_2",
+        "dot": {
+          "label": "wrong",
+          "shape": "octagon",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "188",
       "value": {
         "type": "distractor",
         "nodeId": "distractor1_4",
@@ -90,7 +103,7 @@ window.GRAPH = {
       }
     },
     {
-      "v": "181",
+      "v": "189",
       "value": {
         "type": "distractor",
         "nodeId": "distractor2_4",
@@ -102,7 +115,7 @@ window.GRAPH = {
       }
     },
     {
-      "v": "182",
+      "v": "190",
       "value": {
         "type": "distractor",
         "nodeId": "distractor3_4",
@@ -114,252 +127,10 @@ window.GRAPH = {
       }
     },
     {
-      "v": "205",
-      "value": {
-        "type": "potion",
-        "nodeId": "potion_5",
-        "healValue": 0.3,
-        "dot": {
-          "label": "potion (+0.3)",
-          "shape": "invtriangle",
-          "color": "darkgreen"
-        }
-      }
-    },
-    {
-      "v": "207",
-      "value": {
-        "type": "distractor",
-        "nodeId": "distractor1_8",
-        "dot": {
-          "label": "wrong",
-          "shape": "octagon",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "208",
-      "value": {
-        "type": "distractor",
-        "nodeId": "distractor2_8",
-        "dot": {
-          "label": "wrong",
-          "shape": "octagon",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "209",
-      "value": {
-        "type": "distractor",
-        "nodeId": "distractor3_8",
-        "dot": {
-          "label": "wrong",
-          "shape": "octagon",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "213",
-      "value": {
-        "type": "distractor",
-        "nodeId": "distractor1_9",
-        "dot": {
-          "label": "wrong",
-          "shape": "octagon",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "214",
-      "value": {
-        "type": "distractor",
-        "nodeId": "distractor2_9",
-        "dot": {
-          "label": "wrong",
-          "shape": "octagon",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "215",
-      "value": {
-        "type": "distractor",
-        "nodeId": "distractor3_9",
-        "dot": {
-          "label": "wrong",
-          "shape": "octagon",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "219",
-      "value": {
-        "type": "distractor",
-        "nodeId": "distractor1_10",
-        "dot": {
-          "label": "wrong",
-          "shape": "octagon",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "220",
-      "value": {
-        "type": "distractor",
-        "nodeId": "distractor2_10",
-        "dot": {
-          "label": "wrong",
-          "shape": "octagon",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "221",
-      "value": {
-        "type": "distractor",
-        "nodeId": "distractor3_10",
-        "dot": {
-          "label": "wrong",
-          "shape": "octagon",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "223",
-      "value": {
-        "type": "door",
-        "pairId": "pair_21",
-        "nodeId": "door_21",
-        "text": "There is a door here. It is closed and locked.",
-        "dot": {
-          "label": "door (pair_21)",
-          "shape": "house"
-        }
-      }
-    },
-    {
-      "v": "225",
-      "value": {
-        "type": "distractor",
-        "nodeId": "distractor1_11",
-        "dot": {
-          "label": "wrong",
-          "shape": "octagon",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "226",
-      "value": {
-        "type": "distractor",
-        "nodeId": "distractor2_11",
-        "dot": {
-          "label": "wrong",
-          "shape": "octagon",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "227",
-      "value": {
-        "type": "distractor",
-        "nodeId": "distractor3_11",
-        "dot": {
-          "label": "wrong",
-          "shape": "octagon",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "245",
-      "value": {
-        "type": "distractor",
-        "nodeId": "distractor1_14",
-        "dot": {
-          "label": "wrong",
-          "shape": "octagon",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "246",
-      "value": {
-        "type": "distractor",
-        "nodeId": "distractor2_14",
-        "dot": {
-          "label": "wrong",
-          "shape": "octagon",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "247",
-      "value": {
-        "type": "distractor",
-        "nodeId": "distractor3_14",
-        "dot": {
-          "label": "wrong",
-          "shape": "octagon",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "272",
-      "value": {
-        "type": "distractor",
-        "nodeId": "distractor1_18",
-        "dot": {
-          "label": "wrong",
-          "shape": "octagon",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "273",
-      "value": {
-        "type": "distractor",
-        "nodeId": "distractor2_18",
-        "dot": {
-          "label": "wrong",
-          "shape": "octagon",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "274",
-      "value": {
-        "type": "distractor",
-        "nodeId": "distractor3_18",
-        "dot": {
-          "label": "wrong",
-          "shape": "octagon",
-          "color": "gray"
-        }
-      }
-    },
-    {
       "v": "278",
       "value": {
         "type": "distractor",
-        "nodeId": "distractor1_19",
+        "nodeId": "distractor1_17",
         "dot": {
           "label": "wrong",
           "shape": "octagon",
@@ -371,7 +142,7 @@ window.GRAPH = {
       "v": "279",
       "value": {
         "type": "distractor",
-        "nodeId": "distractor2_19",
+        "nodeId": "distractor2_17",
         "dot": {
           "label": "wrong",
           "shape": "octagon",
@@ -383,55 +154,7 @@ window.GRAPH = {
       "v": "280",
       "value": {
         "type": "distractor",
-        "nodeId": "distractor3_19",
-        "dot": {
-          "label": "wrong",
-          "shape": "octagon",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "284",
-      "value": {
-        "type": "distractor",
-        "nodeId": "distractor1_20",
-        "dot": {
-          "label": "wrong",
-          "shape": "octagon",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "285",
-      "value": {
-        "type": "distractor",
-        "nodeId": "distractor2_20",
-        "dot": {
-          "label": "wrong",
-          "shape": "octagon",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "286",
-      "value": {
-        "type": "distractor",
-        "nodeId": "distractor3_20",
-        "dot": {
-          "label": "wrong",
-          "shape": "octagon",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "297",
-      "value": {
-        "type": "distractor",
-        "nodeId": "distractor1_22",
+        "nodeId": "distractor3_17",
         "dot": {
           "label": "wrong",
           "shape": "octagon",
@@ -443,7 +166,7 @@ window.GRAPH = {
       "v": "298",
       "value": {
         "type": "distractor",
-        "nodeId": "distractor2_22",
+        "nodeId": "distractor1_20",
         "dot": {
           "label": "wrong",
           "shape": "octagon",
@@ -455,6 +178,54 @@ window.GRAPH = {
       "v": "299",
       "value": {
         "type": "distractor",
+        "nodeId": "distractor2_20",
+        "dot": {
+          "label": "wrong",
+          "shape": "octagon",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "300",
+      "value": {
+        "type": "distractor",
+        "nodeId": "distractor3_20",
+        "dot": {
+          "label": "wrong",
+          "shape": "octagon",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "311",
+      "value": {
+        "type": "distractor",
+        "nodeId": "distractor1_22",
+        "dot": {
+          "label": "wrong",
+          "shape": "octagon",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "312",
+      "value": {
+        "type": "distractor",
+        "nodeId": "distractor2_22",
+        "dot": {
+          "label": "wrong",
+          "shape": "octagon",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "313",
+      "value": {
+        "type": "distractor",
         "nodeId": "distractor3_22",
         "dot": {
           "label": "wrong",
@@ -464,46 +235,10 @@ window.GRAPH = {
       }
     },
     {
-      "v": "303",
-      "value": {
-        "type": "distractor",
-        "nodeId": "distractor1_23",
-        "dot": {
-          "label": "wrong",
-          "shape": "octagon",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "304",
-      "value": {
-        "type": "distractor",
-        "nodeId": "distractor2_23",
-        "dot": {
-          "label": "wrong",
-          "shape": "octagon",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "305",
-      "value": {
-        "type": "distractor",
-        "nodeId": "distractor3_23",
-        "dot": {
-          "label": "wrong",
-          "shape": "octagon",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "307",
+      "v": "315",
       "value": {
         "type": "puzzle_intro",
-        "nodeId": "puzzle_19",
+        "nodeId": "puzzle_2",
         "dot": {
           "label": "puzzle",
           "shape": "diamond",
@@ -512,10 +247,10 @@ window.GRAPH = {
       }
     },
     {
-      "v": "323",
+      "v": "378",
       "value": {
         "type": "puzzle_intro",
-        "nodeId": "puzzle_10",
+        "nodeId": "puzzle_17",
         "dot": {
           "label": "puzzle",
           "shape": "diamond",
@@ -524,166 +259,7 @@ window.GRAPH = {
       }
     },
     {
-      "v": "324",
-      "value": {
-        "type": "dead_end",
-        "nodeId": "deadend_18",
-        "dot": {
-          "label": "dead_end"
-        }
-      }
-    },
-    {
-      "v": "354",
-      "value": {
-        "type": "dead_end",
-        "nodeId": "deadend_4",
-        "dot": {
-          "label": "dead_end"
-        }
-      }
-    },
-    {
-      "v": "360",
-      "value": {
-        "type": "death",
-        "nodeId": "death_17",
-        "dot": {
-          "label": "you died",
-          "shape": "doublecircle",
-          "color": "red"
-        }
-      }
-    },
-    {
-      "v": "364",
-      "value": {
-        "type": "puzzle_intro",
-        "nodeId": "puzzle_23",
-        "dot": {
-          "label": "puzzle",
-          "shape": "diamond",
-          "color": "gold"
-        }
-      }
-    },
-    {
-      "v": "377",
-      "value": {
-        "type": "dead_end",
-        "nodeId": "deadend_3",
-        "dot": {
-          "label": "dead_end"
-        }
-      }
-    },
-    {
-      "v": "384",
-      "value": {
-        "type": "death",
-        "nodeId": "death_21",
-        "dot": {
-          "label": "you died",
-          "shape": "doublecircle",
-          "color": "red"
-        }
-      }
-    },
-    {
-      "v": "388",
-      "value": {
-        "type": "death",
-        "nodeId": "death_2",
-        "dot": {
-          "label": "you died",
-          "shape": "doublecircle",
-          "color": "red"
-        }
-      }
-    },
-    {
-      "v": "390",
-      "value": {
-        "type": "puzzle_intro",
-        "nodeId": "puzzle_8",
-        "dot": {
-          "label": "puzzle",
-          "shape": "diamond",
-          "color": "gold"
-        }
-      }
-    },
-    {
-      "v": "395",
-      "value": {
-        "type": "puzzle_intro",
-        "nodeId": "puzzle_22",
-        "dot": {
-          "label": "puzzle",
-          "shape": "diamond",
-          "color": "gold"
-        }
-      }
-    },
-    {
-      "v": "412",
-      "value": {
-        "type": "death",
-        "nodeId": "death_15",
-        "dot": {
-          "label": "you died",
-          "shape": "doublecircle",
-          "color": "red"
-        }
-      }
-    },
-    {
-      "v": "418",
-      "value": {
-        "type": "dead_end",
-        "nodeId": "deadend_1",
-        "dot": {
-          "label": "dead_end"
-        }
-      }
-    },
-    {
-      "v": "422",
-      "value": {
-        "type": "puzzle_intro",
-        "nodeId": "puzzle_14",
-        "dot": {
-          "label": "puzzle",
-          "shape": "diamond",
-          "color": "gold"
-        }
-      }
-    },
-    {
-      "v": "423",
-      "value": {
-        "type": "random",
-        "flavor": "attack",
-        "nodeId": "roll_attack_13",
-        "dot": {
-          "label": "roll (attack)",
-          "shape": "ellipse",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "427",
-      "value": {
-        "type": "win",
-        "nodeId": "win",
-        "dot": {
-          "label": "win"
-        }
-      }
-    },
-    {
-      "v": "431",
+      "v": "408",
       "value": {
         "type": "puzzle_intro",
         "nodeId": "puzzle_20",
@@ -695,23 +271,22 @@ window.GRAPH = {
       }
     },
     {
-      "v": "433",
+      "v": "416",
       "value": {
-        "type": "choice",
-        "state": "advantage",
-        "nodeId": "battle_advantage_15",
+        "type": "death",
+        "nodeId": "death_15",
         "dot": {
-          "label": "battle (advantage)",
-          "shape": "box",
-          "color": "darkgreen"
+          "label": "you died",
+          "shape": "doublecircle",
+          "color": "red"
         }
       }
     },
     {
-      "v": "439",
+      "v": "420",
       "value": {
         "type": "puzzle_intro",
-        "nodeId": "puzzle_4",
+        "nodeId": "puzzle_22",
         "dot": {
           "label": "puzzle",
           "shape": "diamond",
@@ -720,21 +295,36 @@ window.GRAPH = {
       }
     },
     {
-      "v": "441",
+      "v": "422",
       "value": {
-        "type": "dead_end",
-        "nodeId": "deadend_15",
+        "type": "death",
+        "nodeId": "death_11",
         "dot": {
-          "label": "dead_end"
+          "label": "you died",
+          "shape": "doublecircle",
+          "color": "red"
         }
       }
     },
     {
-      "v": "446",
+      "v": "430",
+      "value": {
+        "type": "choice",
+        "state": "advantage",
+        "nodeId": "battle_advantage_13",
+        "dot": {
+          "label": "battle (advantage)",
+          "shape": "box",
+          "color": "darkgreen"
+        }
+      }
+    },
+    {
+      "v": "432",
       "value": {
         "type": "choice",
         "state": "normal",
-        "nodeId": "battle_normal_17",
+        "nodeId": "battle_normal_13",
         "dot": {
           "label": "battle (normal)",
           "shape": "box",
@@ -743,39 +333,13 @@ window.GRAPH = {
       }
     },
     {
-      "v": "450",
-      "value": {
-        "type": "choice",
-        "state": "normal",
-        "nodeId": "battle_normal_16",
-        "dot": {
-          "label": "battle (normal)",
-          "shape": "box",
-          "color": "orange"
-        }
-      }
-    },
-    {
-      "v": "451",
+      "v": "443",
       "value": {
         "type": "random",
-        "flavor": "defend",
-        "nodeId": "roll_defend_2",
+        "flavor": "attack",
+        "nodeId": "roll_attack_13",
         "dot": {
-          "label": "roll (defend)",
-          "shape": "ellipse",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "453",
-      "value": {
-        "type": "random",
-        "flavor": "defend",
-        "nodeId": "roll_defend_15",
-        "dot": {
-          "label": "roll (defend)",
+          "label": "roll (attack)",
           "shape": "ellipse",
           "color": "purple"
         }
@@ -792,148 +356,30 @@ window.GRAPH = {
       }
     },
     {
+      "v": "458",
+      "value": {
+        "type": "choice",
+        "state": "normal",
+        "nodeId": "battle_normal_3",
+        "dot": {
+          "label": "battle (normal)",
+          "shape": "box",
+          "color": "orange"
+        }
+      }
+    },
+    {
       "v": "460",
       "value": {
-        "type": "choice",
-        "state": "advantage",
-        "nodeId": "battle_advantage_6",
-        "dot": {
-          "label": "battle (advantage)",
-          "shape": "box",
-          "color": "darkgreen"
-        }
-      }
-    },
-    {
-      "v": "462",
-      "value": {
-        "type": "puzzle_intro",
-        "nodeId": "puzzle_3",
-        "dot": {
-          "label": "puzzle",
-          "shape": "diamond",
-          "color": "gold"
-        }
-      }
-    },
-    {
-      "v": "465",
-      "value": {
-        "type": "choice",
-        "state": "normal",
-        "nodeId": "battle_normal_2",
-        "dot": {
-          "label": "battle (normal)",
-          "shape": "box",
-          "color": "orange"
-        }
-      }
-    },
-    {
-      "v": "466",
-      "value": {
-        "type": "start",
-        "nodeId": "start",
-        "dot": {
-          "label": "start"
-        }
-      }
-    },
-    {
-      "v": "467",
-      "value": {
-        "type": "choice",
-        "state": "normal",
-        "nodeId": "battle_normal_21",
-        "dot": {
-          "label": "battle (normal)",
-          "shape": "box",
-          "color": "orange"
-        }
-      }
-    },
-    {
-      "v": "469",
-      "value": {
-        "type": "puzzle_intro",
-        "nodeId": "puzzle_9",
-        "dot": {
-          "label": "puzzle",
-          "shape": "diamond",
-          "color": "gold"
-        }
-      }
-    },
-    {
-      "v": "471",
-      "value": {
-        "type": "choice",
-        "state": "normal",
-        "nodeId": "battle_normal_12",
-        "dot": {
-          "label": "battle (normal)",
-          "shape": "box",
-          "color": "orange"
-        }
-      }
-    },
-    {
-      "v": "474",
-      "value": {
-        "type": "room",
-        "nodeId": "room_13",
-        "dot": {
-          "label": "room"
-        }
-      }
-    },
-    {
-      "v": "478",
-      "value": {
-        "type": "puzzle_intro",
-        "nodeId": "puzzle_18",
-        "dot": {
-          "label": "puzzle",
-          "shape": "diamond",
-          "color": "gold"
-        }
-      }
-    },
-    {
-      "v": "480",
-      "value": {
-        "type": "choice",
-        "state": "normal",
-        "nodeId": "battle_normal_6",
-        "dot": {
-          "label": "battle (normal)",
-          "shape": "box",
-          "color": "orange"
-        }
-      }
-    },
-    {
-      "v": "486",
-      "value": {
         "type": "dead_end",
-        "nodeId": "deadend_25",
+        "nodeId": "deadend_3",
         "dot": {
           "label": "dead_end"
         }
       }
     },
     {
-      "v": "489",
-      "value": {
-        "type": "room",
-        "nodeId": "room_17",
-        "dot": {
-          "label": "room"
-        }
-      }
-    },
-    {
-      "v": "490",
+      "v": "464",
       "value": {
         "type": "choice",
         "state": "normal",
@@ -946,10 +392,10 @@ window.GRAPH = {
       }
     },
     {
-      "v": "494",
+      "v": "474",
       "value": {
         "type": "death",
-        "nodeId": "death_12",
+        "nodeId": "death_18",
         "dot": {
           "label": "you died",
           "shape": "doublecircle",
@@ -958,30 +404,17 @@ window.GRAPH = {
       }
     },
     {
-      "v": "495",
+      "v": "483",
       "value": {
-        "type": "dead_end",
-        "nodeId": "deadend_23",
+        "type": "room",
+        "nodeId": "room_19",
         "dot": {
-          "label": "dead_end"
+          "label": "room"
         }
       }
     },
     {
-      "v": "496",
-      "value": {
-        "type": "random",
-        "flavor": "attack",
-        "nodeId": "roll_attack_12",
-        "dot": {
-          "label": "roll (attack)",
-          "shape": "ellipse",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "497",
+      "v": "491",
       "value": {
         "type": "choice",
         "state": "advantage",
@@ -994,47 +427,21 @@ window.GRAPH = {
       }
     },
     {
-      "v": "498",
+      "v": "493",
       "value": {
-        "type": "room",
-        "nodeId": "room_20",
+        "type": "win",
+        "nodeId": "win",
         "dot": {
-          "label": "room"
+          "label": "win"
         }
       }
     },
     {
-      "v": "499",
-      "value": {
-        "type": "random",
-        "flavor": "attack",
-        "nodeId": "roll_attack_6",
-        "dot": {
-          "label": "roll (attack)",
-          "shape": "ellipse",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "500",
-      "value": {
-        "type": "key",
-        "pairId": "pair_21",
-        "nodeId": "key_21",
-        "text": "There is a key here. You pick it up.",
-        "dot": {
-          "label": "key (pair_21)",
-          "shape": "diamond"
-        }
-      }
-    },
-    {
-      "v": "502",
+      "v": "510",
       "value": {
         "type": "choice",
         "state": "advantage",
-        "nodeId": "battle_advantage_17",
+        "nodeId": "battle_advantage_3",
         "dot": {
           "label": "battle (advantage)",
           "shape": "box",
@@ -1043,23 +450,30 @@ window.GRAPH = {
       }
     },
     {
-      "v": "504",
+      "v": "511",
       "value": {
-        "type": "potion",
-        "nodeId": "potion_8",
-        "healValue": 0.3,
+        "type": "dead_end",
+        "nodeId": "deadend_15",
         "dot": {
-          "label": "potion (+0.3)",
-          "shape": "invtriangle",
-          "color": "darkgreen"
+          "label": "dead_end"
         }
       }
     },
     {
-      "v": "506",
+      "v": "513",
+      "value": {
+        "type": "room",
+        "nodeId": "room_5",
+        "dot": {
+          "label": "room"
+        }
+      }
+    },
+    {
+      "v": "514",
       "value": {
         "type": "puzzle_intro",
-        "nodeId": "puzzle_11",
+        "nodeId": "puzzle_4",
         "dot": {
           "label": "puzzle",
           "shape": "diamond",
@@ -1068,387 +482,20 @@ window.GRAPH = {
       }
     },
     {
-      "v": "508",
-      "value": {
-        "type": "random",
-        "flavor": "defend",
-        "nodeId": "roll_defend_16",
-        "dot": {
-          "label": "roll (defend)",
-          "shape": "ellipse",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "509",
-      "value": {
-        "type": "death",
-        "nodeId": "death_16",
-        "dot": {
-          "label": "you died",
-          "shape": "doublecircle",
-          "color": "red"
-        }
-      }
-    },
-    {
-      "v": "511",
-      "value": {
-        "type": "choice",
-        "state": "advantage",
-        "nodeId": "battle_advantage_13",
-        "dot": {
-          "label": "battle (advantage)",
-          "shape": "box",
-          "color": "darkgreen"
-        }
-      }
-    },
-    {
-      "v": "512",
-      "value": {
-        "type": "random",
-        "flavor": "attack",
-        "nodeId": "roll_attack_16",
-        "dot": {
-          "label": "roll (attack)",
-          "shape": "ellipse",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "513",
-      "value": {
-        "type": "choice",
-        "state": "advantage",
-        "nodeId": "battle_advantage_16",
-        "dot": {
-          "label": "battle (advantage)",
-          "shape": "box",
-          "color": "darkgreen"
-        }
-      }
-    },
-    {
-      "v": "514",
-      "value": {
-        "type": "dead_end",
-        "nodeId": "deadend_24",
-        "dot": {
-          "label": "dead_end"
-        }
-      }
-    },
-    {
-      "v": "515",
-      "value": {
-        "type": "random",
-        "flavor": "defend",
-        "nodeId": "roll_defend_6",
-        "dot": {
-          "label": "roll (defend)",
-          "shape": "ellipse",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "516",
-      "value": {
-        "type": "death",
-        "nodeId": "death_6",
-        "dot": {
-          "label": "you died",
-          "shape": "doublecircle",
-          "color": "red"
-        }
-      }
-    },
-    {
-      "v": "517",
-      "value": {
-        "type": "random",
-        "flavor": "defend",
-        "nodeId": "roll_defend_21",
-        "dot": {
-          "label": "roll (defend)",
-          "shape": "ellipse",
-          "color": "purple"
-        }
-      }
-    },
-    {
       "v": "518",
       "value": {
         "type": "choice",
         "state": "advantage",
-        "nodeId": "battle_advantage_21",
+        "nodeId": "battle_advantage_15",
         "dot": {
           "label": "battle (advantage)",
           "shape": "box",
           "color": "darkgreen"
-        }
-      }
-    },
-    {
-      "v": "519",
-      "value": {
-        "type": "room",
-        "nodeId": "room_19",
-        "dot": {
-          "label": "room"
         }
       }
     },
     {
       "v": "521",
-      "value": {
-        "type": "random",
-        "flavor": "defend",
-        "nodeId": "roll_defend_17",
-        "dot": {
-          "label": "roll (defend)",
-          "shape": "ellipse",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "523",
-      "value": {
-        "type": "random",
-        "flavor": "defend",
-        "nodeId": "roll_defend_5",
-        "dot": {
-          "label": "roll (defend)",
-          "shape": "ellipse",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "524",
-      "value": {
-        "type": "death",
-        "nodeId": "death_5",
-        "dot": {
-          "label": "you died",
-          "shape": "doublecircle",
-          "color": "red"
-        }
-      }
-    },
-    {
-      "v": "525",
-      "value": {
-        "type": "random",
-        "flavor": "attack",
-        "nodeId": "roll_attack_15",
-        "dot": {
-          "label": "roll (attack)",
-          "shape": "ellipse",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "526",
-      "value": {
-        "type": "choice",
-        "state": "normal",
-        "nodeId": "battle_normal_15",
-        "dot": {
-          "label": "battle (normal)",
-          "shape": "box",
-          "color": "orange"
-        }
-      }
-    },
-    {
-      "v": "527",
-      "value": {
-        "type": "random",
-        "flavor": "defend",
-        "nodeId": "roll_defend_13",
-        "dot": {
-          "label": "roll (defend)",
-          "shape": "ellipse",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "528",
-      "value": {
-        "type": "death",
-        "nodeId": "death_13",
-        "dot": {
-          "label": "you died",
-          "shape": "doublecircle",
-          "color": "red"
-        }
-      }
-    },
-    {
-      "v": "529",
-      "value": {
-        "type": "random",
-        "flavor": "attack",
-        "nodeId": "roll_attack_7",
-        "dot": {
-          "label": "roll (attack)",
-          "shape": "ellipse",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "530",
-      "value": {
-        "type": "death",
-        "nodeId": "death_7",
-        "dot": {
-          "label": "you died",
-          "shape": "doublecircle",
-          "color": "red"
-        }
-      }
-    },
-    {
-      "v": "531",
-      "value": {
-        "type": "random",
-        "flavor": "attack",
-        "nodeId": "roll_attack_21",
-        "dot": {
-          "label": "roll (attack)",
-          "shape": "ellipse",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "532",
-      "value": {
-        "type": "dead_end",
-        "nodeId": "deadend_12",
-        "dot": {
-          "label": "dead_end"
-        }
-      }
-    },
-    {
-      "v": "533",
-      "value": {
-        "type": "random",
-        "flavor": "attack",
-        "nodeId": "roll_attack_5",
-        "dot": {
-          "label": "roll (attack)",
-          "shape": "ellipse",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "534",
-      "value": {
-        "type": "choice",
-        "state": "advantage",
-        "nodeId": "battle_advantage_5",
-        "dot": {
-          "label": "battle (advantage)",
-          "shape": "box",
-          "color": "darkgreen"
-        }
-      }
-    },
-    {
-      "v": "535",
-      "value": {
-        "type": "dead_end",
-        "nodeId": "deadend_16",
-        "dot": {
-          "label": "dead_end"
-        }
-      }
-    },
-    {
-      "v": "536",
-      "value": {
-        "type": "random",
-        "flavor": "attack",
-        "nodeId": "roll_attack_2",
-        "dot": {
-          "label": "roll (attack)",
-          "shape": "ellipse",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "537",
-      "value": {
-        "type": "choice",
-        "state": "advantage",
-        "nodeId": "battle_advantage_2",
-        "dot": {
-          "label": "battle (advantage)",
-          "shape": "box",
-          "color": "darkgreen"
-        }
-      }
-    },
-    {
-      "v": "538",
-      "value": {
-        "type": "room",
-        "nodeId": "room_14",
-        "dot": {
-          "label": "room"
-        }
-      }
-    },
-    {
-      "v": "539",
-      "value": {
-        "type": "choice",
-        "state": "normal",
-        "nodeId": "battle_normal_13",
-        "dot": {
-          "label": "battle (normal)",
-          "shape": "box",
-          "color": "orange"
-        }
-      }
-    },
-    {
-      "v": "540",
-      "value": {
-        "type": "random",
-        "flavor": "attack",
-        "nodeId": "roll_attack_17",
-        "dot": {
-          "label": "roll (attack)",
-          "shape": "ellipse",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "541",
-      "value": {
-        "type": "room",
-        "nodeId": "room_10",
-        "dot": {
-          "label": "room"
-        }
-      }
-    },
-    {
-      "v": "543",
       "value": {
         "type": "choice",
         "state": "normal",
@@ -1461,17 +508,277 @@ window.GRAPH = {
       }
     },
     {
-      "v": "544",
+      "v": "522",
       "value": {
-        "type": "dead_end",
-        "nodeId": "deadend_11",
+        "type": "random",
+        "flavor": "attack",
+        "nodeId": "roll_attack_14",
         "dot": {
-          "label": "dead_end"
+          "label": "roll (attack)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "525",
+      "value": {
+        "type": "choice",
+        "state": "advantage",
+        "nodeId": "battle_advantage_11",
+        "dot": {
+          "label": "battle (advantage)",
+          "shape": "box",
+          "color": "darkgreen"
+        }
+      }
+    },
+    {
+      "v": "528",
+      "value": {
+        "type": "random",
+        "flavor": "defend",
+        "nodeId": "roll_defend_13",
+        "dot": {
+          "label": "roll (defend)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "529",
+      "value": {
+        "type": "death",
+        "nodeId": "death_13",
+        "dot": {
+          "label": "you died",
+          "shape": "doublecircle",
+          "color": "red"
+        }
+      }
+    },
+    {
+      "v": "531",
+      "value": {
+        "type": "room",
+        "nodeId": "room_7",
+        "dot": {
+          "label": "room"
+        }
+      }
+    },
+    {
+      "v": "532",
+      "value": {
+        "type": "random",
+        "flavor": "defend",
+        "nodeId": "roll_defend_6",
+        "dot": {
+          "label": "roll (defend)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "537",
+      "value": {
+        "type": "room",
+        "nodeId": "room_17",
+        "dot": {
+          "label": "room"
+        }
+      }
+    },
+    {
+      "v": "543",
+      "value": {
+        "type": "death",
+        "nodeId": "death_10",
+        "dot": {
+          "label": "you died",
+          "shape": "doublecircle",
+          "color": "red"
         }
       }
     },
     {
       "v": "546",
+      "value": {
+        "type": "random",
+        "flavor": "attack",
+        "nodeId": "roll_attack_15",
+        "dot": {
+          "label": "roll (attack)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "548",
+      "value": {
+        "type": "room",
+        "nodeId": "room_16",
+        "dot": {
+          "label": "room"
+        }
+      }
+    },
+    {
+      "v": "551",
+      "value": {
+        "type": "choice",
+        "state": "normal",
+        "nodeId": "battle_normal_16",
+        "dot": {
+          "label": "battle (normal)",
+          "shape": "box",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "553",
+      "value": {
+        "type": "room",
+        "nodeId": "room_24",
+        "dot": {
+          "label": "room"
+        }
+      }
+    },
+    {
+      "v": "557",
+      "value": {
+        "type": "random",
+        "flavor": "attack",
+        "nodeId": "roll_attack_12",
+        "dot": {
+          "label": "roll (attack)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "558",
+      "value": {
+        "type": "death",
+        "nodeId": "death_12",
+        "dot": {
+          "label": "you died",
+          "shape": "doublecircle",
+          "color": "red"
+        }
+      }
+    },
+    {
+      "v": "562",
+      "value": {
+        "type": "choice",
+        "state": "advantage",
+        "nodeId": "battle_advantage_21",
+        "dot": {
+          "label": "battle (advantage)",
+          "shape": "box",
+          "color": "darkgreen"
+        }
+      }
+    },
+    {
+      "v": "564",
+      "value": {
+        "type": "puzzle_intro",
+        "nodeId": "puzzle_1",
+        "dot": {
+          "label": "puzzle",
+          "shape": "diamond",
+          "color": "gold"
+        }
+      }
+    },
+    {
+      "v": "566",
+      "value": {
+        "type": "choice",
+        "state": "normal",
+        "nodeId": "battle_normal_21",
+        "dot": {
+          "label": "battle (normal)",
+          "shape": "box",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "567",
+      "value": {
+        "type": "random",
+        "flavor": "attack",
+        "nodeId": "roll_attack_3",
+        "dot": {
+          "label": "roll (attack)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "569",
+      "value": {
+        "type": "random",
+        "flavor": "defend",
+        "nodeId": "roll_defend_10",
+        "dot": {
+          "label": "roll (defend)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "571",
+      "value": {
+        "type": "random",
+        "flavor": "defend",
+        "nodeId": "roll_defend_5",
+        "dot": {
+          "label": "roll (defend)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "572",
+      "value": {
+        "type": "choice",
+        "state": "advantage",
+        "nodeId": "battle_advantage_5",
+        "dot": {
+          "label": "battle (advantage)",
+          "shape": "box",
+          "color": "darkgreen"
+        }
+      }
+    },
+    {
+      "v": "574",
+      "value": {
+        "type": "choice",
+        "state": "normal",
+        "nodeId": "battle_normal_18",
+        "dot": {
+          "label": "battle (normal)",
+          "shape": "box",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "578",
       "value": {
         "type": "random",
         "flavor": "defend",
@@ -1484,27 +791,135 @@ window.GRAPH = {
       }
     },
     {
-      "v": "547",
+      "v": "579",
       "value": {
-        "type": "dead_end",
-        "nodeId": "deadend_7",
+        "type": "choice",
+        "state": "normal",
+        "nodeId": "battle_normal_12",
         "dot": {
-          "label": "dead_end"
+          "label": "battle (normal)",
+          "shape": "box",
+          "color": "orange"
         }
       }
     },
     {
-      "v": "548",
+      "v": "580",
       "value": {
-        "type": "room",
-        "nodeId": "room_6",
+        "type": "random",
+        "flavor": "attack",
+        "nodeId": "roll_attack_21",
         "dot": {
-          "label": "room"
+          "label": "roll (attack)",
+          "shape": "ellipse",
+          "color": "purple"
         }
       }
     },
     {
-      "v": "549",
+      "v": "581",
+      "value": {
+        "type": "death",
+        "nodeId": "death_21",
+        "dot": {
+          "label": "you died",
+          "shape": "doublecircle",
+          "color": "red"
+        }
+      }
+    },
+    {
+      "v": "582",
+      "value": {
+        "type": "random",
+        "flavor": "attack",
+        "nodeId": "roll_attack_7",
+        "dot": {
+          "label": "roll (attack)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "583",
+      "value": {
+        "type": "death",
+        "nodeId": "death_7",
+        "dot": {
+          "label": "you died",
+          "shape": "doublecircle",
+          "color": "red"
+        }
+      }
+    },
+    {
+      "v": "584",
+      "value": {
+        "type": "random",
+        "flavor": "attack",
+        "nodeId": "roll_attack_18",
+        "dot": {
+          "label": "roll (attack)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "588",
+      "value": {
+        "type": "random",
+        "flavor": "defend",
+        "nodeId": "roll_defend_18",
+        "dot": {
+          "label": "roll (defend)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "589",
+      "value": {
+        "type": "choice",
+        "state": "advantage",
+        "nodeId": "battle_advantage_18",
+        "dot": {
+          "label": "battle (advantage)",
+          "shape": "box",
+          "color": "darkgreen"
+        }
+      }
+    },
+    {
+      "v": "590",
+      "value": {
+        "type": "random",
+        "flavor": "defend",
+        "nodeId": "roll_defend_21",
+        "dot": {
+          "label": "roll (defend)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "591",
+      "value": {
+        "type": "key",
+        "pairId": "pair_25",
+        "nodeId": "key_25",
+        "text": "[placeholder]",
+        "dot": {
+          "label": "key (pair_25)",
+          "shape": "diamond"
+        }
+      }
+    },
+    {
+      "v": "592",
       "value": {
         "type": "random",
         "flavor": "defend",
@@ -1517,7 +932,7 @@ window.GRAPH = {
       }
     },
     {
-      "v": "550",
+      "v": "593",
       "value": {
         "type": "choice",
         "state": "advantage",
@@ -1530,41 +945,717 @@ window.GRAPH = {
       }
     },
     {
-      "v": "551",
+      "v": "595",
       "value": {
         "type": "room",
-        "nodeId": "room_2",
+        "nodeId": "room_14",
         "dot": {
           "label": "room"
         }
       }
     },
     {
-      "v": "552",
+      "v": "597",
       "value": {
-        "type": "puzzle_intro",
-        "nodeId": "puzzle_1",
+        "type": "choice",
+        "state": "advantage",
+        "nodeId": "battle_advantage_16",
         "dot": {
-          "label": "puzzle",
-          "shape": "diamond",
-          "color": "gold"
+          "label": "battle (advantage)",
+          "shape": "box",
+          "color": "darkgreen"
         }
       }
     },
     {
-      "v": "553",
+      "v": "598",
       "value": {
         "type": "room",
-        "nodeId": "room_22",
+        "nodeId": "room_23",
         "dot": {
           "label": "room"
+        }
+      }
+    },
+    {
+      "v": "599",
+      "value": {
+        "type": "random",
+        "flavor": "attack",
+        "nodeId": "roll_attack_19",
+        "dot": {
+          "label": "roll (attack)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "600",
+      "value": {
+        "type": "death",
+        "nodeId": "death_19",
+        "dot": {
+          "label": "you died",
+          "shape": "doublecircle",
+          "color": "red"
+        }
+      }
+    },
+    {
+      "v": "605",
+      "value": {
+        "type": "random",
+        "flavor": "defend",
+        "nodeId": "roll_defend_15",
+        "dot": {
+          "label": "roll (defend)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "606",
+      "value": {
+        "type": "choice",
+        "state": "normal",
+        "nodeId": "battle_normal_15",
+        "dot": {
+          "label": "battle (normal)",
+          "shape": "box",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "608",
+      "value": {
+        "type": "random",
+        "flavor": "attack",
+        "nodeId": "roll_attack_9",
+        "dot": {
+          "label": "roll (attack)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "609",
+      "value": {
+        "type": "death",
+        "nodeId": "death_9",
+        "dot": {
+          "label": "you died",
+          "shape": "doublecircle",
+          "color": "red"
+        }
+      }
+    },
+    {
+      "v": "611",
+      "value": {
+        "type": "choice",
+        "state": "normal",
+        "nodeId": "battle_normal_10",
+        "dot": {
+          "label": "battle (normal)",
+          "shape": "box",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "613",
+      "value": {
+        "type": "choice",
+        "state": "advantage",
+        "nodeId": "battle_advantage_9",
+        "dot": {
+          "label": "battle (advantage)",
+          "shape": "box",
+          "color": "darkgreen"
+        }
+      }
+    },
+    {
+      "v": "614",
+      "value": {
+        "type": "random",
+        "flavor": "attack",
+        "nodeId": "roll_attack_10",
+        "dot": {
+          "label": "roll (attack)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "615",
+      "value": {
+        "type": "choice",
+        "state": "advantage",
+        "nodeId": "battle_advantage_10",
+        "dot": {
+          "label": "battle (advantage)",
+          "shape": "box",
+          "color": "darkgreen"
+        }
+      }
+    },
+    {
+      "v": "616",
+      "value": {
+        "type": "room",
+        "nodeId": "room_20",
+        "dot": {
+          "label": "room"
+        }
+      }
+    },
+    {
+      "v": "617",
+      "value": {
+        "type": "random",
+        "flavor": "defend",
+        "nodeId": "roll_defend_16",
+        "dot": {
+          "label": "roll (defend)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "618",
+      "value": {
+        "type": "potion",
+        "nodeId": "potion_1",
+        "healValue": 0.3,
+        "dot": {
+          "label": "potion (+0.3)",
+          "shape": "invtriangle",
+          "color": "darkgreen"
+        }
+      }
+    },
+    {
+      "v": "620",
+      "value": {
+        "type": "death",
+        "nodeId": "death_14",
+        "dot": {
+          "label": "you died",
+          "shape": "doublecircle",
+          "color": "red"
+        }
+      }
+    },
+    {
+      "v": "622",
+      "value": {
+        "type": "choice",
+        "state": "normal",
+        "nodeId": "battle_normal_8",
+        "dot": {
+          "label": "battle (normal)",
+          "shape": "box",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "623",
+      "value": {
+        "type": "room",
+        "nodeId": "room_18",
+        "dot": {
+          "label": "room"
+        }
+      }
+    },
+    {
+      "v": "624",
+      "value": {
+        "type": "dead_end",
+        "nodeId": "deadend_13",
+        "dot": {
+          "label": "dead_end"
+        }
+      }
+    },
+    {
+      "v": "625",
+      "value": {
+        "type": "room",
+        "nodeId": "room_10",
+        "dot": {
+          "label": "room"
+        }
+      }
+    },
+    {
+      "v": "626",
+      "value": {
+        "type": "random",
+        "flavor": "defend",
+        "nodeId": "roll_defend_11",
+        "dot": {
+          "label": "roll (defend)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "628",
+      "value": {
+        "type": "random",
+        "flavor": "attack",
+        "nodeId": "roll_attack_8",
+        "dot": {
+          "label": "roll (attack)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "629",
+      "value": {
+        "type": "death",
+        "nodeId": "death_8",
+        "dot": {
+          "label": "you died",
+          "shape": "doublecircle",
+          "color": "red"
+        }
+      }
+    },
+    {
+      "v": "631",
+      "value": {
+        "type": "potion",
+        "nodeId": "potion_2",
+        "healValue": 0.3,
+        "dot": {
+          "label": "potion (+0.3)",
+          "shape": "invtriangle",
+          "color": "darkgreen"
+        }
+      }
+    },
+    {
+      "v": "633",
+      "value": {
+        "type": "choice",
+        "state": "advantage",
+        "nodeId": "battle_advantage_6",
+        "dot": {
+          "label": "battle (advantage)",
+          "shape": "box",
+          "color": "darkgreen"
+        }
+      }
+    },
+    {
+      "v": "634",
+      "value": {
+        "type": "random",
+        "flavor": "defend",
+        "nodeId": "roll_defend_19",
+        "dot": {
+          "label": "roll (defend)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "635",
+      "value": {
+        "type": "choice",
+        "state": "advantage",
+        "nodeId": "battle_advantage_19",
+        "dot": {
+          "label": "battle (advantage)",
+          "shape": "box",
+          "color": "darkgreen"
+        }
+      }
+    },
+    {
+      "v": "636",
+      "value": {
+        "type": "random",
+        "flavor": "attack",
+        "nodeId": "roll_attack_5",
+        "dot": {
+          "label": "roll (attack)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "637",
+      "value": {
+        "type": "death",
+        "nodeId": "death_5",
+        "dot": {
+          "label": "you died",
+          "shape": "doublecircle",
+          "color": "red"
+        }
+      }
+    },
+    {
+      "v": "640",
+      "value": {
+        "type": "random",
+        "flavor": "defend",
+        "nodeId": "roll_defend_8",
+        "dot": {
+          "label": "roll (defend)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "641",
+      "value": {
+        "type": "choice",
+        "state": "advantage",
+        "nodeId": "battle_advantage_8",
+        "dot": {
+          "label": "battle (advantage)",
+          "shape": "box",
+          "color": "darkgreen"
+        }
+      }
+    },
+    {
+      "v": "642",
+      "value": {
+        "type": "random",
+        "flavor": "defend",
+        "nodeId": "roll_defend_3",
+        "dot": {
+          "label": "roll (defend)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "643",
+      "value": {
+        "type": "death",
+        "nodeId": "death_3",
+        "dot": {
+          "label": "you died",
+          "shape": "doublecircle",
+          "color": "red"
+        }
+      }
+    },
+    {
+      "v": "644",
+      "value": {
+        "type": "room",
+        "nodeId": "room_12",
+        "dot": {
+          "label": "room"
+        }
+      }
+    },
+    {
+      "v": "645",
+      "value": {
+        "type": "room",
+        "nodeId": "room_21",
+        "dot": {
+          "label": "room"
+        }
+      }
+    },
+    {
+      "v": "646",
+      "value": {
+        "type": "random",
+        "flavor": "attack",
+        "nodeId": "roll_attack_11",
+        "dot": {
+          "label": "roll (attack)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "648",
+      "value": {
+        "type": "room",
+        "nodeId": "room_11",
+        "dot": {
+          "label": "room"
+        }
+      }
+    },
+    {
+      "v": "649",
+      "value": {
+        "type": "room",
+        "nodeId": "room_4",
+        "dot": {
+          "label": "room"
+        }
+      }
+    },
+    {
+      "v": "650",
+      "value": {
+        "type": "door",
+        "pairId": "pair_25",
+        "nodeId": "door_25",
+        "text": "[placeholder]",
+        "dot": {
+          "label": "door (pair_25)",
+          "shape": "house"
+        },
+        "theme": "gothic_horror"
+      }
+    },
+    {
+      "v": "651",
+      "value": {
+        "type": "choice",
+        "state": "normal",
+        "nodeId": "battle_normal_19",
+        "dot": {
+          "label": "battle (normal)",
+          "shape": "box",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "652",
+      "value": {
+        "type": "random",
+        "flavor": "defend",
+        "nodeId": "roll_defend_9",
+        "dot": {
+          "label": "roll (defend)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "653",
+      "value": {
+        "type": "choice",
+        "state": "normal",
+        "nodeId": "battle_normal_9",
+        "dot": {
+          "label": "battle (normal)",
+          "shape": "box",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "654",
+      "value": {
+        "type": "random",
+        "flavor": "attack",
+        "nodeId": "roll_attack_16",
+        "dot": {
+          "label": "roll (attack)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "655",
+      "value": {
+        "type": "death",
+        "nodeId": "death_16",
+        "dot": {
+          "label": "you died",
+          "shape": "doublecircle",
+          "color": "red"
+        }
+      }
+    },
+    {
+      "v": "657",
+      "value": {
+        "type": "death",
+        "nodeId": "death_6",
+        "dot": {
+          "label": "you died",
+          "shape": "doublecircle",
+          "color": "red"
+        }
+      }
+    },
+    {
+      "v": "658",
+      "value": {
+        "type": "start",
+        "nodeId": "start",
+        "dot": {
+          "label": "start"
+        }
+      }
+    },
+    {
+      "v": "659",
+      "value": {
+        "type": "choice",
+        "state": "normal",
+        "nodeId": "battle_normal_11",
+        "dot": {
+          "label": "battle (normal)",
+          "shape": "box",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "660",
+      "value": {
+        "type": "random",
+        "flavor": "defend",
+        "nodeId": "roll_defend_14",
+        "dot": {
+          "label": "roll (defend)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "661",
+      "value": {
+        "type": "choice",
+        "state": "advantage",
+        "nodeId": "battle_advantage_14",
+        "dot": {
+          "label": "battle (advantage)",
+          "shape": "box",
+          "color": "darkgreen"
+        }
+      }
+    },
+    {
+      "v": "662",
+      "value": {
+        "type": "room",
+        "nodeId": "room_6",
+        "dot": {
+          "label": "room"
+        }
+      }
+    },
+    {
+      "v": "663",
+      "value": {
+        "type": "choice",
+        "state": "normal",
+        "nodeId": "battle_normal_14",
+        "dot": {
+          "label": "battle (normal)",
+          "shape": "box",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "664",
+      "value": {
+        "type": "room",
+        "nodeId": "room_8",
+        "dot": {
+          "label": "room"
+        }
+      }
+    },
+    {
+      "v": "665",
+      "value": {
+        "type": "random",
+        "flavor": "attack",
+        "nodeId": "roll_attack_6",
+        "dot": {
+          "label": "roll (attack)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "666",
+      "value": {
+        "type": "choice",
+        "state": "normal",
+        "nodeId": "battle_normal_6",
+        "dot": {
+          "label": "battle (normal)",
+          "shape": "box",
+          "color": "orange"
         }
       }
     }
   ],
   "edges": [
     {
-      "v": "307",
+      "v": "315",
+      "w": "175",
+      "value": {
+        "type": "choice",
+        "correct": false,
+        "index": 1,
+        "dot": {
+          "label": "distractor 1",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "315",
+      "w": "176",
+      "value": {
+        "type": "choice",
+        "correct": false,
+        "index": 2,
+        "dot": {
+          "label": "distractor 2",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "315",
+      "w": "177",
+      "value": {
+        "type": "choice",
+        "correct": false,
+        "index": 3,
+        "dot": {
+          "label": "distractor 3",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "378",
       "w": "278",
       "value": {
         "type": "choice",
@@ -1577,7 +1668,7 @@ window.GRAPH = {
       }
     },
     {
-      "v": "307",
+      "v": "378",
       "w": "279",
       "value": {
         "type": "choice",
@@ -1590,7 +1681,7 @@ window.GRAPH = {
       }
     },
     {
-      "v": "307",
+      "v": "378",
       "w": "280",
       "value": {
         "type": "choice",
@@ -1603,180 +1694,37 @@ window.GRAPH = {
       }
     },
     {
-      "v": "323",
-      "w": "219",
-      "value": {
-        "type": "choice",
-        "correct": false,
-        "index": 1,
-        "dot": {
-          "label": "distractor 1",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "323",
-      "w": "220",
-      "value": {
-        "type": "choice",
-        "correct": false,
-        "index": 2,
-        "dot": {
-          "label": "distractor 2",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "323",
-      "w": "221",
-      "value": {
-        "type": "choice",
-        "correct": false,
-        "index": 3,
-        "dot": {
-          "label": "distractor 3",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "307",
-      "w": "354",
-      "value": {
-        "type": "choice",
-        "correct": true,
-        "edgeId": "e_ad_4",
-        "dot": {
-          "label": "correct",
-          "color": "darkgreen"
-        }
-      }
-    },
-    {
-      "v": "364",
-      "w": "303",
-      "value": {
-        "type": "choice",
-        "correct": false,
-        "index": 1,
-        "dot": {
-          "label": "distractor 1",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "364",
-      "w": "304",
-      "value": {
-        "type": "choice",
-        "correct": false,
-        "index": 2,
-        "dot": {
-          "label": "distractor 2",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "364",
-      "w": "305",
-      "value": {
-        "type": "choice",
-        "correct": false,
-        "index": 3,
-        "dot": {
-          "label": "distractor 3",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "390",
-      "w": "205",
-      "value": {
-        "type": "choice",
-        "correct": true,
-        "edgeId": "e_ap_5",
-        "dot": {
-          "label": "correct",
-          "color": "darkgreen"
-        }
-      }
-    },
-    {
-      "v": "390",
-      "w": "207",
-      "value": {
-        "type": "choice",
-        "correct": false,
-        "index": 1,
-        "dot": {
-          "label": "distractor 1",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "390",
-      "w": "208",
-      "value": {
-        "type": "choice",
-        "correct": false,
-        "index": 2,
-        "dot": {
-          "label": "distractor 2",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "390",
-      "w": "209",
-      "value": {
-        "type": "choice",
-        "correct": false,
-        "index": 3,
-        "dot": {
-          "label": "distractor 3",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "395",
-      "w": "297",
-      "value": {
-        "type": "choice",
-        "correct": false,
-        "index": 1,
-        "dot": {
-          "label": "distractor 1",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "395",
+      "v": "408",
       "w": "298",
       "value": {
         "type": "choice",
         "correct": false,
-        "index": 2,
+        "index": 1,
         "dot": {
-          "label": "distractor 2",
+          "label": "distractor 1",
           "color": "gray"
         }
       }
     },
     {
-      "v": "395",
+      "v": "408",
       "w": "299",
       "value": {
         "type": "choice",
         "correct": false,
+        "index": 2,
+        "dot": {
+          "label": "distractor 2",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "408",
+      "w": "300",
+      "value": {
+        "type": "choice",
+        "correct": false,
         "index": 3,
         "dot": {
           "label": "distractor 3",
@@ -1785,54 +1733,8 @@ window.GRAPH = {
       }
     },
     {
-      "v": "418",
-      "w": "223",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_db_21"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "223",
-      "w": "418",
-      "value": {
-        "type": "passage",
-        "edgeId": "e_db_21",
-        "prereq": {
-          "pairId": "pair_21",
-          "link": "Unlock the door with the key.",
-          "after": "The key unlocks the door. You go through."
-        },
-        "dot": {
-          "label": "locked (pair_21)",
-          "style": "bold",
-          "color": "red"
-        }
-      }
-    },
-    {
-      "v": "395",
-      "w": "418",
-      "value": {
-        "type": "choice",
-        "correct": true,
-        "edgeId": "e_ad_1",
-        "dot": {
-          "label": "correct",
-          "color": "darkgreen"
-        }
-      }
-    },
-    {
-      "v": "422",
-      "w": "245",
+      "v": "420",
+      "w": "311",
       "value": {
         "type": "choice",
         "correct": false,
@@ -1844,8 +1746,8 @@ window.GRAPH = {
       }
     },
     {
-      "v": "422",
-      "w": "246",
+      "v": "420",
+      "w": "312",
       "value": {
         "type": "choice",
         "correct": false,
@@ -1857,8 +1759,8 @@ window.GRAPH = {
       }
     },
     {
-      "v": "422",
-      "w": "247",
+      "v": "420",
+      "w": "313",
       "value": {
         "type": "choice",
         "correct": false,
@@ -1870,896 +1772,8 @@ window.GRAPH = {
       }
     },
     {
-      "v": "422",
-      "w": "377",
-      "value": {
-        "type": "choice",
-        "correct": true,
-        "edgeId": "e_ad_3",
-        "dot": {
-          "label": "correct",
-          "color": "darkgreen"
-        }
-      }
-    },
-    {
-      "v": "431",
-      "w": "284",
-      "value": {
-        "type": "choice",
-        "correct": false,
-        "index": 1,
-        "dot": {
-          "label": "distractor 1",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "431",
-      "w": "285",
-      "value": {
-        "type": "choice",
-        "correct": false,
-        "index": 2,
-        "dot": {
-          "label": "distractor 2",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "431",
-      "w": "286",
-      "value": {
-        "type": "choice",
-        "correct": false,
-        "index": 3,
-        "dot": {
-          "label": "distractor 3",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "439",
-      "w": "180",
-      "value": {
-        "type": "choice",
-        "correct": false,
-        "index": 1,
-        "dot": {
-          "label": "distractor 1",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "439",
-      "w": "181",
-      "value": {
-        "type": "choice",
-        "correct": false,
-        "index": 2,
-        "dot": {
-          "label": "distractor 2",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "439",
-      "w": "182",
-      "value": {
-        "type": "choice",
-        "correct": false,
-        "index": 3,
-        "dot": {
-          "label": "distractor 3",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "439",
-      "w": "418",
-      "value": {
-        "type": "choice",
-        "correct": true,
-        "dot": {
-          "label": "correct",
-          "color": "darkgreen"
-        }
-      }
-    },
-    {
-      "v": "451",
-      "w": "388",
-      "value": {
-        "type": "consequence",
-        "role": "defend-death",
-        "weight": 0.1,
-        "playerDamage": 0.5,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "453",
-      "w": "412",
-      "value": {
-        "type": "consequence",
-        "role": "defend-death",
-        "weight": 0.1,
-        "playerDamage": 0.5,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "453",
-      "w": "433",
-      "value": {
-        "type": "consequence",
-        "role": "defend-advantage",
-        "weight": 0.3,
-        "playerDamage": 0,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "433",
-      "w": "453",
-      "value": {
-        "type": "choice",
-        "flavor": "hold-position",
-        "risk": 0.1,
-        "dot": {
-          "label": "hold position",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "462",
-      "w": "174",
-      "value": {
-        "type": "choice",
-        "correct": false,
-        "index": 1,
-        "dot": {
-          "label": "distractor 1",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "462",
-      "w": "175",
-      "value": {
-        "type": "choice",
-        "correct": false,
-        "index": 2,
-        "dot": {
-          "label": "distractor 2",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "462",
-      "w": "176",
-      "value": {
-        "type": "choice",
-        "correct": false,
-        "index": 3,
-        "dot": {
-          "label": "distractor 3",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "465",
-      "w": "451",
-      "value": {
-        "type": "choice",
-        "flavor": "defensive",
-        "risk": 0.2,
-        "dot": {
-          "label": "defend",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "451",
-      "w": "465",
-      "value": {
-        "type": "consequence",
-        "role": "defend-stalemate",
-        "weight": 0.5,
-        "playerDamage": 0,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "466",
-      "w": "307",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "466",
-      "w": "390",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "466",
-      "w": "395",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "466",
-      "w": "422",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "466",
-      "w": "427",
-      "value": {
-        "type": "passage",
-        "dot": {
-          "label": "passage"
-        }
-      }
-    },
-    {
-      "v": "466",
-      "w": "450",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "466",
-      "w": "456",
-      "value": {
-        "type": "passage",
-        "edgeId": "e_ad_9",
-        "dot": {
-          "label": "passage"
-        }
-      }
-    },
-    {
-      "v": "205",
-      "w": "466",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_ap_5"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "207",
-      "w": "466",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "208",
-      "w": "466",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "209",
-      "w": "466",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "245",
-      "w": "466",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "246",
-      "w": "466",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "247",
-      "w": "466",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "278",
-      "w": "466",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "279",
-      "w": "466",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "280",
-      "w": "466",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "297",
-      "w": "466",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "298",
-      "w": "466",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "299",
-      "w": "466",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "354",
-      "w": "466",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_ad_4"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "377",
-      "w": "466",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_ad_3"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "418",
-      "w": "466",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_ad_1"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "441",
-      "w": "466",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_ad_15"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "450",
-      "w": "466",
-      "value": {
-        "type": "retreat",
-        "dot": {
-          "label": "retreat",
-          "style": "dashed",
-          "color": "orange"
-        }
-      }
-    },
-    {
-      "v": "456",
-      "w": "466",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_ad_9"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "467",
-      "w": "466",
-      "value": {
-        "type": "retreat",
-        "dot": {
-          "label": "retreat",
-          "style": "dashed",
-          "color": "orange"
-        }
-      }
-    },
-    {
-      "v": "466",
-      "w": "467",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "469",
-      "w": "213",
-      "value": {
-        "type": "choice",
-        "correct": false,
-        "index": 1,
-        "dot": {
-          "label": "distractor 1",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "469",
-      "w": "214",
-      "value": {
-        "type": "choice",
-        "correct": false,
-        "index": 2,
-        "dot": {
-          "label": "distractor 2",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "469",
-      "w": "215",
-      "value": {
-        "type": "choice",
-        "correct": false,
-        "index": 3,
-        "dot": {
-          "label": "distractor 3",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "474",
-      "w": "446",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "446",
-      "w": "474",
-      "value": {
-        "type": "retreat",
-        "dot": {
-          "label": "retreat",
-          "style": "dashed",
-          "color": "orange"
-        }
-      }
-    },
-    {
-      "v": "478",
-      "w": "272",
-      "value": {
-        "type": "choice",
-        "correct": false,
-        "index": 1,
-        "dot": {
-          "label": "distractor 1",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "478",
-      "w": "273",
-      "value": {
-        "type": "choice",
-        "correct": false,
-        "index": 2,
-        "dot": {
-          "label": "distractor 2",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "478",
-      "w": "274",
-      "value": {
-        "type": "choice",
-        "correct": false,
-        "index": 3,
-        "dot": {
-          "label": "distractor 3",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "478",
-      "w": "486",
-      "value": {
-        "type": "choice",
-        "correct": true,
-        "edgeId": "e_ad_25",
-        "dot": {
-          "label": "correct",
-          "color": "darkgreen"
-        }
-      }
-    },
-    {
-      "v": "489",
-      "w": "324",
-      "value": {
-        "type": "passage",
-        "edgeId": "e_ad_18",
-        "dot": {
-          "label": "passage"
-        }
-      }
-    },
-    {
-      "v": "489",
-      "w": "471",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "489",
-      "w": "478",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "272",
-      "w": "489",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "273",
-      "w": "489",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "274",
-      "w": "489",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "324",
-      "w": "489",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_ad_18"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "471",
-      "w": "489",
-      "value": {
-        "type": "retreat",
-        "dot": {
-          "label": "retreat",
-          "style": "dashed",
-          "color": "orange"
-        }
-      }
-    },
-    {
-      "v": "486",
-      "w": "489",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_ad_25"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "490",
-      "w": "489",
-      "value": {
-        "type": "retreat",
-        "dot": {
-          "label": "retreat",
-          "style": "dashed",
-          "color": "orange"
-        }
-      }
-    },
-    {
-      "v": "489",
-      "w": "490",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "495",
-      "w": "489",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_ad_23"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "496",
-      "w": "471",
-      "value": {
-        "type": "consequence",
-        "role": "attack-stalemate",
-        "weight": 0.4,
-        "playerDamage": 0.2,
-        "monsterDamage": 0.3,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "496",
-      "w": "494",
-      "value": {
-        "type": "consequence",
-        "role": "attack-death",
-        "weight": 0.1,
-        "playerDamage": 1,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "471",
-      "w": "496",
-      "value": {
-        "type": "choice",
-        "flavor": "aggressive",
-        "risk": 0.7,
-        "dot": {
-          "label": "attack",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "497",
-      "w": "489",
-      "value": {
-        "type": "retreat",
-        "dot": {
-          "label": "retreat",
-          "style": "dashed",
-          "color": "orange"
-        }
-      }
-    },
-    {
-      "v": "497",
-      "w": "496",
-      "value": {
-        "type": "choice",
-        "flavor": "press-attack",
-        "risk": 0.3,
-        "dot": {
-          "label": "press attack",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "496",
-      "w": "497",
+      "v": "443",
+      "w": "430",
       "value": {
         "type": "consequence",
         "role": "attack-advantage",
@@ -2772,92 +1786,8 @@ window.GRAPH = {
       }
     },
     {
-      "v": "498",
-      "w": "439",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "180",
-      "w": "498",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "181",
-      "w": "498",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "182",
-      "w": "498",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "323",
-      "w": "498",
-      "value": {
-        "type": "choice",
-        "correct": true,
-        "dot": {
-          "label": "correct",
-          "color": "darkgreen"
-        }
-      }
-    },
-    {
-      "v": "431",
-      "w": "498",
-      "value": {
-        "type": "choice",
-        "correct": true,
-        "dot": {
-          "label": "correct",
-          "color": "darkgreen"
-        }
-      }
-    },
-    {
-      "v": "499",
-      "w": "460",
-      "value": {
-        "type": "consequence",
-        "role": "attack-advantage",
-        "weight": 0.2,
-        "playerDamage": 0,
-        "monsterDamage": 0.5,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "499",
-      "w": "480",
+      "v": "443",
+      "w": "432",
       "value": {
         "type": "consequence",
         "role": "attack-stalemate",
@@ -2870,8 +1800,8 @@ window.GRAPH = {
       }
     },
     {
-      "v": "460",
-      "w": "499",
+      "v": "430",
+      "w": "443",
       "value": {
         "type": "choice",
         "flavor": "press-attack",
@@ -2883,8 +1813,8 @@ window.GRAPH = {
       }
     },
     {
-      "v": "480",
-      "w": "499",
+      "v": "432",
+      "w": "443",
       "value": {
         "type": "choice",
         "flavor": "aggressive",
@@ -2896,63 +1826,80 @@ window.GRAPH = {
       }
     },
     {
-      "v": "499",
-      "w": "500",
+      "v": "420",
+      "w": "493",
+      "value": {
+        "type": "choice",
+        "correct": true,
+        "dot": {
+          "label": "correct",
+          "color": "darkgreen"
+        }
+      }
+    },
+    {
+      "v": "443",
+      "w": "493",
       "value": {
         "type": "consequence",
         "role": "attack-victory",
         "weight": 0.3,
         "playerDamage": 0,
         "monsterDamage": 1,
-        "edgeId": "e_ak_21",
         "dot": {
           "label": "consequence"
         }
       }
     },
     {
-      "v": "502",
-      "w": "474",
+      "v": "483",
+      "w": "511",
       "value": {
-        "type": "retreat",
+        "type": "passage",
         "dot": {
-          "label": "retreat",
-          "style": "dashed",
-          "color": "orange"
+          "label": "passage"
         }
       }
     },
     {
-      "v": "451",
-      "w": "504",
+      "v": "188",
+      "w": "513",
       "value": {
-        "type": "consequence",
-        "role": "defend-victory",
-        "weight": 0.1,
-        "playerDamage": 0,
-        "monsterDamage": 1,
-        "edgeId": "e_ap_8",
+        "type": "path",
         "dot": {
-          "label": "consequence"
+          "label": "back to puzzle",
+          "style": "dotted",
+          "color": "gray"
         }
       }
     },
     {
-      "v": "506",
-      "w": "223",
+      "v": "189",
+      "w": "513",
       "value": {
-        "type": "choice",
-        "correct": true,
-        "edgeId": "e_ad_21",
+        "type": "path",
         "dot": {
-          "label": "correct",
-          "color": "darkgreen"
+          "label": "back to puzzle",
+          "style": "dotted",
+          "color": "gray"
         }
       }
     },
     {
-      "v": "506",
-      "w": "225",
+      "v": "190",
+      "w": "513",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "back to puzzle",
+          "style": "dotted",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "514",
+      "w": "188",
       "value": {
         "type": "choice",
         "correct": false,
@@ -2964,8 +1911,8 @@ window.GRAPH = {
       }
     },
     {
-      "v": "506",
-      "w": "226",
+      "v": "514",
+      "w": "189",
       "value": {
         "type": "choice",
         "correct": false,
@@ -2977,8 +1924,8 @@ window.GRAPH = {
       }
     },
     {
-      "v": "506",
-      "w": "227",
+      "v": "514",
+      "w": "190",
       "value": {
         "type": "choice",
         "correct": false,
@@ -2990,196 +1937,30 @@ window.GRAPH = {
       }
     },
     {
-      "v": "508",
-      "w": "450",
-      "value": {
-        "type": "consequence",
-        "role": "defend-stalemate",
-        "weight": 0.5,
-        "playerDamage": 0,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "450",
-      "w": "508",
+      "v": "514",
+      "w": "493",
       "value": {
         "type": "choice",
-        "flavor": "defensive",
-        "risk": 0.2,
+        "correct": true,
         "dot": {
-          "label": "defend",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "508",
-      "w": "509",
-      "value": {
-        "type": "consequence",
-        "role": "defend-death",
-        "weight": 0.1,
-        "playerDamage": 0.5,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "511",
-      "w": "423",
-      "value": {
-        "type": "choice",
-        "flavor": "press-attack",
-        "risk": 0.3,
-        "dot": {
-          "label": "press attack",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "423",
-      "w": "511",
-      "value": {
-        "type": "consequence",
-        "role": "attack-advantage",
-        "weight": 0.2,
-        "playerDamage": 0,
-        "monsterDamage": 0.5,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "512",
-      "w": "450",
-      "value": {
-        "type": "consequence",
-        "role": "attack-stalemate",
-        "weight": 0.4,
-        "playerDamage": 0.2,
-        "monsterDamage": 0.3,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "512",
-      "w": "509",
-      "value": {
-        "type": "consequence",
-        "role": "attack-death",
-        "weight": 0.1,
-        "playerDamage": 1,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "450",
-      "w": "512",
-      "value": {
-        "type": "choice",
-        "flavor": "aggressive",
-        "risk": 0.7,
-        "dot": {
-          "label": "attack",
-          "color": "purple"
+          "label": "correct",
+          "color": "darkgreen"
         }
       }
     },
     {
       "v": "513",
-      "w": "466",
-      "value": {
-        "type": "retreat",
-        "dot": {
-          "label": "retreat",
-          "style": "dashed",
-          "color": "orange"
-        }
-      }
-    },
-    {
-      "v": "513",
-      "w": "508",
-      "value": {
-        "type": "choice",
-        "flavor": "hold-position",
-        "risk": 0.1,
-        "dot": {
-          "label": "hold position",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "513",
-      "w": "512",
-      "value": {
-        "type": "choice",
-        "flavor": "press-attack",
-        "risk": 0.3,
-        "dot": {
-          "label": "press attack",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "508",
-      "w": "513",
-      "value": {
-        "type": "consequence",
-        "role": "defend-advantage",
-        "weight": 0.3,
-        "playerDamage": 0,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "512",
-      "w": "513",
-      "value": {
-        "type": "consequence",
-        "role": "attack-advantage",
-        "weight": 0.2,
-        "playerDamage": 0,
-        "monsterDamage": 0.5,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "364",
       "w": "514",
       "value": {
-        "type": "choice",
-        "correct": true,
-        "edgeId": "e_ad_24",
+        "type": "path",
         "dot": {
-          "label": "correct",
-          "color": "darkgreen"
+          "label": "path"
         }
       }
     },
     {
-      "v": "515",
-      "w": "460",
+      "v": "528",
+      "w": "430",
       "value": {
         "type": "consequence",
         "role": "defend-advantage",
@@ -3192,8 +1973,8 @@ window.GRAPH = {
       }
     },
     {
-      "v": "515",
-      "w": "480",
+      "v": "528",
+      "w": "432",
       "value": {
         "type": "consequence",
         "role": "defend-stalemate",
@@ -3206,23 +1987,22 @@ window.GRAPH = {
       }
     },
     {
-      "v": "515",
-      "w": "500",
+      "v": "528",
+      "w": "493",
       "value": {
         "type": "consequence",
         "role": "defend-victory",
         "weight": 0.1,
         "playerDamage": 0,
         "monsterDamage": 1,
-        "edgeId": "e_ak_21",
         "dot": {
           "label": "consequence"
         }
       }
     },
     {
-      "v": "460",
-      "w": "515",
+      "v": "430",
+      "w": "528",
       "value": {
         "type": "choice",
         "flavor": "hold-position",
@@ -3234,8 +2014,8 @@ window.GRAPH = {
       }
     },
     {
-      "v": "480",
-      "w": "515",
+      "v": "432",
+      "w": "528",
       "value": {
         "type": "choice",
         "flavor": "defensive",
@@ -3247,8 +2027,8 @@ window.GRAPH = {
       }
     },
     {
-      "v": "499",
-      "w": "516",
+      "v": "443",
+      "w": "529",
       "value": {
         "type": "consequence",
         "role": "attack-death",
@@ -3261,8 +2041,8 @@ window.GRAPH = {
       }
     },
     {
-      "v": "515",
-      "w": "516",
+      "v": "528",
+      "w": "529",
       "value": {
         "type": "consequence",
         "role": "defend-death",
@@ -3275,1019 +2055,96 @@ window.GRAPH = {
       }
     },
     {
-      "v": "517",
-      "w": "384",
+      "v": "531",
+      "w": "493",
       "value": {
-        "type": "consequence",
-        "role": "defend-death",
-        "weight": 0.1,
-        "playerDamage": 0.5,
-        "monsterDamage": 0,
+        "type": "passage",
         "dot": {
-          "label": "consequence"
+          "label": "passage"
         }
       }
     },
     {
-      "v": "517",
-      "w": "467",
+      "v": "537",
+      "w": "464",
       "value": {
-        "type": "consequence",
-        "role": "defend-stalemate",
-        "weight": 0.5,
-        "playerDamage": 0,
-        "monsterDamage": 0,
+        "type": "path",
         "dot": {
-          "label": "consequence"
+          "label": "path"
         }
       }
     },
     {
-      "v": "467",
-      "w": "517",
-      "value": {
-        "type": "choice",
-        "flavor": "defensive",
-        "risk": 0.2,
-        "dot": {
-          "label": "defend",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "518",
-      "w": "466",
+      "v": "464",
+      "w": "537",
       "value": {
         "type": "retreat",
         "dot": {
           "label": "retreat",
           "style": "dashed",
           "color": "orange"
-        }
-      }
-    },
-    {
-      "v": "518",
-      "w": "517",
-      "value": {
-        "type": "choice",
-        "flavor": "hold-position",
-        "risk": 0.1,
-        "dot": {
-          "label": "hold position",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "517",
-      "w": "518",
-      "value": {
-        "type": "consequence",
-        "role": "defend-advantage",
-        "weight": 0.3,
-        "playerDamage": 0,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "423",
-      "w": "519",
-      "value": {
-        "type": "consequence",
-        "role": "attack-victory",
-        "weight": 0.3,
-        "playerDamage": 0,
-        "monsterDamage": 1,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "521",
-      "w": "360",
-      "value": {
-        "type": "consequence",
-        "role": "defend-death",
-        "weight": 0.1,
-        "playerDamage": 0.5,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "521",
-      "w": "446",
-      "value": {
-        "type": "consequence",
-        "role": "defend-stalemate",
-        "weight": 0.5,
-        "playerDamage": 0,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "521",
-      "w": "502",
-      "value": {
-        "type": "consequence",
-        "role": "defend-advantage",
-        "weight": 0.3,
-        "playerDamage": 0,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "446",
-      "w": "521",
-      "value": {
-        "type": "choice",
-        "flavor": "defensive",
-        "risk": 0.2,
-        "dot": {
-          "label": "defend",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "502",
-      "w": "521",
-      "value": {
-        "type": "choice",
-        "flavor": "hold-position",
-        "risk": 0.1,
-        "dot": {
-          "label": "hold position",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "523",
-      "w": "490",
-      "value": {
-        "type": "consequence",
-        "role": "defend-stalemate",
-        "weight": 0.5,
-        "playerDamage": 0,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "523",
-      "w": "495",
-      "value": {
-        "type": "consequence",
-        "role": "defend-victory",
-        "weight": 0.1,
-        "playerDamage": 0,
-        "monsterDamage": 1,
-        "edgeId": "e_ad_23",
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "490",
-      "w": "523",
-      "value": {
-        "type": "choice",
-        "flavor": "defensive",
-        "risk": 0.2,
-        "dot": {
-          "label": "defend",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "523",
-      "w": "524",
-      "value": {
-        "type": "consequence",
-        "role": "defend-death",
-        "weight": 0.1,
-        "playerDamage": 0.5,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "525",
-      "w": "412",
-      "value": {
-        "type": "consequence",
-        "role": "attack-death",
-        "weight": 0.1,
-        "playerDamage": 1,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "525",
-      "w": "433",
-      "value": {
-        "type": "consequence",
-        "role": "attack-advantage",
-        "weight": 0.2,
-        "playerDamage": 0,
-        "monsterDamage": 0.5,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "433",
-      "w": "525",
-      "value": {
-        "type": "choice",
-        "flavor": "press-attack",
-        "risk": 0.3,
-        "dot": {
-          "label": "press attack",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "526",
-      "w": "453",
-      "value": {
-        "type": "choice",
-        "flavor": "defensive",
-        "risk": 0.2,
-        "dot": {
-          "label": "defend",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "526",
-      "w": "525",
-      "value": {
-        "type": "choice",
-        "flavor": "aggressive",
-        "risk": 0.7,
-        "dot": {
-          "label": "attack",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "453",
-      "w": "526",
-      "value": {
-        "type": "consequence",
-        "role": "defend-stalemate",
-        "weight": 0.5,
-        "playerDamage": 0,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "525",
-      "w": "526",
-      "value": {
-        "type": "consequence",
-        "role": "attack-stalemate",
-        "weight": 0.4,
-        "playerDamage": 0.2,
-        "monsterDamage": 0.3,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "527",
-      "w": "511",
-      "value": {
-        "type": "consequence",
-        "role": "defend-advantage",
-        "weight": 0.3,
-        "playerDamage": 0,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "527",
-      "w": "519",
-      "value": {
-        "type": "consequence",
-        "role": "defend-victory",
-        "weight": 0.1,
-        "playerDamage": 0,
-        "monsterDamage": 1,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "511",
-      "w": "527",
-      "value": {
-        "type": "choice",
-        "flavor": "hold-position",
-        "risk": 0.1,
-        "dot": {
-          "label": "hold position",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "423",
-      "w": "528",
-      "value": {
-        "type": "consequence",
-        "role": "attack-death",
-        "weight": 0.1,
-        "playerDamage": 1,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "527",
-      "w": "528",
-      "value": {
-        "type": "consequence",
-        "role": "defend-death",
-        "weight": 0.1,
-        "playerDamage": 0.5,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "529",
-      "w": "441",
-      "value": {
-        "type": "consequence",
-        "role": "attack-victory",
-        "weight": 0.3,
-        "playerDamage": 0,
-        "monsterDamage": 1,
-        "edgeId": "e_ad_15",
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "529",
-      "w": "530",
-      "value": {
-        "type": "consequence",
-        "role": "attack-death",
-        "weight": 0.1,
-        "playerDamage": 1,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "531",
-      "w": "384",
-      "value": {
-        "type": "consequence",
-        "role": "attack-death",
-        "weight": 0.1,
-        "playerDamage": 1,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "531",
-      "w": "467",
-      "value": {
-        "type": "consequence",
-        "role": "attack-stalemate",
-        "weight": 0.4,
-        "playerDamage": 0.2,
-        "monsterDamage": 0.3,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "531",
-      "w": "518",
-      "value": {
-        "type": "consequence",
-        "role": "attack-advantage",
-        "weight": 0.2,
-        "playerDamage": 0,
-        "monsterDamage": 0.5,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "467",
-      "w": "531",
-      "value": {
-        "type": "choice",
-        "flavor": "aggressive",
-        "risk": 0.7,
-        "dot": {
-          "label": "attack",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "518",
-      "w": "531",
-      "value": {
-        "type": "choice",
-        "flavor": "press-attack",
-        "risk": 0.3,
-        "dot": {
-          "label": "press attack",
-          "color": "purple"
         }
       }
     },
     {
       "v": "532",
-      "w": "466",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_ad_12"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "517",
-      "w": "532",
+      "w": "537",
       "value": {
         "type": "consequence",
         "role": "defend-victory",
         "weight": 0.1,
         "playerDamage": 0,
         "monsterDamage": 1,
-        "edgeId": "e_ad_12",
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "531",
-      "w": "532",
-      "value": {
-        "type": "consequence",
-        "role": "attack-victory",
-        "weight": 0.3,
-        "playerDamage": 0,
-        "monsterDamage": 1,
-        "edgeId": "e_ad_12",
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "533",
-      "w": "490",
-      "value": {
-        "type": "consequence",
-        "role": "attack-stalemate",
-        "weight": 0.4,
-        "playerDamage": 0.2,
-        "monsterDamage": 0.3,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "533",
-      "w": "495",
-      "value": {
-        "type": "consequence",
-        "role": "attack-victory",
-        "weight": 0.3,
-        "playerDamage": 0,
-        "monsterDamage": 1,
-        "edgeId": "e_ad_23",
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "533",
-      "w": "524",
-      "value": {
-        "type": "consequence",
-        "role": "attack-death",
-        "weight": 0.1,
-        "playerDamage": 1,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "490",
-      "w": "533",
-      "value": {
-        "type": "choice",
-        "flavor": "aggressive",
-        "risk": 0.7,
-        "dot": {
-          "label": "attack",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "534",
-      "w": "489",
-      "value": {
-        "type": "retreat",
-        "dot": {
-          "label": "retreat",
-          "style": "dashed",
-          "color": "orange"
-        }
-      }
-    },
-    {
-      "v": "534",
-      "w": "523",
-      "value": {
-        "type": "choice",
-        "flavor": "hold-position",
-        "risk": 0.1,
-        "dot": {
-          "label": "hold position",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "534",
-      "w": "533",
-      "value": {
-        "type": "choice",
-        "flavor": "press-attack",
-        "risk": 0.3,
-        "dot": {
-          "label": "press attack",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "523",
-      "w": "534",
-      "value": {
-        "type": "consequence",
-        "role": "defend-advantage",
-        "weight": 0.3,
-        "playerDamage": 0,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "533",
-      "w": "534",
-      "value": {
-        "type": "consequence",
-        "role": "attack-advantage",
-        "weight": 0.2,
-        "playerDamage": 0,
-        "monsterDamage": 0.5,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "469",
-      "w": "535",
-      "value": {
-        "type": "choice",
-        "correct": true,
-        "edgeId": "e_ad_16",
-        "dot": {
-          "label": "correct",
-          "color": "darkgreen"
-        }
-      }
-    },
-    {
-      "v": "536",
-      "w": "388",
-      "value": {
-        "type": "consequence",
-        "role": "attack-death",
-        "weight": 0.1,
-        "playerDamage": 1,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "536",
-      "w": "465",
-      "value": {
-        "type": "consequence",
-        "role": "attack-stalemate",
-        "weight": 0.4,
-        "playerDamage": 0.2,
-        "monsterDamage": 0.3,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "536",
-      "w": "504",
-      "value": {
-        "type": "consequence",
-        "role": "attack-victory",
-        "weight": 0.3,
-        "playerDamage": 0,
-        "monsterDamage": 1,
-        "edgeId": "e_ap_8",
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "465",
-      "w": "536",
-      "value": {
-        "type": "choice",
-        "flavor": "aggressive",
-        "risk": 0.7,
-        "dot": {
-          "label": "attack",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "537",
-      "w": "451",
-      "value": {
-        "type": "choice",
-        "flavor": "hold-position",
-        "risk": 0.1,
-        "dot": {
-          "label": "hold position",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "537",
-      "w": "536",
-      "value": {
-        "type": "choice",
-        "flavor": "press-attack",
-        "risk": 0.3,
-        "dot": {
-          "label": "press attack",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "451",
-      "w": "537",
-      "value": {
-        "type": "consequence",
-        "role": "defend-advantage",
-        "weight": 0.3,
-        "playerDamage": 0,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "536",
-      "w": "537",
-      "value": {
-        "type": "consequence",
-        "role": "attack-advantage",
-        "weight": 0.2,
-        "playerDamage": 0,
-        "monsterDamage": 0.5,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "538",
-      "w": "466",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_am_14"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "538",
-      "w": "526",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "433",
-      "w": "538",
-      "value": {
-        "type": "retreat",
-        "dot": {
-          "label": "retreat",
-          "style": "dashed",
-          "color": "orange"
-        }
-      }
-    },
-    {
-      "v": "466",
-      "w": "538",
-      "value": {
-        "type": "passage",
-        "edgeId": "e_am_14",
-        "dot": {
-          "label": "passage"
-        }
-      }
-    },
-    {
-      "v": "511",
-      "w": "538",
-      "value": {
-        "type": "retreat",
-        "dot": {
-          "label": "retreat",
-          "style": "dashed",
-          "color": "orange"
-        }
-      }
-    },
-    {
-      "v": "526",
-      "w": "538",
-      "value": {
-        "type": "retreat",
-        "dot": {
-          "label": "retreat",
-          "style": "dashed",
-          "color": "orange"
-        }
-      }
-    },
-    {
-      "v": "539",
-      "w": "423",
-      "value": {
-        "type": "choice",
-        "flavor": "aggressive",
-        "risk": 0.7,
-        "dot": {
-          "label": "attack",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "539",
-      "w": "527",
-      "value": {
-        "type": "choice",
-        "flavor": "defensive",
-        "risk": 0.2,
-        "dot": {
-          "label": "defend",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "539",
-      "w": "538",
-      "value": {
-        "type": "retreat",
-        "dot": {
-          "label": "retreat",
-          "style": "dashed",
-          "color": "orange"
-        }
-      }
-    },
-    {
-      "v": "423",
-      "w": "539",
-      "value": {
-        "type": "consequence",
-        "role": "attack-stalemate",
-        "weight": 0.4,
-        "playerDamage": 0.2,
-        "monsterDamage": 0.3,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "527",
-      "w": "539",
-      "value": {
-        "type": "consequence",
-        "role": "defend-stalemate",
-        "weight": 0.5,
-        "playerDamage": 0,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "538",
-      "w": "539",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "540",
-      "w": "360",
-      "value": {
-        "type": "consequence",
-        "role": "attack-death",
-        "weight": 0.1,
-        "playerDamage": 1,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "540",
-      "w": "446",
-      "value": {
-        "type": "consequence",
-        "role": "attack-stalemate",
-        "weight": 0.4,
-        "playerDamage": 0.2,
-        "monsterDamage": 0.3,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "540",
-      "w": "502",
-      "value": {
-        "type": "consequence",
-        "role": "attack-advantage",
-        "weight": 0.2,
-        "playerDamage": 0,
-        "monsterDamage": 0.5,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "446",
-      "w": "540",
-      "value": {
-        "type": "choice",
-        "flavor": "aggressive",
-        "risk": 0.7,
-        "dot": {
-          "label": "attack",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "502",
-      "w": "540",
-      "value": {
-        "type": "choice",
-        "flavor": "press-attack",
-        "risk": 0.3,
-        "dot": {
-          "label": "press attack",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "541",
-      "w": "474",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_mb_13"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "541",
-      "w": "489",
-      "value": {
-        "type": "passage",
         "edgeId": "e_am_17",
         "dot": {
-          "label": "passage"
+          "label": "consequence"
         }
       }
     },
     {
-      "v": "489",
-      "w": "541",
+      "v": "546",
+      "w": "416",
+      "value": {
+        "type": "consequence",
+        "role": "attack-death",
+        "weight": 0.1,
+        "playerDamage": 1,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "546",
+      "w": "518",
+      "value": {
+        "type": "consequence",
+        "role": "attack-advantage",
+        "weight": 0.2,
+        "playerDamage": 0,
+        "monsterDamage": 0.5,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "518",
+      "w": "546",
+      "value": {
+        "type": "choice",
+        "flavor": "press-attack",
+        "risk": 0.3,
+        "dot": {
+          "label": "press attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "537",
+      "w": "548",
       "value": {
         "type": "backtrack",
         "prereq": {
@@ -4301,73 +2158,116 @@ window.GRAPH = {
       }
     },
     {
-      "v": "521",
-      "w": "541",
-      "value": {
-        "type": "consequence",
-        "role": "defend-victory",
-        "weight": 0.1,
-        "playerDamage": 0,
-        "monsterDamage": 1,
-        "edgeId": "e_mb_13",
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "540",
-      "w": "541",
+      "v": "557",
+      "w": "460",
       "value": {
         "type": "consequence",
         "role": "attack-victory",
         "weight": 0.3,
         "playerDamage": 0,
         "monsterDamage": 1,
-        "edgeId": "e_mb_13",
+        "edgeId": "e_ad_3",
         "dot": {
           "label": "consequence"
         }
       }
     },
     {
-      "v": "543",
-      "w": "466",
+      "v": "557",
+      "w": "491",
       "value": {
-        "type": "retreat",
+        "type": "consequence",
+        "role": "attack-advantage",
+        "weight": 0.2,
+        "playerDamage": 0,
+        "monsterDamage": 0.5,
         "dot": {
-          "label": "retreat",
-          "style": "dashed",
-          "color": "orange"
+          "label": "consequence"
         }
       }
     },
     {
-      "v": "543",
-      "w": "529",
+      "v": "491",
+      "w": "557",
       "value": {
         "type": "choice",
-        "flavor": "aggressive",
-        "risk": 0.7,
+        "flavor": "press-attack",
+        "risk": 0.3,
         "dot": {
-          "label": "attack",
+          "label": "press attack",
           "color": "purple"
         }
       }
     },
     {
-      "v": "466",
-      "w": "543",
+      "v": "557",
+      "w": "558",
       "value": {
-        "type": "path",
+        "type": "consequence",
+        "role": "attack-death",
+        "weight": 0.1,
+        "playerDamage": 1,
+        "monsterDamage": 0,
         "dot": {
-          "label": "path"
+          "label": "consequence"
         }
       }
     },
     {
-      "v": "529",
-      "w": "543",
+      "v": "564",
+      "w": "167",
+      "value": {
+        "type": "choice",
+        "correct": true,
+        "edgeId": "e_ap_22",
+        "dot": {
+          "label": "correct",
+          "color": "darkgreen"
+        }
+      }
+    },
+    {
+      "v": "564",
+      "w": "169",
+      "value": {
+        "type": "choice",
+        "correct": false,
+        "index": 1,
+        "dot": {
+          "label": "distractor 1",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "564",
+      "w": "170",
+      "value": {
+        "type": "choice",
+        "correct": false,
+        "index": 2,
+        "dot": {
+          "label": "distractor 2",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "564",
+      "w": "171",
+      "value": {
+        "type": "choice",
+        "correct": false,
+        "index": 3,
+        "dot": {
+          "label": "distractor 3",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "567",
+      "w": "458",
       "value": {
         "type": "consequence",
         "role": "attack-stalemate",
@@ -4380,48 +2280,62 @@ window.GRAPH = {
       }
     },
     {
-      "v": "544",
-      "w": "466",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_ad_11"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "466",
-      "w": "544",
-      "value": {
-        "type": "passage",
-        "edgeId": "e_ad_11",
-        "dot": {
-          "label": "passage"
-        }
-      }
-    },
-    {
-      "v": "546",
-      "w": "471",
+      "v": "567",
+      "w": "510",
       "value": {
         "type": "consequence",
-        "role": "defend-stalemate",
-        "weight": 0.5,
+        "role": "attack-advantage",
+        "weight": 0.2,
         "playerDamage": 0,
-        "monsterDamage": 0,
+        "monsterDamage": 0.5,
         "dot": {
           "label": "consequence"
         }
       }
     },
     {
-      "v": "546",
-      "w": "494",
+      "v": "567",
+      "w": "531",
+      "value": {
+        "type": "consequence",
+        "role": "attack-victory",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 1,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "458",
+      "w": "567",
+      "value": {
+        "type": "choice",
+        "flavor": "aggressive",
+        "risk": 0.7,
+        "dot": {
+          "label": "attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "510",
+      "w": "567",
+      "value": {
+        "type": "choice",
+        "flavor": "press-attack",
+        "risk": 0.3,
+        "dot": {
+          "label": "press attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "569",
+      "w": "543",
       "value": {
         "type": "consequence",
         "role": "defend-death",
@@ -4434,8 +2348,60 @@ window.GRAPH = {
       }
     },
     {
-      "v": "546",
-      "w": "497",
+      "v": "571",
+      "w": "464",
+      "value": {
+        "type": "consequence",
+        "role": "defend-stalemate",
+        "weight": 0.5,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "464",
+      "w": "571",
+      "value": {
+        "type": "choice",
+        "flavor": "defensive",
+        "risk": 0.2,
+        "dot": {
+          "label": "defend",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "572",
+      "w": "537",
+      "value": {
+        "type": "retreat",
+        "dot": {
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "572",
+      "w": "571",
+      "value": {
+        "type": "choice",
+        "flavor": "hold-position",
+        "risk": 0.1,
+        "dot": {
+          "label": "hold position",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "571",
+      "w": "572",
       "value": {
         "type": "consequence",
         "role": "defend-advantage",
@@ -4448,21 +2414,73 @@ window.GRAPH = {
       }
     },
     {
-      "v": "471",
-      "w": "546",
+      "v": "574",
+      "w": "553",
       "value": {
-        "type": "choice",
-        "flavor": "defensive",
-        "risk": 0.2,
+        "type": "retreat",
         "dot": {
-          "label": "defend",
-          "color": "purple"
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
         }
       }
     },
     {
-      "v": "497",
-      "w": "546",
+      "v": "553",
+      "w": "574",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "578",
+      "w": "460",
+      "value": {
+        "type": "consequence",
+        "role": "defend-victory",
+        "weight": 0.1,
+        "playerDamage": 0,
+        "monsterDamage": 1,
+        "edgeId": "e_ad_3",
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "578",
+      "w": "491",
+      "value": {
+        "type": "consequence",
+        "role": "defend-advantage",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "578",
+      "w": "558",
+      "value": {
+        "type": "consequence",
+        "role": "defend-death",
+        "weight": 0.1,
+        "playerDamage": 0.5,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "491",
+      "w": "578",
       "value": {
         "type": "choice",
         "flavor": "hold-position",
@@ -4474,8 +2492,1126 @@ window.GRAPH = {
       }
     },
     {
-      "v": "547",
-      "w": "489",
+      "v": "579",
+      "w": "557",
+      "value": {
+        "type": "choice",
+        "flavor": "aggressive",
+        "risk": 0.7,
+        "dot": {
+          "label": "attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "579",
+      "w": "578",
+      "value": {
+        "type": "choice",
+        "flavor": "defensive",
+        "risk": 0.2,
+        "dot": {
+          "label": "defend",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "557",
+      "w": "579",
+      "value": {
+        "type": "consequence",
+        "role": "attack-stalemate",
+        "weight": 0.4,
+        "playerDamage": 0.2,
+        "monsterDamage": 0.3,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "578",
+      "w": "579",
+      "value": {
+        "type": "consequence",
+        "role": "defend-stalemate",
+        "weight": 0.5,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "580",
+      "w": "562",
+      "value": {
+        "type": "consequence",
+        "role": "attack-advantage",
+        "weight": 0.2,
+        "playerDamage": 0,
+        "monsterDamage": 0.5,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "580",
+      "w": "566",
+      "value": {
+        "type": "consequence",
+        "role": "attack-stalemate",
+        "weight": 0.4,
+        "playerDamage": 0.2,
+        "monsterDamage": 0.3,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "562",
+      "w": "580",
+      "value": {
+        "type": "choice",
+        "flavor": "press-attack",
+        "risk": 0.3,
+        "dot": {
+          "label": "press attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "566",
+      "w": "580",
+      "value": {
+        "type": "choice",
+        "flavor": "aggressive",
+        "risk": 0.7,
+        "dot": {
+          "label": "attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "580",
+      "w": "581",
+      "value": {
+        "type": "consequence",
+        "role": "attack-death",
+        "weight": 0.1,
+        "playerDamage": 1,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "582",
+      "w": "513",
+      "value": {
+        "type": "consequence",
+        "role": "attack-victory",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 1,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "582",
+      "w": "521",
+      "value": {
+        "type": "consequence",
+        "role": "attack-stalemate",
+        "weight": 0.4,
+        "playerDamage": 0.2,
+        "monsterDamage": 0.3,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "521",
+      "w": "582",
+      "value": {
+        "type": "choice",
+        "flavor": "aggressive",
+        "risk": 0.7,
+        "dot": {
+          "label": "attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "582",
+      "w": "583",
+      "value": {
+        "type": "consequence",
+        "role": "attack-death",
+        "weight": 0.1,
+        "playerDamage": 1,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "584",
+      "w": "474",
+      "value": {
+        "type": "consequence",
+        "role": "attack-death",
+        "weight": 0.1,
+        "playerDamage": 1,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "584",
+      "w": "511",
+      "value": {
+        "type": "consequence",
+        "role": "attack-victory",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 1,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "584",
+      "w": "574",
+      "value": {
+        "type": "consequence",
+        "role": "attack-stalemate",
+        "weight": 0.4,
+        "playerDamage": 0.2,
+        "monsterDamage": 0.3,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "574",
+      "w": "584",
+      "value": {
+        "type": "choice",
+        "flavor": "aggressive",
+        "risk": 0.7,
+        "dot": {
+          "label": "attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "588",
+      "w": "474",
+      "value": {
+        "type": "consequence",
+        "role": "defend-death",
+        "weight": 0.1,
+        "playerDamage": 0.5,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "588",
+      "w": "511",
+      "value": {
+        "type": "consequence",
+        "role": "defend-victory",
+        "weight": 0.1,
+        "playerDamage": 0,
+        "monsterDamage": 1,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "588",
+      "w": "574",
+      "value": {
+        "type": "consequence",
+        "role": "defend-stalemate",
+        "weight": 0.5,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "574",
+      "w": "588",
+      "value": {
+        "type": "choice",
+        "flavor": "defensive",
+        "risk": 0.2,
+        "dot": {
+          "label": "defend",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "589",
+      "w": "553",
+      "value": {
+        "type": "retreat",
+        "dot": {
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "589",
+      "w": "584",
+      "value": {
+        "type": "choice",
+        "flavor": "press-attack",
+        "risk": 0.3,
+        "dot": {
+          "label": "press attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "589",
+      "w": "588",
+      "value": {
+        "type": "choice",
+        "flavor": "hold-position",
+        "risk": 0.1,
+        "dot": {
+          "label": "hold position",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "584",
+      "w": "589",
+      "value": {
+        "type": "consequence",
+        "role": "attack-advantage",
+        "weight": 0.2,
+        "playerDamage": 0,
+        "monsterDamage": 0.5,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "588",
+      "w": "589",
+      "value": {
+        "type": "consequence",
+        "role": "defend-advantage",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "590",
+      "w": "562",
+      "value": {
+        "type": "consequence",
+        "role": "defend-advantage",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "590",
+      "w": "566",
+      "value": {
+        "type": "consequence",
+        "role": "defend-stalemate",
+        "weight": 0.5,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "590",
+      "w": "581",
+      "value": {
+        "type": "consequence",
+        "role": "defend-death",
+        "weight": 0.1,
+        "playerDamage": 0.5,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "562",
+      "w": "590",
+      "value": {
+        "type": "choice",
+        "flavor": "hold-position",
+        "risk": 0.1,
+        "dot": {
+          "label": "hold position",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "566",
+      "w": "590",
+      "value": {
+        "type": "choice",
+        "flavor": "defensive",
+        "risk": 0.2,
+        "dot": {
+          "label": "defend",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "580",
+      "w": "591",
+      "value": {
+        "type": "consequence",
+        "role": "attack-victory",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 1,
+        "edgeId": "e_ak_25",
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "590",
+      "w": "591",
+      "value": {
+        "type": "consequence",
+        "role": "defend-victory",
+        "weight": 0.1,
+        "playerDamage": 0,
+        "monsterDamage": 1,
+        "edgeId": "e_ak_25",
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "592",
+      "w": "513",
+      "value": {
+        "type": "consequence",
+        "role": "defend-victory",
+        "weight": 0.1,
+        "playerDamage": 0,
+        "monsterDamage": 1,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "592",
+      "w": "521",
+      "value": {
+        "type": "consequence",
+        "role": "defend-stalemate",
+        "weight": 0.5,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "592",
+      "w": "583",
+      "value": {
+        "type": "consequence",
+        "role": "defend-death",
+        "weight": 0.1,
+        "playerDamage": 0.5,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "521",
+      "w": "592",
+      "value": {
+        "type": "choice",
+        "flavor": "defensive",
+        "risk": 0.2,
+        "dot": {
+          "label": "defend",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "593",
+      "w": "582",
+      "value": {
+        "type": "choice",
+        "flavor": "press-attack",
+        "risk": 0.3,
+        "dot": {
+          "label": "press attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "593",
+      "w": "592",
+      "value": {
+        "type": "choice",
+        "flavor": "hold-position",
+        "risk": 0.1,
+        "dot": {
+          "label": "hold position",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "582",
+      "w": "593",
+      "value": {
+        "type": "consequence",
+        "role": "attack-advantage",
+        "weight": 0.2,
+        "playerDamage": 0,
+        "monsterDamage": 0.5,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "592",
+      "w": "593",
+      "value": {
+        "type": "consequence",
+        "role": "defend-advantage",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "595",
+      "w": "408",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "298",
+      "w": "595",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "back to puzzle",
+          "style": "dotted",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "299",
+      "w": "595",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "back to puzzle",
+          "style": "dotted",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "300",
+      "w": "595",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "back to puzzle",
+          "style": "dotted",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "598",
+      "w": "521",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "521",
+      "w": "598",
+      "value": {
+        "type": "retreat",
+        "dot": {
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "593",
+      "w": "598",
+      "value": {
+        "type": "retreat",
+        "dot": {
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "599",
+      "w": "595",
+      "value": {
+        "type": "consequence",
+        "role": "attack-victory",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 1,
+        "edgeId": "e_db_25",
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "599",
+      "w": "600",
+      "value": {
+        "type": "consequence",
+        "role": "attack-death",
+        "weight": 0.1,
+        "playerDamage": 1,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "605",
+      "w": "416",
+      "value": {
+        "type": "consequence",
+        "role": "defend-death",
+        "weight": 0.1,
+        "playerDamage": 0.5,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "605",
+      "w": "518",
+      "value": {
+        "type": "consequence",
+        "role": "defend-advantage",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "518",
+      "w": "605",
+      "value": {
+        "type": "choice",
+        "flavor": "hold-position",
+        "risk": 0.1,
+        "dot": {
+          "label": "hold position",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "606",
+      "w": "546",
+      "value": {
+        "type": "choice",
+        "flavor": "aggressive",
+        "risk": 0.7,
+        "dot": {
+          "label": "attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "606",
+      "w": "605",
+      "value": {
+        "type": "choice",
+        "flavor": "defensive",
+        "risk": 0.2,
+        "dot": {
+          "label": "defend",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "546",
+      "w": "606",
+      "value": {
+        "type": "consequence",
+        "role": "attack-stalemate",
+        "weight": 0.4,
+        "playerDamage": 0.2,
+        "monsterDamage": 0.3,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "605",
+      "w": "606",
+      "value": {
+        "type": "consequence",
+        "role": "defend-stalemate",
+        "weight": 0.5,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "608",
+      "w": "609",
+      "value": {
+        "type": "consequence",
+        "role": "attack-death",
+        "weight": 0.1,
+        "playerDamage": 1,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "611",
+      "w": "569",
+      "value": {
+        "type": "choice",
+        "flavor": "defensive",
+        "risk": 0.2,
+        "dot": {
+          "label": "defend",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "569",
+      "w": "611",
+      "value": {
+        "type": "consequence",
+        "role": "defend-stalemate",
+        "weight": 0.5,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "613",
+      "w": "608",
+      "value": {
+        "type": "choice",
+        "flavor": "press-attack",
+        "risk": 0.3,
+        "dot": {
+          "label": "press attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "608",
+      "w": "613",
+      "value": {
+        "type": "consequence",
+        "role": "attack-advantage",
+        "weight": 0.2,
+        "playerDamage": 0,
+        "monsterDamage": 0.5,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "614",
+      "w": "543",
+      "value": {
+        "type": "consequence",
+        "role": "attack-death",
+        "weight": 0.1,
+        "playerDamage": 1,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "614",
+      "w": "611",
+      "value": {
+        "type": "consequence",
+        "role": "attack-stalemate",
+        "weight": 0.4,
+        "playerDamage": 0.2,
+        "monsterDamage": 0.3,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "611",
+      "w": "614",
+      "value": {
+        "type": "choice",
+        "flavor": "aggressive",
+        "risk": 0.7,
+        "dot": {
+          "label": "attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "615",
+      "w": "569",
+      "value": {
+        "type": "choice",
+        "flavor": "hold-position",
+        "risk": 0.1,
+        "dot": {
+          "label": "hold position",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "615",
+      "w": "614",
+      "value": {
+        "type": "choice",
+        "flavor": "press-attack",
+        "risk": 0.3,
+        "dot": {
+          "label": "press attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "569",
+      "w": "615",
+      "value": {
+        "type": "consequence",
+        "role": "defend-advantage",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "614",
+      "w": "615",
+      "value": {
+        "type": "consequence",
+        "role": "attack-advantage",
+        "weight": 0.2,
+        "playerDamage": 0,
+        "monsterDamage": 0.5,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "616",
+      "w": "378",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "616",
+      "w": "595",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_am_20"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "278",
+      "w": "616",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "back to puzzle",
+          "style": "dotted",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "279",
+      "w": "616",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "back to puzzle",
+          "style": "dotted",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "280",
+      "w": "616",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "back to puzzle",
+          "style": "dotted",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "408",
+      "w": "616",
+      "value": {
+        "type": "choice",
+        "correct": true,
+        "edgeId": "e_am_20",
+        "dot": {
+          "label": "correct",
+          "color": "darkgreen"
+        }
+      }
+    },
+    {
+      "v": "617",
+      "w": "551",
+      "value": {
+        "type": "consequence",
+        "role": "defend-stalemate",
+        "weight": 0.5,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "617",
+      "w": "597",
+      "value": {
+        "type": "consequence",
+        "role": "defend-advantage",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "551",
+      "w": "617",
+      "value": {
+        "type": "choice",
+        "flavor": "defensive",
+        "risk": 0.2,
+        "dot": {
+          "label": "defend",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "597",
+      "w": "617",
+      "value": {
+        "type": "choice",
+        "flavor": "hold-position",
+        "risk": 0.1,
+        "dot": {
+          "label": "hold position",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "617",
+      "w": "618",
+      "value": {
+        "type": "consequence",
+        "role": "defend-victory",
+        "weight": 0.1,
+        "playerDamage": 0,
+        "monsterDamage": 1,
+        "edgeId": "e_ap_1",
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "522",
+      "w": "620",
+      "value": {
+        "type": "consequence",
+        "role": "attack-death",
+        "weight": 0.1,
+        "playerDamage": 1,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "315",
+      "w": "624",
+      "value": {
+        "type": "choice",
+        "correct": true,
+        "edgeId": "e_ad_13",
+        "dot": {
+          "label": "correct",
+          "color": "darkgreen"
+        }
+      }
+    },
+    {
+      "v": "623",
+      "w": "624",
+      "value": {
+        "type": "passage",
+        "dot": {
+          "label": "passage"
+        }
+      }
+    },
+    {
+      "v": "625",
+      "w": "513",
+      "value": {
+        "type": "passage",
+        "edgeId": "e_mb_10",
+        "dot": {
+          "label": "passage"
+        }
+      }
+    },
+    {
+      "v": "625",
+      "w": "537",
       "value": {
         "type": "backtrack",
         "prereq": {
@@ -4489,114 +3625,8 @@ window.GRAPH = {
       }
     },
     {
-      "v": "496",
-      "w": "547",
-      "value": {
-        "type": "consequence",
-        "role": "attack-victory",
-        "weight": 0.3,
-        "playerDamage": 0,
-        "monsterDamage": 1,
-        "edgeId": "e_mb_17",
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "546",
-      "w": "547",
-      "value": {
-        "type": "consequence",
-        "role": "defend-victory",
-        "weight": 0.1,
-        "playerDamage": 0,
-        "monsterDamage": 1,
-        "edgeId": "e_mb_17",
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "548",
-      "w": "469",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "548",
-      "w": "538",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_mb_14"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "213",
-      "w": "548",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "214",
-      "w": "548",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "215",
-      "w": "548",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "453",
-      "w": "548",
-      "value": {
-        "type": "consequence",
-        "role": "defend-victory",
-        "weight": 0.1,
-        "playerDamage": 0,
-        "monsterDamage": 1,
-        "edgeId": "e_mb_14",
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "519",
-      "w": "548",
+      "v": "625",
+      "w": "598",
       "value": {
         "type": "passage",
         "dot": {
@@ -4605,27 +3635,12 @@ window.GRAPH = {
       }
     },
     {
-      "v": "525",
-      "w": "548",
-      "value": {
-        "type": "consequence",
-        "role": "attack-victory",
-        "weight": 0.3,
-        "playerDamage": 0,
-        "monsterDamage": 1,
-        "edgeId": "e_mb_14",
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "535",
-      "w": "548",
+      "v": "625",
+      "w": "616",
       "value": {
         "type": "backtrack",
         "prereq": {
-          "traversed": "e_ad_16"
+          "traversed": "e_mb_20"
         },
         "dot": {
           "label": "backtrack",
@@ -4635,23 +3650,81 @@ window.GRAPH = {
       }
     },
     {
-      "v": "549",
-      "w": "441",
+      "v": "378",
+      "w": "625",
+      "value": {
+        "type": "choice",
+        "correct": true,
+        "edgeId": "e_mb_20",
+        "dot": {
+          "label": "correct",
+          "color": "darkgreen"
+        }
+      }
+    },
+    {
+      "v": "513",
+      "w": "625",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_mb_10"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "569",
+      "w": "625",
       "value": {
         "type": "consequence",
         "role": "defend-victory",
         "weight": 0.1,
         "playerDamage": 0,
         "monsterDamage": 1,
-        "edgeId": "e_ad_15",
+        "edgeId": "e_am_10",
         "dot": {
           "label": "consequence"
         }
       }
     },
     {
-      "v": "549",
-      "w": "530",
+      "v": "571",
+      "w": "625",
+      "value": {
+        "type": "consequence",
+        "role": "defend-victory",
+        "weight": 0.1,
+        "playerDamage": 0,
+        "monsterDamage": 1,
+        "edgeId": "e_mb_17",
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "614",
+      "w": "625",
+      "value": {
+        "type": "consequence",
+        "role": "attack-victory",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 1,
+        "edgeId": "e_am_10",
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "626",
+      "w": "422",
       "value": {
         "type": "consequence",
         "role": "defend-death",
@@ -4664,87 +3737,8 @@ window.GRAPH = {
       }
     },
     {
-      "v": "549",
-      "w": "543",
-      "value": {
-        "type": "consequence",
-        "role": "defend-stalemate",
-        "weight": 0.5,
-        "playerDamage": 0,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "543",
-      "w": "549",
-      "value": {
-        "type": "choice",
-        "flavor": "defensive",
-        "risk": 0.2,
-        "dot": {
-          "label": "defend",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "550",
-      "w": "466",
-      "value": {
-        "type": "retreat",
-        "dot": {
-          "label": "retreat",
-          "style": "dashed",
-          "color": "orange"
-        }
-      }
-    },
-    {
-      "v": "550",
-      "w": "529",
-      "value": {
-        "type": "choice",
-        "flavor": "press-attack",
-        "risk": 0.3,
-        "dot": {
-          "label": "press attack",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "550",
-      "w": "549",
-      "value": {
-        "type": "choice",
-        "flavor": "hold-position",
-        "risk": 0.1,
-        "dot": {
-          "label": "hold position",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "529",
-      "w": "550",
-      "value": {
-        "type": "consequence",
-        "role": "attack-advantage",
-        "weight": 0.2,
-        "playerDamage": 0,
-        "monsterDamage": 0.5,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "549",
-      "w": "550",
+      "v": "626",
+      "w": "525",
       "value": {
         "type": "consequence",
         "role": "defend-advantage",
@@ -4757,289 +3751,90 @@ window.GRAPH = {
       }
     },
     {
-      "v": "551",
-      "w": "323",
+      "v": "525",
+      "w": "626",
       "value": {
-        "type": "path",
+        "type": "choice",
+        "flavor": "hold-position",
+        "risk": 0.1,
         "dot": {
-          "label": "path"
+          "label": "hold position",
+          "color": "purple"
         }
       }
     },
     {
-      "v": "551",
-      "w": "364",
+      "v": "628",
+      "w": "456",
       "value": {
-        "type": "path",
+        "type": "consequence",
+        "role": "attack-victory",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 1,
+        "edgeId": "e_ad_9",
         "dot": {
-          "label": "path"
+          "label": "consequence"
         }
       }
     },
     {
-      "v": "551",
-      "w": "462",
+      "v": "628",
+      "w": "622",
       "value": {
-        "type": "path",
+        "type": "consequence",
+        "role": "attack-stalemate",
+        "weight": 0.4,
+        "playerDamage": 0.2,
+        "monsterDamage": 0.3,
         "dot": {
-          "label": "path"
+          "label": "consequence"
         }
       }
     },
     {
-      "v": "551",
-      "w": "465",
+      "v": "622",
+      "w": "628",
       "value": {
-        "type": "path",
+        "type": "choice",
+        "flavor": "aggressive",
+        "risk": 0.7,
         "dot": {
-          "label": "path"
+          "label": "attack",
+          "color": "purple"
         }
       }
     },
     {
-      "v": "551",
-      "w": "474",
+      "v": "628",
+      "w": "629",
       "value": {
-        "type": "passage",
-        "edgeId": "e_am_13",
+        "type": "consequence",
+        "role": "attack-death",
+        "weight": 0.1,
+        "playerDamage": 1,
+        "monsterDamage": 0,
         "dot": {
-          "label": "passage"
+          "label": "consequence"
         }
       }
     },
     {
-      "v": "551",
-      "w": "480",
+      "v": "633",
+      "w": "532",
       "value": {
-        "type": "path",
+        "type": "choice",
+        "flavor": "hold-position",
+        "risk": 0.1,
         "dot": {
-          "label": "path"
+          "label": "hold position",
+          "color": "purple"
         }
       }
     },
     {
-      "v": "551",
-      "w": "506",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "161",
-      "w": "551",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "162",
-      "w": "551",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "163",
-      "w": "551",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "174",
-      "w": "551",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "175",
-      "w": "551",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "176",
-      "w": "551",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "219",
-      "w": "551",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "220",
-      "w": "551",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "221",
-      "w": "551",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "223",
-      "w": "551",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_ad_21"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "225",
-      "w": "551",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "226",
-      "w": "551",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "227",
-      "w": "551",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "303",
-      "w": "551",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "304",
-      "w": "551",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "305",
-      "w": "551",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "418",
-      "w": "551",
-      "value": {
-        "type": "return",
-        "prereq": {
-          "visited": "room_2"
-        },
-        "dot": {
-          "label": "return (pair_21)",
-          "style": "bold",
-          "color": "blue"
-        }
-      }
-    },
-    {
-      "v": "460",
-      "w": "551",
+      "v": "633",
+      "w": "548",
       "value": {
         "type": "retreat",
         "dot": {
@@ -5050,92 +3845,340 @@ window.GRAPH = {
       }
     },
     {
-      "v": "465",
-      "w": "551",
+      "v": "532",
+      "w": "633",
       "value": {
-        "type": "retreat",
+        "type": "consequence",
+        "role": "defend-advantage",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 0,
         "dot": {
-          "label": "retreat",
-          "style": "dashed",
-          "color": "orange"
+          "label": "consequence"
         }
       }
     },
     {
-      "v": "474",
-      "w": "551",
+      "v": "634",
+      "w": "595",
       "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_am_13"
-        },
+        "type": "consequence",
+        "role": "defend-victory",
+        "weight": 0.1,
+        "playerDamage": 0,
+        "monsterDamage": 1,
+        "edgeId": "e_db_25",
         "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
+          "label": "consequence"
         }
       }
     },
     {
-      "v": "480",
-      "w": "551",
+      "v": "634",
+      "w": "600",
       "value": {
-        "type": "retreat",
+        "type": "consequence",
+        "role": "defend-death",
+        "weight": 0.1,
+        "playerDamage": 0.5,
+        "monsterDamage": 0,
         "dot": {
-          "label": "retreat",
-          "style": "dashed",
-          "color": "orange"
+          "label": "consequence"
         }
       }
     },
     {
-      "v": "498",
-      "w": "551",
+      "v": "635",
+      "w": "599",
       "value": {
-        "type": "return",
-        "prereq": {
-          "visited": "room_2"
-        },
+        "type": "choice",
+        "flavor": "press-attack",
+        "risk": 0.3,
         "dot": {
-          "label": "return (pair_21)",
-          "style": "bold",
-          "color": "blue"
+          "label": "press attack",
+          "color": "purple"
         }
       }
     },
     {
-      "v": "500",
-      "w": "551",
+      "v": "635",
+      "w": "634",
       "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_ak_21"
-        },
+        "type": "choice",
+        "flavor": "hold-position",
+        "risk": 0.1,
         "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
+          "label": "hold position",
+          "color": "purple"
         }
       }
     },
     {
-      "v": "504",
-      "w": "551",
+      "v": "599",
+      "w": "635",
       "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_ap_8"
-        },
+        "type": "consequence",
+        "role": "attack-advantage",
+        "weight": 0.2,
+        "playerDamage": 0,
+        "monsterDamage": 0.5,
         "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
+          "label": "consequence"
         }
       }
     },
     {
-      "v": "508",
-      "w": "551",
+      "v": "634",
+      "w": "635",
+      "value": {
+        "type": "consequence",
+        "role": "defend-advantage",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "636",
+      "w": "464",
+      "value": {
+        "type": "consequence",
+        "role": "attack-stalemate",
+        "weight": 0.4,
+        "playerDamage": 0.2,
+        "monsterDamage": 0.3,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "636",
+      "w": "572",
+      "value": {
+        "type": "consequence",
+        "role": "attack-advantage",
+        "weight": 0.2,
+        "playerDamage": 0,
+        "monsterDamage": 0.5,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "636",
+      "w": "625",
+      "value": {
+        "type": "consequence",
+        "role": "attack-victory",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 1,
+        "edgeId": "e_mb_17",
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "464",
+      "w": "636",
+      "value": {
+        "type": "choice",
+        "flavor": "aggressive",
+        "risk": 0.7,
+        "dot": {
+          "label": "attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "572",
+      "w": "636",
+      "value": {
+        "type": "choice",
+        "flavor": "press-attack",
+        "risk": 0.3,
+        "dot": {
+          "label": "press attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "571",
+      "w": "637",
+      "value": {
+        "type": "consequence",
+        "role": "defend-death",
+        "weight": 0.1,
+        "playerDamage": 0.5,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "636",
+      "w": "637",
+      "value": {
+        "type": "consequence",
+        "role": "attack-death",
+        "weight": 0.1,
+        "playerDamage": 1,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "640",
+      "w": "456",
+      "value": {
+        "type": "consequence",
+        "role": "defend-victory",
+        "weight": 0.1,
+        "playerDamage": 0,
+        "monsterDamage": 1,
+        "edgeId": "e_ad_9",
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "640",
+      "w": "622",
+      "value": {
+        "type": "consequence",
+        "role": "defend-stalemate",
+        "weight": 0.5,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "640",
+      "w": "629",
+      "value": {
+        "type": "consequence",
+        "role": "defend-death",
+        "weight": 0.1,
+        "playerDamage": 0.5,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "622",
+      "w": "640",
+      "value": {
+        "type": "choice",
+        "flavor": "defensive",
+        "risk": 0.2,
+        "dot": {
+          "label": "defend",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "641",
+      "w": "628",
+      "value": {
+        "type": "choice",
+        "flavor": "press-attack",
+        "risk": 0.3,
+        "dot": {
+          "label": "press attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "641",
+      "w": "640",
+      "value": {
+        "type": "choice",
+        "flavor": "hold-position",
+        "risk": 0.1,
+        "dot": {
+          "label": "hold position",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "628",
+      "w": "641",
+      "value": {
+        "type": "consequence",
+        "role": "attack-advantage",
+        "weight": 0.2,
+        "playerDamage": 0,
+        "monsterDamage": 0.5,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "640",
+      "w": "641",
+      "value": {
+        "type": "consequence",
+        "role": "defend-advantage",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "642",
+      "w": "458",
+      "value": {
+        "type": "consequence",
+        "role": "defend-stalemate",
+        "weight": 0.5,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "642",
+      "w": "510",
+      "value": {
+        "type": "consequence",
+        "role": "defend-advantage",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "642",
+      "w": "531",
       "value": {
         "type": "consequence",
         "role": "defend-victory",
@@ -5148,26 +4191,142 @@ window.GRAPH = {
       }
     },
     {
-      "v": "512",
-      "w": "551",
+      "v": "458",
+      "w": "642",
+      "value": {
+        "type": "choice",
+        "flavor": "defensive",
+        "risk": 0.2,
+        "dot": {
+          "label": "defend",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "510",
+      "w": "642",
+      "value": {
+        "type": "choice",
+        "flavor": "hold-position",
+        "risk": 0.1,
+        "dot": {
+          "label": "hold position",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "567",
+      "w": "643",
       "value": {
         "type": "consequence",
-        "role": "attack-victory",
-        "weight": 0.3,
-        "playerDamage": 0,
-        "monsterDamage": 1,
+        "role": "attack-death",
+        "weight": 0.1,
+        "playerDamage": 1,
+        "monsterDamage": 0,
         "dot": {
           "label": "consequence"
         }
       }
     },
     {
-      "v": "514",
-      "w": "551",
+      "v": "642",
+      "w": "643",
+      "value": {
+        "type": "consequence",
+        "role": "defend-death",
+        "weight": 0.1,
+        "playerDamage": 0.5,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "644",
+      "w": "315",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "175",
+      "w": "644",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "back to puzzle",
+          "style": "dotted",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "176",
+      "w": "644",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "back to puzzle",
+          "style": "dotted",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "177",
+      "w": "644",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "back to puzzle",
+          "style": "dotted",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "546",
+      "w": "644",
+      "value": {
+        "type": "consequence",
+        "role": "attack-victory",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 1,
+        "edgeId": "e_am_12",
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "605",
+      "w": "644",
+      "value": {
+        "type": "consequence",
+        "role": "defend-victory",
+        "weight": 0.1,
+        "playerDamage": 0,
+        "monsterDamage": 1,
+        "edgeId": "e_am_12",
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "624",
+      "w": "644",
       "value": {
         "type": "backtrack",
         "prereq": {
-          "traversed": "e_ad_24"
+          "traversed": "e_ad_13"
         },
         "dot": {
           "label": "backtrack",
@@ -5177,8 +4336,252 @@ window.GRAPH = {
       }
     },
     {
+      "v": "645",
+      "w": "623",
+      "value": {
+        "type": "passage",
+        "edgeId": "e_mb_21",
+        "dot": {
+          "label": "passage"
+        }
+      }
+    },
+    {
+      "v": "645",
+      "w": "644",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_am_21"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "623",
+      "w": "645",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_mb_21"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "644",
+      "w": "645",
+      "value": {
+        "type": "passage",
+        "edgeId": "e_am_21",
+        "dot": {
+          "label": "passage"
+        }
+      }
+    },
+    {
+      "v": "646",
+      "w": "422",
+      "value": {
+        "type": "consequence",
+        "role": "attack-death",
+        "weight": 0.1,
+        "playerDamage": 1,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "646",
+      "w": "525",
+      "value": {
+        "type": "consequence",
+        "role": "attack-advantage",
+        "weight": 0.2,
+        "playerDamage": 0,
+        "monsterDamage": 0.5,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "525",
+      "w": "646",
+      "value": {
+        "type": "choice",
+        "flavor": "press-attack",
+        "risk": 0.3,
+        "dot": {
+          "label": "press attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "522",
+      "w": "648",
+      "value": {
+        "type": "consequence",
+        "role": "attack-victory",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 1,
+        "edgeId": "e_am_11",
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "649",
+      "w": "420",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "649",
+      "w": "548",
+      "value": {
+        "type": "passage",
+        "dot": {
+          "label": "passage"
+        }
+      }
+    },
+    {
+      "v": "649",
+      "w": "566",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "649",
+      "w": "611",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "649",
+      "w": "644",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_mb_12"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "649",
+      "w": "648",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_mb_11"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "311",
+      "w": "649",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "back to puzzle",
+          "style": "dotted",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "312",
+      "w": "649",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "back to puzzle",
+          "style": "dotted",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "313",
+      "w": "649",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "back to puzzle",
+          "style": "dotted",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "513",
+      "w": "649",
+      "value": {
+        "type": "return",
+        "prereq": {
+          "visited": "room_4"
+        },
+        "dot": {
+          "label": "return (pair_25)",
+          "style": "bold",
+          "color": "blue"
+        }
+      }
+    },
+    {
       "v": "537",
-      "w": "551",
+      "w": "649",
+      "value": {
+        "type": "return",
+        "prereq": {
+          "visited": "room_4"
+        },
+        "dot": {
+          "label": "return (pair_25)",
+          "style": "bold",
+          "color": "blue"
+        }
+      }
+    },
+    {
+      "v": "562",
+      "w": "649",
       "value": {
         "type": "retreat",
         "dot": {
@@ -5189,27 +4592,24 @@ window.GRAPH = {
       }
     },
     {
-      "v": "541",
-      "w": "551",
+      "v": "566",
+      "w": "649",
       "value": {
-        "type": "return",
-        "prereq": {
-          "visited": "room_2"
-        },
+        "type": "retreat",
         "dot": {
-          "label": "return (pair_21)",
-          "style": "bold",
-          "color": "blue"
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
         }
       }
     },
     {
-      "v": "547",
-      "w": "551",
+      "v": "591",
+      "w": "649",
       "value": {
         "type": "backtrack",
         "prereq": {
-          "traversed": "e_ad_7"
+          "traversed": "e_ak_25"
         },
         "dot": {
           "label": "backtrack",
@@ -5219,8 +4619,492 @@ window.GRAPH = {
       }
     },
     {
-      "v": "548",
+      "v": "595",
+      "w": "649",
+      "value": {
+        "type": "return",
+        "prereq": {
+          "visited": "room_4"
+        },
+        "dot": {
+          "label": "return (pair_25)",
+          "style": "bold",
+          "color": "blue"
+        }
+      }
+    },
+    {
+      "v": "611",
+      "w": "649",
+      "value": {
+        "type": "retreat",
+        "dot": {
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "613",
+      "w": "649",
+      "value": {
+        "type": "retreat",
+        "dot": {
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "615",
+      "w": "649",
+      "value": {
+        "type": "retreat",
+        "dot": {
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "625",
+      "w": "649",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_am_10"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "644",
+      "w": "649",
+      "value": {
+        "type": "passage",
+        "edgeId": "e_mb_12",
+        "dot": {
+          "label": "passage"
+        }
+      }
+    },
+    {
+      "v": "648",
+      "w": "649",
+      "value": {
+        "type": "passage",
+        "edgeId": "e_mb_11",
+        "dot": {
+          "label": "passage"
+        }
+      }
+    },
+    {
+      "v": "650",
+      "w": "649",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_ad_25"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "595",
+      "w": "650",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_db_25"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "608",
+      "w": "650",
+      "value": {
+        "type": "consequence",
+        "role": "attack-victory",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 1,
+        "edgeId": "e_ad_25",
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "635",
+      "w": "650",
+      "value": {
+        "type": "retreat",
+        "dot": {
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "651",
+      "w": "599",
+      "value": {
+        "type": "choice",
+        "flavor": "aggressive",
+        "risk": 0.7,
+        "dot": {
+          "label": "attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "651",
+      "w": "634",
+      "value": {
+        "type": "choice",
+        "flavor": "defensive",
+        "risk": 0.2,
+        "dot": {
+          "label": "defend",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "651",
+      "w": "650",
+      "value": {
+        "type": "retreat",
+        "dot": {
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "599",
+      "w": "651",
+      "value": {
+        "type": "consequence",
+        "role": "attack-stalemate",
+        "weight": 0.4,
+        "playerDamage": 0.2,
+        "monsterDamage": 0.3,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "634",
+      "w": "651",
+      "value": {
+        "type": "consequence",
+        "role": "defend-stalemate",
+        "weight": 0.5,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "650",
+      "w": "651",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "652",
+      "w": "609",
+      "value": {
+        "type": "consequence",
+        "role": "defend-death",
+        "weight": 0.1,
+        "playerDamage": 0.5,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "652",
+      "w": "613",
+      "value": {
+        "type": "consequence",
+        "role": "defend-advantage",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "652",
+      "w": "650",
+      "value": {
+        "type": "consequence",
+        "role": "defend-victory",
+        "weight": 0.1,
+        "playerDamage": 0,
+        "monsterDamage": 1,
+        "edgeId": "e_ad_25",
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "613",
+      "w": "652",
+      "value": {
+        "type": "choice",
+        "flavor": "hold-position",
+        "risk": 0.1,
+        "dot": {
+          "label": "hold position",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "653",
+      "w": "608",
+      "value": {
+        "type": "choice",
+        "flavor": "aggressive",
+        "risk": 0.7,
+        "dot": {
+          "label": "attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "653",
+      "w": "649",
+      "value": {
+        "type": "retreat",
+        "dot": {
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "653",
+      "w": "652",
+      "value": {
+        "type": "choice",
+        "flavor": "defensive",
+        "risk": 0.2,
+        "dot": {
+          "label": "defend",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "608",
+      "w": "653",
+      "value": {
+        "type": "consequence",
+        "role": "attack-stalemate",
+        "weight": 0.4,
+        "playerDamage": 0.2,
+        "monsterDamage": 0.3,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "649",
+      "w": "653",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "652",
+      "w": "653",
+      "value": {
+        "type": "consequence",
+        "role": "defend-stalemate",
+        "weight": 0.5,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "654",
       "w": "551",
+      "value": {
+        "type": "consequence",
+        "role": "attack-stalemate",
+        "weight": 0.4,
+        "playerDamage": 0.2,
+        "monsterDamage": 0.3,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "654",
+      "w": "597",
+      "value": {
+        "type": "consequence",
+        "role": "attack-advantage",
+        "weight": 0.2,
+        "playerDamage": 0,
+        "monsterDamage": 0.5,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "654",
+      "w": "618",
+      "value": {
+        "type": "consequence",
+        "role": "attack-victory",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 1,
+        "edgeId": "e_ap_1",
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "551",
+      "w": "654",
+      "value": {
+        "type": "choice",
+        "flavor": "aggressive",
+        "risk": 0.7,
+        "dot": {
+          "label": "attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "597",
+      "w": "654",
+      "value": {
+        "type": "choice",
+        "flavor": "press-attack",
+        "risk": 0.3,
+        "dot": {
+          "label": "press attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "617",
+      "w": "655",
+      "value": {
+        "type": "consequence",
+        "role": "defend-death",
+        "weight": 0.1,
+        "playerDamage": 0.5,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "654",
+      "w": "655",
+      "value": {
+        "type": "consequence",
+        "role": "attack-death",
+        "weight": 0.1,
+        "playerDamage": 1,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "532",
+      "w": "657",
+      "value": {
+        "type": "consequence",
+        "role": "defend-death",
+        "weight": 0.1,
+        "playerDamage": 0.5,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "658",
+      "w": "432",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "658",
+      "w": "458",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "658",
+      "w": "483",
       "value": {
         "type": "passage",
         "dot": {
@@ -5229,122 +5113,846 @@ window.GRAPH = {
       }
     },
     {
-      "v": "552",
-      "w": "161",
+      "v": "658",
+      "w": "511",
       "value": {
-        "type": "choice",
-        "correct": false,
-        "index": 1,
+        "type": "passage",
+        "edgeId": "e_ad_15",
         "dot": {
-          "label": "distractor 1",
+          "label": "passage"
+        }
+      }
+    },
+    {
+      "v": "658",
+      "w": "551",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "658",
+      "w": "553",
+      "value": {
+        "type": "passage",
+        "dot": {
+          "label": "passage"
+        }
+      }
+    },
+    {
+      "v": "658",
+      "w": "564",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "658",
+      "w": "579",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "658",
+      "w": "606",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "658",
+      "w": "631",
+      "value": {
+        "type": "passage",
+        "edgeId": "e_ap_2",
+        "dot": {
+          "label": "passage"
+        }
+      }
+    },
+    {
+      "v": "167",
+      "w": "658",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_ap_22"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
           "color": "gray"
         }
       }
     },
     {
-      "v": "552",
-      "w": "162",
+      "v": "169",
+      "w": "658",
       "value": {
-        "type": "choice",
-        "correct": false,
-        "index": 2,
+        "type": "path",
         "dot": {
-          "label": "distractor 2",
+          "label": "back to puzzle",
+          "style": "dotted",
           "color": "gray"
         }
       }
     },
     {
-      "v": "552",
-      "w": "163",
+      "v": "170",
+      "w": "658",
       "value": {
-        "type": "choice",
-        "correct": false,
-        "index": 3,
+        "type": "path",
         "dot": {
-          "label": "distractor 3",
+          "label": "back to puzzle",
+          "style": "dotted",
           "color": "gray"
         }
       }
     },
     {
-      "v": "552",
-      "w": "547",
+      "v": "171",
+      "w": "658",
       "value": {
-        "type": "choice",
-        "correct": true,
-        "edgeId": "e_ad_7",
+        "type": "path",
         "dot": {
-          "label": "correct",
-          "color": "darkgreen"
+          "label": "back to puzzle",
+          "style": "dotted",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "430",
+      "w": "658",
+      "value": {
+        "type": "retreat",
+        "dot": {
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "432",
+      "w": "658",
+      "value": {
+        "type": "retreat",
+        "dot": {
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "458",
+      "w": "658",
+      "value": {
+        "type": "retreat",
+        "dot": {
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "460",
+      "w": "658",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_ad_3"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "491",
+      "w": "658",
+      "value": {
+        "type": "retreat",
+        "dot": {
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "510",
+      "w": "658",
+      "value": {
+        "type": "retreat",
+        "dot": {
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "511",
+      "w": "658",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_ad_15"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "518",
+      "w": "658",
+      "value": {
+        "type": "retreat",
+        "dot": {
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "525",
+      "w": "658",
+      "value": {
+        "type": "retreat",
+        "dot": {
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
         }
       }
     },
     {
       "v": "551",
-      "w": "552",
+      "w": "658",
       "value": {
-        "type": "path",
+        "type": "retreat",
         "dot": {
-          "label": "path"
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
         }
       }
     },
     {
-      "v": "553",
-      "w": "431",
+      "v": "579",
+      "w": "658",
       "value": {
-        "type": "path",
+        "type": "retreat",
         "dot": {
-          "label": "path"
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
         }
       }
     },
     {
-      "v": "284",
-      "w": "553",
+      "v": "597",
+      "w": "658",
       "value": {
-        "type": "path",
+        "type": "retreat",
         "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "606",
+      "w": "658",
+      "value": {
+        "type": "retreat",
+        "dot": {
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "618",
+      "w": "658",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_ap_1"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
           "color": "gray"
         }
       }
     },
     {
-      "v": "285",
-      "w": "553",
+      "v": "631",
+      "w": "658",
       "value": {
-        "type": "path",
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_ap_2"
+        },
         "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
+          "label": "backtrack",
+          "style": "dashed",
           "color": "gray"
         }
       }
     },
     {
-      "v": "286",
-      "w": "553",
+      "v": "644",
+      "w": "658",
       "value": {
-        "type": "path",
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_am_12"
+        },
         "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
+          "label": "backtrack",
+          "style": "dashed",
           "color": "gray"
         }
       }
     },
     {
-      "v": "462",
-      "w": "553",
+      "v": "659",
+      "w": "626",
       "value": {
         "type": "choice",
-        "correct": true,
+        "flavor": "defensive",
+        "risk": 0.2,
         "dot": {
-          "label": "correct",
-          "color": "darkgreen"
+          "label": "defend",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "659",
+      "w": "646",
+      "value": {
+        "type": "choice",
+        "flavor": "aggressive",
+        "risk": 0.7,
+        "dot": {
+          "label": "attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "659",
+      "w": "658",
+      "value": {
+        "type": "retreat",
+        "dot": {
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "626",
+      "w": "659",
+      "value": {
+        "type": "consequence",
+        "role": "defend-stalemate",
+        "weight": 0.5,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "646",
+      "w": "659",
+      "value": {
+        "type": "consequence",
+        "role": "attack-stalemate",
+        "weight": 0.4,
+        "playerDamage": 0.2,
+        "monsterDamage": 0.3,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "658",
+      "w": "659",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "660",
+      "w": "620",
+      "value": {
+        "type": "consequence",
+        "role": "defend-death",
+        "weight": 0.1,
+        "playerDamage": 0.5,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "660",
+      "w": "648",
+      "value": {
+        "type": "consequence",
+        "role": "defend-victory",
+        "weight": 0.1,
+        "playerDamage": 0,
+        "monsterDamage": 1,
+        "edgeId": "e_am_11",
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "661",
+      "w": "522",
+      "value": {
+        "type": "choice",
+        "flavor": "press-attack",
+        "risk": 0.3,
+        "dot": {
+          "label": "press attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "661",
+      "w": "660",
+      "value": {
+        "type": "choice",
+        "flavor": "hold-position",
+        "risk": 0.1,
+        "dot": {
+          "label": "hold position",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "522",
+      "w": "661",
+      "value": {
+        "type": "consequence",
+        "role": "attack-advantage",
+        "weight": 0.2,
+        "playerDamage": 0,
+        "monsterDamage": 0.5,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "660",
+      "w": "661",
+      "value": {
+        "type": "consequence",
+        "role": "defend-advantage",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "662",
+      "w": "622",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "456",
+      "w": "662",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_ad_9"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "622",
+      "w": "662",
+      "value": {
+        "type": "retreat",
+        "dot": {
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "641",
+      "w": "662",
+      "value": {
+        "type": "retreat",
+        "dot": {
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "648",
+      "w": "662",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_am_11"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "661",
+      "w": "662",
+      "value": {
+        "type": "retreat",
+        "dot": {
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "663",
+      "w": "522",
+      "value": {
+        "type": "choice",
+        "flavor": "aggressive",
+        "risk": 0.7,
+        "dot": {
+          "label": "attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "663",
+      "w": "660",
+      "value": {
+        "type": "choice",
+        "flavor": "defensive",
+        "risk": 0.2,
+        "dot": {
+          "label": "defend",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "663",
+      "w": "662",
+      "value": {
+        "type": "retreat",
+        "dot": {
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "522",
+      "w": "663",
+      "value": {
+        "type": "consequence",
+        "role": "attack-stalemate",
+        "weight": 0.4,
+        "playerDamage": 0.2,
+        "monsterDamage": 0.3,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "660",
+      "w": "663",
+      "value": {
+        "type": "consequence",
+        "role": "defend-stalemate",
+        "weight": 0.5,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "662",
+      "w": "663",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "664",
+      "w": "658",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_am_8"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "664",
+      "w": "662",
+      "value": {
+        "type": "passage",
+        "edgeId": "e_mb_8",
+        "dot": {
+          "label": "passage"
+        }
+      }
+    },
+    {
+      "v": "626",
+      "w": "664",
+      "value": {
+        "type": "consequence",
+        "role": "defend-victory",
+        "weight": 0.1,
+        "playerDamage": 0,
+        "monsterDamage": 1,
+        "edgeId": "e_am_8",
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "646",
+      "w": "664",
+      "value": {
+        "type": "consequence",
+        "role": "attack-victory",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 1,
+        "edgeId": "e_am_8",
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "662",
+      "w": "664",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_mb_8"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "665",
+      "w": "537",
+      "value": {
+        "type": "consequence",
+        "role": "attack-victory",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 1,
+        "edgeId": "e_am_17",
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "665",
+      "w": "633",
+      "value": {
+        "type": "consequence",
+        "role": "attack-advantage",
+        "weight": 0.2,
+        "playerDamage": 0,
+        "monsterDamage": 0.5,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "665",
+      "w": "657",
+      "value": {
+        "type": "consequence",
+        "role": "attack-death",
+        "weight": 0.1,
+        "playerDamage": 1,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "633",
+      "w": "665",
+      "value": {
+        "type": "choice",
+        "flavor": "press-attack",
+        "risk": 0.3,
+        "dot": {
+          "label": "press attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "666",
+      "w": "532",
+      "value": {
+        "type": "choice",
+        "flavor": "defensive",
+        "risk": 0.2,
+        "dot": {
+          "label": "defend",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "666",
+      "w": "548",
+      "value": {
+        "type": "retreat",
+        "dot": {
+          "label": "retreat",
+          "style": "dashed",
+          "color": "orange"
+        }
+      }
+    },
+    {
+      "v": "666",
+      "w": "665",
+      "value": {
+        "type": "choice",
+        "flavor": "aggressive",
+        "risk": 0.7,
+        "dot": {
+          "label": "attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "532",
+      "w": "666",
+      "value": {
+        "type": "consequence",
+        "role": "defend-stalemate",
+        "weight": 0.5,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "548",
+      "w": "666",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "665",
+      "w": "666",
+      "value": {
+        "type": "consequence",
+        "role": "attack-stalemate",
+        "weight": 0.4,
+        "playerDamage": 0.2,
+        "monsterDamage": 0.3,
+        "dot": {
+          "label": "consequence"
         }
       }
     }

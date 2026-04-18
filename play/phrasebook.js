@@ -33,12 +33,16 @@ window.DEFAULT_TEXT = {
                     brief:   'A dead end.' },
 
     // --- Inventory-bearing nodes ------------------------------------
-    key:          { verbose: 'A key lies on the floor. You pick it up ({pairId}).',
-                    brief:   'The spot where you found the key.',
+    // `{text}` surfaces whatever the grammar stamped onto the label —
+    // a themed macro placeholder in --placeholder mode, or LLM-generated
+    // prose once the runner is wired up. Interpolates to empty for
+    // labels that don't carry a text field.
+    key:          { verbose: 'A key lies on the floor. You pick it up ({pairId}). {text}',
+                    brief:   'The spot where you found the key. {text}',
                     status:  'Key {pairId}' },
 
-    door:         { verbose: 'A locked door ({pairId}) blocks the way.',
-                    brief:   'A locked door ({pairId}).' },
+    door:         { verbose: 'A locked door ({pairId}) blocks the way. {text}',
+                    brief:   'A locked door ({pairId}). {text}' },
 
     potion:       { verbose: 'A health potion. You drink it. (+{healValue})',
                     brief:   'An empty vial where the potion was.',
@@ -72,17 +76,22 @@ window.DEFAULT_TEXT = {
     // `link` is the hyperlink text used as the outgoing affordance.
 
     // --- Forward corridors ------------------------------------------
-    path:        { initial: 'You continue forward.',
-                   link:    'Continue' },
+    // `{before}` and `{link}` carry placeholders stamped on the
+    // key-branch edge (a->k from keyDoor). `{prereq.link}` and
+    // `{prereq.after}` appear on the locked edge (d->b). All
+    // interpolate to empty when absent, so the templates stay clean
+    // for non-keyDoor edges.
+    path:        { initial: 'You continue forward. {before} {prereq.after}',
+                   link:    'Continue {link} {prereq.link}' },
 
-    passage:     { initial: 'A quiet passage unfolds.',
-                   link:    'Take the passage' },
+    passage:     { initial: 'A quiet passage unfolds. {before} {prereq.after}',
+                   link:    'Take the passage {link} {prereq.link}' },
 
-    monster:     { initial: 'A monster lunges!',
-                   link:    'Fight' },
+    monster:     { initial: 'A monster lunges! {before} {prereq.after}',
+                   link:    'Fight {link} {prereq.link}' },
 
-    puzzle:      { initial: 'A puzzle bars the way.',
-                   link:    'Tackle the puzzle' },
+    puzzle:      { initial: 'A puzzle bars the way. {before} {prereq.after}',
+                   link:    'Tackle the puzzle {link} {prereq.link}' },
 
     // --- Return corridors -------------------------------------------
     backtrack:   { initial: 'You double back the way you came.',
