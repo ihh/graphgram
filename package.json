@@ -13,7 +13,7 @@
     "lodash": "^4.17.21",
     "mersennetwister": "~0.2.3",
     "node-getopt": "~0.3.2",
-    "tmp": "~0.0.33"
+    "tmp": "~0.2.4"
   },
   "scripts": {
     "test": "node --test test/*.test.js",
