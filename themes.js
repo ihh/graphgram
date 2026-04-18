@@ -50,7 +50,26 @@ const MACROS = {
   describe_scenery:         'Ambient environmental flavor.',
   describe_dead_end:        'A dead end discovery.',
   describe_win:             'Victory: the player reaches the final goal.',
-  describe_death:           'The player has died.'
+  describe_death:           'The player has died.',
+
+  // --- space_opera set-piece: rescue_mission -----------------------------
+  // A 3-beat linear showpiece: answering a distress call, infiltrating a
+  // hostile craft, escaping with the rescued party.
+  rescue_mission_enter:     'Affordance text for accepting the rescue mission.',
+  rescue_mission_setup:     'Rescue mission beat 1: the distress call arrives and the player suits up.',
+  rescue_mission_stealth:   'Rescue mission beat 2: boarding the hostile craft, moving unseen.',
+  rescue_mission_escape:    'Rescue mission beat 3: fighting free with the rescued party.',
+  rescue_mission_decline:   'Choosing to walk away from the rescue call — the comms are silenced.',
+  rescue_mission_bypass:    'Returning past the spot where the rescue call once came; the wreckage now drifts quietly.',
+
+  // --- gothic_horror set-piece: seance -----------------------------------
+  // A 3-beat ritual: preparing the circle, making contact, paying the price.
+  seance_enter:             'Affordance text for beginning the seance.',
+  seance_setup:             'Seance beat 1: preparing the circle, lighting candles, steadying nerves.',
+  seance_contact:           'Seance beat 2: a voice answers through the veil — it knows things it should not.',
+  seance_consequence:       'Seance beat 3: the price is paid; the circle breaks.',
+  seance_decline:           'Choosing not to begin the ritual — the candles are left dark.',
+  seance_bypass:            'Returning past the cold parlor where the seance once bled through; the room is empty now.'
 }
 
 // FNV-1a over the seed string — same seed in, same theme out.

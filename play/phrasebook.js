@@ -65,6 +65,19 @@ window.DEFAULT_TEXT = {
     distractor:   { verbose: 'That was wrong. You are forced back to the puzzle.',
                     brief:   'Wrong path.' },
 
+    // --- Set-piece nodes --------------------------------------------
+    // Beat nodes in a linear showpiece (setup / stealth / escape, etc).
+    // The {text} placeholder surfaces whatever macro was stamped by
+    // the set-piece rule; {beat} is 1..N.
+    setpiece_step: { verbose: 'Set-piece beat {beat}. {text}',
+                     brief:   'Set-piece beat {beat}.' },
+
+    // Intermediate "walk away" / "return past" nodes attached to the
+    // decline and bypass edges, respectively. {role} is 'decline' or
+    // 'bypass'.
+    setpiece_exit: { verbose: 'Set-piece {role}. {text}',
+                     brief:   'Set-piece {role}.' },
+
     // --- Catch-all --------------------------------------------------
     _default:     { verbose: 'A featureless space.',
                     brief:   'Here.' }
@@ -115,6 +128,28 @@ window.DEFAULT_TEXT = {
 
     retreat:     { initial: 'You flee from battle.',
                    link:    'Retreat' },
+
+    // --- Set-piece edges --------------------------------------------
+    // Entry is oneTime — after first traversal, the affordance vanishes.
+    // The label.link field carries a themed "accept the call" macro.
+    setpiece_entry:   { initial: 'You commit. {link}',
+                        link:    '{link}' },
+
+    // Decline is oneTime too — once declined, gone. The affordance text
+    // is a deliberately-unflashy "walk on by".
+    setpiece_decline: { initial: 'You walk on by.',
+                        link:    'Walk on by' },
+
+    // Bypass only appears once `b` has been visited (gated via
+    // prereq.visited on the rule's RHS). Narrative implies "you've
+    // already dealt with this area".
+    setpiece_bypass:  { initial: 'You move past, the moment already behind you.',
+                        link:    'Move on' },
+
+    // Internal linear edges inside the set-piece; no affordance flair,
+    // just short forward-movement prose.
+    setpiece:         { initial: '...',
+                        link:    'Continue' },
 
     // --- Catch-all --------------------------------------------------
     _default:    { initial: 'You move on.',

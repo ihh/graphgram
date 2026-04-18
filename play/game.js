@@ -90,6 +90,12 @@
   // Edge accessibility.
   // ------------------------------------------------------------------
   function edgeAccessible (edge) {
+    // oneTime edges are locked out after first traversal: used for
+    // set-piece entry and decline affordances so they don't reappear
+    // when the player loops back via some other cycle.
+    if (edge.label.oneTime && edge.label.edgeId && state.traversed.has(edge.label.edgeId)) {
+      return false
+    }
     const prereq = edge.label.prereq
     if (!prereq) return true
     if (prereq.pairId) {

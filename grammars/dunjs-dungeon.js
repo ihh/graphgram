@@ -20,11 +20,17 @@
 
 (function () {
   var dp = require('../dungeon-primitives')
+  var setpieces = require('../setpieces')
   var debug = require('../debug-opts').get()
 
   var refineTargets = debug.passageOnly
     ? [dp.EDGE_PASSAGE]
     : [dp.EDGE_PASSAGE, dp.EDGE_MONSTER, dp.EDGE_PUZZLE]
+
+  // Pick up theme-specific set-pieces for the active theme (if any).
+  // Low weight so they're rare showpieces, not filler. Low limit keeps
+  // each dungeon to at most one instance of any given set-piece.
+  var setpieceRules = setpieces.rulesFor(debug.theme, { weight: 1, limit: 1 })
 
   var stages = [
     dp.initStartGoalStage(),
@@ -42,7 +48,7 @@
         dp.parallelPath({ weight: 1 }),
         dp.keyDoor({ weight: 1, narrate: true, limit: 3 }),
         dp.healthPotion({ weight: 1, limit: 3 })
-      ]
+      ].concat(setpieceRules)
     },
 
     // After structural expansion, before the path edges get refined into

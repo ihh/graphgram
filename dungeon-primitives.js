@@ -203,6 +203,12 @@ function deadEnd (opts) {
 // Parallel path between the endpoints, routed through a midpoint room so
 // the single-graph edge invariant holds.
 //   a --path--> b    =>    a --path--> b   &   a --path--> room --path--> b
+// The first edge of the new parallel path (a -> m) inherits the matched
+// edge's `edgeId` AND `prereq` when they exist. edgeId inheritance keeps
+// any external backtrack keyed on it reachable; prereq inheritance keeps
+// gated corridors (locked doors, return edges) from being bypassable by
+// the new parallel route. $extend drops the fields entirely when they're
+// undefined on the matched edge.
 function parallelPath (opts) {
   opts = opts || {}
   const pathType = opts.pathType || EDGE_PATH
@@ -222,7 +228,13 @@ function parallelPath (opts) {
       ],
       edge: [
         'e',
-        { v: 'a', w: 'm', label: { type: pathType } },
+        { v: 'a', w: 'm', label: {
+            $extend: [
+              { type: pathType },
+              { edgeId: { $eval: '$e.label.edgeId' },
+                prereq: { $eval: '$e.label.prereq' } }
+            ]
+        } },
         { v: 'm', w: 'b', label: { type: pathType } }
       ]
     }
@@ -583,8 +595,19 @@ function monsterBattle (opts) {
             dot: { label: 'you died', shape: 'doublecircle', color: 'red' } } }
       ],
       edge: [
-        // Enter battle (replaces the original monster edge).
-        { v: 'a', w: 'cN', label: { type: pathType } },
+        // Enter battle (replaces the original monster edge). The first
+        // edge of the expansion inherits the matched edge's edgeId and
+        // prereq. edgeId preserves any external backtrack keyed on it;
+        // prereq preserves any gating (e.g. a pairId-locked corridor
+        // that got refined to monster) so the gate isn't bypassable.
+        // $extend drops missing fields.
+        { v: 'a', w: 'cN', label: {
+            $extend: [
+              { type: pathType },
+              { edgeId: { $eval: '$e.label.edgeId' },
+                prereq: { $eval: '$e.label.prereq' } }
+            ]
+        } },
         // Player choices at cNormal.
         { v: 'cN', w: 'rA', label: {
             type: choiceType, flavor: 'aggressive', risk: 0.7,
@@ -647,7 +670,16 @@ function puzzleChoice (opts) {
   // prereq.traversed is still reachable once the player solves the
   // puzzle. Without this the backtrack goes permanently dangling.
   const rhsEdges = [
-    { v: 'a', w: 'p', label: { type: pathType } },
+    // First edge of the expansion inherits the matched puzzle edge's
+    // edgeId and prereq (same principle as monsterBattle / parallelPath
+    // / set-piece). $extend drops missing fields.
+    { v: 'a', w: 'p', label: {
+        $extend: [
+          { type: pathType },
+          { edgeId: { $eval: '$e.label.edgeId' },
+            prereq: { $eval: '$e.label.prereq' } }
+        ]
+    } },
     { v: 'p', w: 'b', label: {
         type: choiceType, correct: true,
         edgeId: { $eval: '$e.label.edgeId' },
