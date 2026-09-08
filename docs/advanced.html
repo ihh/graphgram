@@ -23,7 +23,7 @@
 </header>
 <main class="prose">
 <h1 id="advanced">Advanced</h1>
-<p><em>The machinery: what the matcher actually does, which of its hooks you can reach, how to write a primitive that composes with the existing ones, and how to add an export target. Assumes <a href="https://github.com/ihh/graphgram/blob/master/docs/src/guide.html">the Guide</a>.</em></p>
+<p><em>The machinery: what the matcher actually does, which of its hooks you can reach, how to write a primitive that composes with the existing ones, and how to add an export target. Assumes <a href="guide.html">the Guide</a>.</em></p>
 <h2 id="1-the-one-hard-thing">1. The one hard thing</h2>
 <p>Applying a rewrite rule requires finding every occurrence of its left-hand side
 in the host graph. That is subgraph isomorphism, and it is NP-complete. It is
@@ -38,7 +38,7 @@ every iteration, for every eligible rule.</p>
 <p><strong>From scratch, every time.</strong> The search is re-run after each rewrite, on a
 graph that changed in exactly one place. Nothing is cached across iterations.
 That is a real cost and a real opportunity; see
-<a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/matching-engine.html">the matching engine paper</a> for what an incremental
+<a href="papers/matching-engine.html">the matching engine paper</a> for what an incremental
 scheme would look like.</p>
 <h2 id="2-the-algorithm">2. The algorithm</h2>
 <p><a href="https://github.com/ihh/graphgram/blob/master/subgraph.js"><code>subgraph.js</code></a> is
@@ -73,7 +73,7 @@ bug was invisible except as slowness.</p>
 <h2 id="3-the-triage-hooks">3. The triage hooks</h2>
 <p>Five deliberate optimisations. Two of them are measured wins, two do not show up
 at all at the sizes anyone runs, and the numbers below are from
-<a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/matching-engine.html">the matching engine paper</a> §4, which patched each
+<a href="papers/matching-engine.html">the matching engine paper</a> §4, which patched each
 hook off in turn and checked that every variant still produced byte-identical
 graphs. Take the ordering as measured, not as folklore.</p>
 <h3 id="3-1-label-pre-filtering-7-17x-but-only-if-your-pattern-has-node-labels">3.1 Label pre-filtering — 7-17x, but only if your pattern has node labels</h3>
@@ -228,7 +228,7 @@ produces an empty <code>pairId</code> and a lock nothing can open.</p>
 pointing at an edge that no longer exists — a door that can never be reopened.
 The guard is also, incidentally, what limits how deeply a lock rule can nest
 inside itself; see
-<a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/key-lock-transformations.html">key-lock transformations</a>.</p>
+<a href="papers/key-lock-transformations.html">key-lock transformations</a>.</p>
 <p><strong>Preserve labels you do not mean to replace.</strong> Give the LHS edge an id and
 reference it unchanged on the RHS:</p>
 <pre><code class="language-js">lhs: { edge: [{ v: &#39;a&#39;, w: &#39;b&#39;, label: { type: &#39;path&#39; }, id: &#39;e&#39; }] },
@@ -239,10 +239,10 @@ rhs: { edge: [&#39;e&#39;, /* new edges */] }
 new first edge, so that a gated corridor cannot be bypassed by the new parallel
 route.</p>
 <p><strong>Fill every narrative slot you create.</strong> A node with no <code>text</code> renders as a
-blank room. See <a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/narrative-slots.html">the slot taxonomy</a> for the
+blank room. See <a href="papers/narrative-slots.html">the slot taxonomy</a> for the
 inventory a key-lock owes.</p>
 <h2 id="7-writing-an-exporter">7. Writing an exporter</h2>
-<p>An exporter is a pure function from <a href="https://github.com/ihh/graphgram/blob/master/docs/src/spec/story-ir.html">Story IR</a> to text. It
+<p>An exporter is a pure function from <a href="spec/story-ir.html">Story IR</a> to text. It
 never touches a graphlib graph, never learns what a <code>prereq.pairId</code> is, and does
 not need updating when a new primitive lands — only <code>buildStoryIR</code> does.</p>
 <pre><code class="language-js">function exportMyFormat (ir, opts) {
@@ -270,7 +270,7 @@ every battle in the story, so test it against a known distribution.</p>
 add a structural test against <code>test/fixtures/story-ir.sample.json</code> — the golden
 IR instance, which exercises every field in the spec.</p>
 <h2 id="8-determinism">8. Determinism</h2>
-<p>The reproducibility contract in <a href="https://github.com/ihh/graphgram/blob/master/docs/src/spec/examples.html"><code>docs/spec/examples.md</code></a>
+<p>The reproducibility contract in <a href="spec/examples.html"><code>docs/spec/examples.md</code></a>
 says: for a fixed library version, <code>--example E --seed S</code> is byte-identical
 everywhere, in every format. Four things keep that true, and each is a rule for
 contributors.</p>
@@ -291,10 +291,10 @@ depend on this.</li>
 on disk by prompt hash, so a warm cache reproduces too.</p>
 <h2 id="next">Next</h2>
 <ul>
-<li><a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/matching-engine.html">Matching engine</a> — the full treatment, with measurements</li>
-<li><a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/key-lock-transformations.html">Key and lock as graph transformation</a> — the catalogue of realisations</li>
-<li><a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/budgets.html">Budgets</a> — aiming a stochastic generator</li>
-<li><a href="https://github.com/ihh/graphgram/blob/master/docs/src/spec/story-ir.html">Story IR spec</a> — the export contract</li>
+<li><a href="papers/matching-engine.html">Matching engine</a> — the full treatment, with measurements</li>
+<li><a href="papers/key-lock-transformations.html">Key and lock as graph transformation</a> — the catalogue of realisations</li>
+<li><a href="papers/budgets.html">Budgets</a> — aiming a stochastic generator</li>
+<li><a href="spec/story-ir.html">Story IR spec</a> — the export contract</li>
 </ul>
 
 </main>

@@ -23,7 +23,7 @@
 </header>
 <main class="prose">
 <h1 id="guide">Guide</h1>
-<p><em>Rules, labels, stages and the sampler: everything needed to write a grammar and grow a graph from it. For the machinery underneath — the matcher, the performance hooks, how to add primitives or export targets — see <a href="https://github.com/ihh/graphgram/blob/master/docs/src/advanced.html">Advanced</a>.</em></p>
+<p><em>Rules, labels, stages and the sampler: everything needed to write a grammar and grow a graph from it. For the machinery underneath — the matcher, the performance hooks, how to add primitives or export targets — see <a href="advanced.html">Advanced</a>.</em></p>
 <h2 id="1-install-and-run">1. Install and run</h2>
 <pre><code class="language-bash">npm install graphgram          # as a library
 git clone https://github.com/ihh/graphgram &amp;&amp; cd graphgram &amp;&amp; npm install
@@ -176,7 +176,7 @@ weight:    &#39;$a.label.depth &lt; 3 ? 5 : 1&#39;       // bias the sampler at 
 </code></pre>
 <p><code>condition</code> runs <em>after</em> the pattern has been found, so it is a filter of last
 resort — cheap per match, but it does not save you any search. Put everything
-you can into the LHS labels instead; see <a href="https://github.com/ihh/graphgram/blob/master/docs/src/advanced.html#what-costs-what">Advanced</a>.</p>
+you can into the LHS labels instead; see <a href="advanced.html#what-costs-what">Advanced</a>.</p>
 <h2 id="5-the-sampler-how-a-rule-gets-chosen">5. The sampler — how a rule gets chosen</h2>
 <p>This is the part people most often get wrong, so it is worth stating plainly.
 On each iteration the engine:</p>
@@ -196,7 +196,7 @@ graph grows. A <code>weight: 1</code> rule that matches every <code>path</code> 
 graph gets bigger.</p>
 </blockquote>
 <p>That is why the practical control knob is <code>limit</code>, not <code>weight</code>. Weights set the
-<em>mix</em>; limits set the <em>count</em>. <a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/budgets.html">Budgets</a> works this out
+<em>mix</em>; limits set the <em>count</em>. <a href="papers/budgets.html">Budgets</a> works this out
 quantitatively, with measured distributions.</p>
 <h2 id="6-stages">6. Stages</h2>
 <p>A staged grammar is a list of sub-grammars run in order, each on the output of
@@ -353,7 +353,7 @@ const g = new Grammar(json, { matcher })          // ← this order, always
 <a href="https://github.com/ihh/graphgram/blob/master/themes.js"><code>themes.js</code></a>; list them
 with <code>bin/transform.js --list-macros</code>. The taxonomy behind them — which slots
 exist, why, and which ones are still missing — is
-<a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/narrative-slots.html">the narrative slot paper</a>.</p>
+<a href="papers/narrative-slots.html">the narrative slot paper</a>.</p>
 <h2 id="9-gating-how-a-lock-is-expressed">9. Gating: how a lock is expressed</h2>
 <p>Generated nodes carry a <code>label.nodeId</code>; forward edges paired with a backtrack
 carry a <code>label.edgeId</code>. An edge is gated by a <code>prereq</code> in one of three flavours:</p>
@@ -395,7 +395,7 @@ bin/story.js --example maze-locked --seed 42 --format play  --out play/graph.js
 bin/story.js --example maze-locked --seed 42 --format dot   --out d.dot
 </code></pre>
 <p>Everything downstream of <code>--format ir</code> is a pure function of the
-<a href="https://github.com/ihh/graphgram/blob/master/docs/src/spec/story-ir.html">Story IR</a>: passages, links, a small condition/effect
+<a href="spec/story-ir.html">Story IR</a>: passages, links, a small condition/effect
 language, and text objects with first/repeat/brief variants. An exporter never
 sees a graphlib graph.</p>
 <p>For a fixed library version, <code>--example E --seed S</code> produces byte-identical
@@ -419,9 +419,9 @@ generated label), the rule hit its <code>limit</code>, or another rule with far 
 sites out-competed it.</p>
 <h2 id="next">Next</h2>
 <ul>
-<li><a href="https://github.com/ihh/graphgram/blob/master/docs/src/advanced.html">Advanced</a> — the matcher, its triage hooks, writing your own primitives and exporters</li>
-<li><a href="https://github.com/ihh/graphgram/blob/master/docs/src/examples.html">Worked examples</a> — five reproducible stories with pinned seeds</li>
-<li><a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/index.html">Papers</a> — the design literature</li>
+<li><a href="advanced.html">Advanced</a> — the matcher, its triage hooks, writing your own primitives and exporters</li>
+<li><a href="examples.html">Worked examples</a> — five reproducible stories with pinned seeds</li>
+<li><a href="papers/index.html">Papers</a> — the design literature</li>
 </ul>
 
 </main>

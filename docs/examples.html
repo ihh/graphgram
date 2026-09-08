@@ -97,7 +97,7 @@ harder than it sounds, and <code>dag-locked</code> exists to show one way to do 
 </li>
 </ul><h2 id="building-them-yourself">Building them yourself</h2>
 <p>Every example is a module under <code>examples/</code> matching one small interface
-(see <a href="https://github.com/ihh/graphgram/blob/master/docs/src/spec/examples.html">the catalogue spec</a>), and every artefact on this page
+(see <a href="spec/examples.html">the catalogue spec</a>), and every artefact on this page
 came from <code>bin/story.js</code>:</p>
 <pre><code class="language-bash">bin/story.js --list                      # the catalogue, with budgets
 
@@ -118,7 +118,7 @@ seed rather than sampled; no wall-clock timestamp anywhere in the output (the
 Twine IFID is a hash of <code>id + seed</code>, not a fresh UUID); and a defined ordering
 for IR passages and links.</p>
 <p>That is what makes a &quot;seed you can share&quot; meaningful, and it is why
-<a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/murder-mystery.html">the daily mystery</a> can key off a date.</p>
+<a href="papers/murder-mystery.html">the daily mystery</a> can key off a date.</p>
 <h2 id="what-each-one-demonstrates">What each one demonstrates</h2>
 <h3 id="dag-plain-the-shape-of-a-branching-story"><code>dag-plain</code> — the shape of a branching story</h3>
 <p>Fork and join, nothing else. Two arms diverge from a passage and rejoin at the
@@ -140,7 +140,7 @@ back. With no way back, that construction is unavailable.</p>
 visible, and the failure is legible in hindsight. That is a real trade: you give
 up recoverability, and what you buy is a puzzle solvable by reasoning rather
 than by exhaustive walking — which is exactly what a daily puzzle wants.
-<a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/key-lock-transformations.html">Key and lock as graph transformation</a>
+<a href="papers/key-lock-transformations.html">Key and lock as graph transformation</a>
 catalogues the alternatives.</p>
 <h3 id="maze-plain-why-text-repeat-exists"><code>maze-plain</code> — why <code>text.repeat</code> exists</h3>
 <p>Two-way midpoint rooms, dead ends with explicit backtracks, parallel routes,
@@ -162,9 +162,9 @@ conceding that the pantry is worth a look is the door swinging open. What lies
 beyond need not be a room at all — it can be another secret, which is how a set
 of suspects becomes a conspiracy with a shape.</p>
 <p>The seed derives from the date, so everyone gets the same puzzle on the same
-day. <a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/murder-mystery.html">The design paper</a> is the long version.</p>
+day. <a href="papers/murder-mystery.html">The design paper</a> is the long version.</p>
 <h2 id="playing-them">Playing them</h2>
-<p>The <a href="https://github.com/ihh/graphgram/blob/master/docs/src/play/index.html">play page</a> runs any of these in the browser: a text pane
+<p>The <a href="play/index.html">play page</a> runs any of these in the browser: a text pane
 with the narrative and its link affordances, a live map of the neighbourhood
 you are standing in, and a status bar with HP, inventory and a trace dump. Pick
 a story from the menu, or link straight to one:</p>
@@ -174,7 +174,7 @@ a story from the menu, or link straight to one:</p>
 — unless the story was built with <code>--sonnet</code>. That is the debug mode working as
 designed: it shows exactly which narrative slot each piece of text will occupy,
 which is far more useful when developing a grammar than plausible-sounding
-filler would be. See <a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/narrative-slots.html">the narrative slot taxonomy</a>
+filler would be. See <a href="papers/narrative-slots.html">the narrative slot taxonomy</a>
 for what the slot names mean.</p>
 
 </main>

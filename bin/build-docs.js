@@ -29,6 +29,10 @@ const ROOT = path.resolve(__dirname, '..')
 const DOCS = path.join(ROOT, 'docs')
 const REPO_BLOB = 'https://github.com/ihh/graphgram/blob/master/'
 
+// Docs-relative output paths this run will produce. Filled during discovery,
+// read by isPublished() during rendering.
+const emitted = new Set()
+
 const NAV = [
   { href: 'index.html', text: 'graphgram', brand: true },
   { href: 'guide.html', text: 'Guide' },
@@ -88,40 +92,80 @@ function escapeHtml (s) {
 
 // Rewrite one markdown link href for the published site.
 //
-// `srcDir` is the source file's directory (repo-relative), `outDepth` is how
-// deep below docs/ the emitted page sits. Anything absolute, anchor-only, or
-// mailto is left alone.
-function rewriteHref (href, srcDir, outDepth, mdToHtml) {
+// Two link styles have to work, and they resolve against DIFFERENT bases —
+// which is the bug this function originally shipped with, silently turning
+// thirty-seven working cross-references into GitHub URLs for files that do not
+// exist:
+//
+//   `advanced.md`   a source-to-source reference. Relative to the SOURCE file's
+//                   directory, and mapped through to whatever page that source
+//                   becomes. This is the form to prefer, because it also works
+//                   when the markdown is read on GitHub.
+//   `advanced.html` a page-to-page reference, written by hand. Relative to the
+//                   OUTPUT file's directory, since that is where the author was
+//                   thinking. Also the only way to link a page this script does
+//                   not generate — docs/play/, docs/jsdoc/, schema_doc.html.
+//
+// Anything that resolves to neither is assumed to escape the published tree —
+// source files, fixtures, tests — and becomes a GitHub blob URL, since those
+// are not on Pages. `checkLinks` at the bottom verifies the result rather than
+// trusting it.
+function rewriteHref (href, page, mdToHtml) {
   if (/^(https?:|mailto:|#)/.test(href)) return href
 
-  const hashAt = href.indexOf('#')
-  const hash = hashAt >= 0 ? href.slice(hashAt) : ''
-  const bare = hashAt >= 0 ? href.slice(0, hashAt) : href
+  // Split off ?query and #fragment together. The gallery links carry a query
+  // (`play/index.html?story=maze-locked.42`), and treating that as part of the
+  // path makes every one of them look like a missing file.
+  const cut = href.search(/[?#]/)
+  const suffix = cut >= 0 ? href.slice(cut) : ''
+  const bare = cut >= 0 ? href.slice(0, cut) : href
   if (!bare) return href
 
-  // Resolve to a repo-relative path so we can decide where it lands.
-  const target = path.normalize(path.join(srcDir, bare))
+  const outDir = path.posix.dirname(page.out)
 
-  const asHtml = mdToHtml[target]
-  if (asHtml) {
-    // Both source and destination live in the published tree: link page-to-page.
-    return path.posix.relative(path.posix.dirname(outPathFor(srcDir, outDepth)), asHtml) + hash
+  // 1. A .md reference: resolve against the source, map to the emitted page,
+  //    then re-express relative to where THIS page lands.
+  if (/\.md$/.test(bare)) {
+    const target = path.normalize(path.join(path.dirname(page.src), bare))
+    const asHtml = mdToHtml[target]
+    if (asHtml) return relativeTo(outDir, asHtml) + suffix
+    return REPO_BLOB + target.split(path.sep).join('/') + suffix
   }
-  // Escapes the published tree (source files, fixtures, tests): send to GitHub.
-  return REPO_BLOB + target.split(path.sep).join('/') + hash
+
+  // 2. Anything else: resolve against the output directory and keep it verbatim
+  //    if something really is published there — either a page this run emits or
+  //    a file already on disk (docs/play/, docs/jsdoc/, schema_doc.html).
+  //
+  //    The existence test is what separates `advanced.html`, a page-to-page
+  //    link, from `../subgraph.js`, a source reference written by a paper. Both
+  //    resolve to a path inside docs/; only one of them is there.
+  const resolved = path.posix.normalize(path.posix.join(outDir, bare))
+  if (!resolved.startsWith('..') && isPublished(resolved)) return href
+
+  // 3. Not published: a source file, a test, a fixture. Send it to GitHub.
+  const target = path.normalize(path.join(path.dirname(page.src), bare))
+  return REPO_BLOB + target.split(path.sep).join('/') + suffix
 }
 
-// Where a page emitted from `srcDir` at `outDepth` lives, docs-relative. Only
-// its directory is used, so a placeholder basename is fine.
-function outPathFor (srcDir, outDepth) {
-  return outDepth === 0 ? 'page.html' : '../'.repeat(0) + srcDir.split(path.sep).slice(-outDepth).join('/') + '/page.html'
+// Is this docs-relative path something the site actually serves? Either a page
+// this run is about to write, or a file already sitting in docs/.
+function isPublished (rel) {
+  if (emitted.has(rel)) return true
+  const abs = path.join(DOCS, rel)
+  return fs.existsSync(abs)
 }
 
-function render (markdown, ctx, mdToHtml) {
+// posix-relative path from one docs-relative directory to a docs-relative file.
+function relativeTo (fromDir, toFile) {
+  const rel = path.posix.relative(fromDir || '.', toFile)
+  return rel || path.posix.basename(toFile)
+}
+
+function render (markdown, page, mdToHtml) {
   const renderer = new marked.Renderer()
   const baseLink = renderer.link.bind(renderer)
   renderer.link = function (token) {
-    token.href = rewriteHref(token.href, ctx.srcDir, ctx.depth, mdToHtml)
+    token.href = rewriteHref(token.href, page, mdToHtml)
     return baseLink(token)
   }
   // Heading anchors, so papers can deep-link to each other's sections.
@@ -165,7 +209,10 @@ listMd(path.join(DOCS, 'spec')).forEach(function (f) {
 // Map every markdown source path to the page it becomes, so link rewriting can
 // tell an internal cross-reference from an escape to GitHub.
 const mdToHtml = {}
-pages.forEach(function (p) { mdToHtml[path.normalize(p.src)] = p.out })
+pages.forEach(function (p) {
+  mdToHtml[path.normalize(p.src)] = p.out
+  emitted.add(p.out)
+})
 
 // --- generated fragments ---------------------------------------------------
 
@@ -214,8 +261,7 @@ pages.forEach(function (p) {
     if (md.indexOf(token) >= 0) md = md.split(token).join(FRAGMENTS[token]())
   })
   const title = firstHeading(md, path.basename(p.out, '.html'))
-  const ctx = { srcDir: path.dirname(p.src), depth: p.depth }
-  const body = render(md, ctx, mdToHtml)
+  const body = render(md, p, mdToHtml)
   const html = shell({
     title: title === 'graphgram' ? 'graphgram' : title + ' · graphgram',
     depth: p.depth,
@@ -228,5 +274,39 @@ pages.forEach(function (p) {
   written++
   console.log('  ' + p.src + ' -> docs/' + p.out)
 })
+
+// --- link check ------------------------------------------------------------
+
+// Every internal link must resolve to a file that exists. This is here because
+// the first version of rewriteHref silently produced thirty-seven dead
+// cross-references and nothing noticed until a reader clicked one: a generator
+// that emits links without verifying them is a generator that emits dead links.
+function checkLinks () {
+  const problems = []
+  pages.forEach(function (p) {
+    const html = fs.readFileSync(path.join(DOCS, p.out), 'utf-8')
+    const outDir = path.posix.dirname(p.out)
+    const hrefs = (html.match(/href="([^"]+)"/g) || [])
+      .map(function (m) { return m.slice(6, -1) })
+    hrefs.forEach(function (href) {
+      if (/^(https?:|mailto:|#)/.test(href)) return
+      const bare = href.split(/[?#]/)[0]
+      if (!bare) return
+      const target = path.posix.normalize(path.posix.join(outDir, bare))
+      if (!fs.existsSync(path.join(DOCS, target)))
+        problems.push('docs/' + p.out + '  ->  ' + href + '   (no docs/' + target + ')')
+    })
+  })
+  return problems
+}
+
+const problems = checkLinks()
+if (problems.length) {
+  console.error('\n' + problems.length + ' dead internal link(s):')
+  problems.forEach(function (x) { console.error('  ' + x) })
+  process.exitCode = 1
+} else {
+  console.log('all internal links resolve')
+}
 
 console.log(written + ' pages written to docs/')

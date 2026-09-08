@@ -24,8 +24,8 @@
 <main class="prose">
 <h1 id="papers">Papers</h1>
 <p><em>A small internal literature. Six short technical papers that establish, for this project, a shared vocabulary and a standard of rigor — and one architecture spec that came out of a conversation and belongs with them.</em></p>
-<p>These are not documentation. The <a href="https://github.com/ihh/graphgram/blob/master/guide.html">Guide</a> and
-<a href="https://github.com/ihh/graphgram/blob/master/advanced.html">Advanced</a> pages tell you how to use the library; these argue
+<p>These are not documentation. The <a href="../guide.html">Guide</a> and
+<a href="../advanced.html">Advanced</a> pages tell you how to use the library; these argue
 about how it should work, measure whether it does, and say plainly where it
 does not. Each one defines its notation, cites the source file and line, ends
 with numbered open problems, and — where it makes an empirical claim — either
@@ -39,7 +39,7 @@ player 19.9% of the time, which makes it the wrong shape for a daily puzzle. A
 propagator-relative rather than a property of the puzzle. Better to have that
 written down than to keep rediscovering it.</p>
 <h2 id="the-six">The six</h2>
-<h3 id="the-narrative-slot-taxonomy-narrative-slots-html"><a href="https://github.com/ihh/graphgram/blob/master/papers/narrative-slots.html">The Narrative Slot Taxonomy</a></h3>
+<h3 id="the-narrative-slot-taxonomy-narrative-slots-html"><a href="narrative-slots.html">The Narrative Slot Taxonomy</a></h3>
 <p>A key and a door are one graph transformation and at least ten pieces of text.
 This enumerates them, gives the criterion that admits an eleventh, and does the
 same for rooms and passages — where a passage advertisement naively depends on
@@ -48,7 +48,7 @@ survive graphgram&#39;s gating. It separates <em>which slot</em> a string fills 
 version</em> of it is wanted, gives the general type (trajectory → string), and
 explains why Story IR v1 ships only the boolean projection of that vector.</p>
 <p>The foundational paper of the six: everything else borrows its vocabulary.</p>
-<h3 id="key-and-lock-as-graph-transformation-key-lock-transformations-html"><a href="https://github.com/ihh/graphgram/blob/master/papers/key-lock-transformations.html">Key and Lock as Graph Transformation</a></h3>
+<h3 id="key-and-lock-as-graph-transformation-key-lock-transformations-html"><a href="key-lock-transformations.html">Key and Lock as Graph Transformation</a></h3>
 <p>&quot;Key-and-lock puzzle&quot; names a semantic relation — an edge whose traversability
 is conditioned on the player&#39;s history, and a node whose visitation discharges
 that condition — not a shape. The repository realises that one relation with
@@ -57,7 +57,7 @@ recoverability, in whether they preserve acyclicity, in whether they nest inside
 their own output, and in what they cost in nodes, edges and diameter.</p>
 <p>Includes the solvability invariant a generator must maintain, and which
 construction maintains it by construction versus which deliberately does not.</p>
-<h3 id="budgets-nesting-depth-and-generative-control-budgets-html"><a href="https://github.com/ihh/graphgram/blob/master/papers/budgets.html">Budgets, Nesting Depth, and Generative Control</a></h3>
+<h3 id="budgets-nesting-depth-and-generative-control-budgets-html"><a href="budgets.html">Budgets, Nesting Depth, and Generative Control</a></h3>
 <p>You want &quot;about twelve rooms, three keys, at most two levels of nesting&quot;. What
 the engine offers is &quot;apply 25 rules sampled by weight&quot;. This paper is about
 that gap.</p>
@@ -67,7 +67,7 @@ match sites grows as the graph grows. It ends by arguing that rejection sampling
 — generate, measure, re-roll — is the honest way to hit a target shape, and
 notes that a human curating a daily puzzle is rejection sampling with a person
 as the acceptance test.</p>
-<h3 id="subgraph-isomorphism-and-the-triage-hooks-matching-engine-html"><a href="https://github.com/ihh/graphgram/blob/master/papers/matching-engine.html">Subgraph Isomorphism and the Triage Hooks</a></h3>
+<h3 id="subgraph-isomorphism-and-the-triage-hooks-matching-engine-html"><a href="matching-engine.html">Subgraph Isomorphism and the Triage Hooks</a></h3>
 <p>The one genuinely heavyweight thing the library does, described as it is
 actually implemented in <code>subgraph.js</code> rather than as Ullmann described it in
 1976. Each hook was measured by patching it off and confirming every variant
@@ -78,7 +78,7 @@ exact no-op — it called <code>predecessors</code> with a host id instead of a 
 which left correctness untouched and made the code 2.7x slower than baseline,
 <em>and 1.5x slower than having no refinement at all</em>, because it still paid the
 loop overhead.</p>
-<h3 id="the-daily-murder-mystery-murder-mystery-html"><a href="https://github.com/ihh/graphgram/blob/master/papers/murder-mystery.html">The Daily Murder Mystery</a></h3>
+<h3 id="the-daily-murder-mystery-murder-mystery-html"><a href="murder-mystery.html">The Daily Murder Mystery</a></h3>
 <p>The design paper for the project&#39;s destination. A murder mystery presented as a
 logic puzzle, built as a nest of key-and-lock puzzles on a generated graph,
 because the locks are informational: the key is a proposition and the gate is
@@ -88,7 +88,7 @@ rule that creates a lock is an anonymous directive from the murderer to an
 unwitting accomplice, so the derivation history <em>is</em> the plan — and a player who
 reconstructs it has solved the case. Which means the generator must <em>record</em> the
 derivation, not merely apply it.</p>
-<h3 id="logic-minigames-as-lock-skins-logic-minigames-html"><a href="https://github.com/ihh/graphgram/blob/master/papers/logic-minigames.html">Logic Minigames as Lock Skins</a></h3>
+<h3 id="logic-minigames-as-lock-skins-logic-minigames-html"><a href="logic-minigames.html">Logic Minigames as Lock Skins</a></h3>
 <p>The narrow technical companion. A lock needs a gate; the cheapest is &quot;do you
 hold the key&quot; and the next cheapest is a small self-contained puzzle whose exit
 edge is the locked edge.</p>
@@ -100,7 +100,7 @@ computed elimination figures, the observation that generating a minimal clue set
 is exactly minimum set cover, and a difficulty classifier that turns out to
 depend on which propagator you ask.</p>
 <h2 id="also">Also</h2>
-<h3 id="the-two-layer-mystery-geography-approval-spec-two-layer-mystery-html"><a href="https://github.com/ihh/graphgram/blob/master/spec/two-layer-mystery.html">The two-layer mystery: geography × approval</a></h3>
+<h3 id="the-two-layer-mystery-geography-approval-spec-two-layer-mystery-html"><a href="../spec/two-layer-mystery.html">The two-layer mystery: geography × approval</a></h3>
 <p>Not one of the six — it is an architecture spec rather than a paper — but it is
 where the mystery track&#39;s shape is actually settled, and the other papers defer
 to it.</p>

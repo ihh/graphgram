@@ -108,6 +108,8 @@ example-pdfs: examples
 # The documentation site: markdown -> HTML, plus the playable stories.
 site: docs-html play-site
 
+# Exits non-zero on a dead internal link, so this fails a build rather than
+# publishing one.
 docs-html:
 	node bin/build-docs.js
 
