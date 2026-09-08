@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>graphgram — play</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; font-family: Georgia, serif; }
+  body { display: flex; flex-direction: column; background: #f7f3ee; }
+  #status {
+    flex: 0 0 auto;
+    padding: 8px 12px;
+    background: #2b2a28;
+    color: #f0eadf;
+    font-family: "Menlo", "Consolas", monospace;
+    font-size: 14px;
+    display: flex;
+    gap: 18px;
+    align-items: baseline;
+    border-bottom: 1px solid #000;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  #status .chip { border: 1px solid #5a574e; padding: 1px 8px; border-radius: 3px; }
+  #status .dead { color: #f77; }
+  #status .mon { color: #fc9; }
+  #status .moves { color: #cfc; }
+  #status .score { color: #eea; }
+  #status .inv { color: #9cf; }
+  #status .debug {
+    color: #aaa; margin-left: auto;
+    text-decoration: underline; font-size: 11px;
+  }
+  #status .debug:hover { color: #fff; }
+  #panes {
+    flex: 1 1 auto;
+    display: flex;
+    min-height: 0;
+  }
+  #text-pane {
+    flex: 1 1 50%;
+    padding: 16px 22px;
+    overflow-y: auto;
+    line-height: 1.45;
+    background: #f7f3ee;
+    color: #1e1c18;
+  }
+  #text-pane .event { margin-bottom: 10px; }
+  #text-pane .verbose { font-style: normal; }
+  #text-pane .brief { color: #4d4a43; }
+  #text-pane .narrative { color: #2e2a1f; }
+  #text-pane .damage { color: #a33; font-variant: small-caps; font-size: 12px; }
+  #text-pane .heal { color: #1a7; font-variant: small-caps; font-size: 12px; }
+  #text-pane .death { color: #a33; font-weight: bold; font-size: 18px; margin-top: 18px; }
+  #text-pane .victory { color: #190; font-weight: bold; font-size: 18px; margin-top: 18px; }
+  #text-pane .divider { border-top: 1px dashed #c0b8a8; margin: 12px 0; }
+  #text-pane pre.trace {
+    font-family: "Menlo", "Consolas", monospace;
+    font-size: 11px;
+    background: #efece6;
+    border: 1px solid #d6cfb8;
+    padding: 8px 10px;
+    white-space: pre;
+    overflow-x: auto;
+    max-height: 260px;
+    overflow-y: auto;
+  }
+  #text-pane .links { margin-top: 6px; }
+  #text-pane .links a {
+    display: inline-block;
+    margin: 4px 6px 4px 0;
+    padding: 4px 10px;
+    background: #eadfc8;
+    color: #2e2a1f;
+    border: 1px solid #b0a890;
+    border-radius: 3px;
+    text-decoration: none;
+    font-variant: small-caps;
+    letter-spacing: 0.04em;
+  }
+  #text-pane .links a:hover { background: #d9ca9e; }
+  #text-pane .links a.choice { background: #e2d3ff; border-color: #9078c0; }
+  #text-pane .links a.retreat { background: #ffe0c2; border-color: #b88850; }
+  #text-pane .links a.return { background: #c4e2ff; border-color: #5088b8; }
+  #text-pane .links a.backtrack { background: #e8e8e8; border-color: #999; }
+  #text-pane .links a.look { background: #f8f4e8; border-color: #b0a890; }
+  #right-pane {
+    flex: 1 1 50%;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid #c0b8a8;
+    min-width: 0;
+  }
+  #zoom-bar {
+    flex: 0 0 auto;
+    padding: 4px 8px;
+    background: #f0e8d5;
+    border-bottom: 1px solid #c0b8a8;
+    font-family: "Menlo", "Consolas", monospace;
+    font-size: 12px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  #zoom-bar button {
+    border: 1px solid #b0a890;
+    background: #eadfc8;
+    width: 24px; height: 22px;
+    cursor: pointer;
+    font-size: 14px;
+    border-radius: 3px;
+  }
+  #zoom-bar button:hover { background: #d9ca9e; }
+  #zoom-bar #zoom-level { color: #554f40; }
+  #graph-pane {
+    flex: 1 1 auto;
+    padding: 8px;
+    overflow: auto;
+    background: #fff;
+  }
+  #graph-pane svg.graph { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+  /* Nodes: stroke + stroke-width handles the border so we can override per-state. */
+  #graph-pane .node > ellipse,
+  #graph-pane .node > rect,
+  #graph-pane .node > polygon {
+    stroke-width: 1.2;
+  }
+  #graph-pane .node.current > ellipse,
+  #graph-pane .node.current > rect,
+  #graph-pane .node.current > polygon {
+    stroke: #e06010;
+    stroke-width: 3;
+  }
+  #graph-pane .node.visited > ellipse,
+  #graph-pane .node.visited > rect,
+  #graph-pane .node.visited > polygon {
+    stroke: #2a6;
+    stroke-width: 2;
+  }
+  #graph-pane .node.frontier > ellipse,
+  #graph-pane .node.frontier > rect,
+  #graph-pane .node.frontier > polygon {
+    opacity: 0.55;
+  }
+  #graph-pane .node.frontier > text { fill: #888; }
+  #graph-pane .node.stub > text { fill: #888; font-style: italic; }
+  #error {
+    position: fixed; bottom: 8px; left: 8px; right: 8px;
+    background: #a33; color: white; padding: 6px 10px; border-radius: 3px;
+    display: none;
+  }
+</style>
+<style>
+  /* Picker chrome, on top of the styles lifted from play/index.html. */
+  #picker {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 6px 12px;
+    background: #efe8da;
+    border-bottom: 1px solid #c0b8a8;
+    font-family: "Menlo", "Consolas", monospace;
+    font-size: 12px;
+    color: #453f34;
+  }
+  #picker a { color: #7a3d1f; }
+  #picker select {
+    font-family: inherit; font-size: 12px;
+    padding: 2px 4px; border: 1px solid #b0a890; border-radius: 3px; background: #fff;
+  }
+  #picker .about { margin-left: auto; }
+</style>
+</head>
+<body>
+  <div id="picker">
+    <label for="story-select">story</label>
+    <select id="story-select"></select>
+    <span id="story-meta"></span>
+    <span class="about"><a href="../examples.html">about these examples</a> · <a href="../index.html">docs</a></span>
+  </div>
+  <div id="status"><span>Loading…</span></div>
+  <div id="panes">
+    <div id="text-pane"></div>
+    <div id="right-pane">
+      <div id="graph-pane"><p style="color:#999">Loading…</p></div>
+    </div>
+  </div>
+  <div id="error"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@dagrejs/dagre@1.1.4/dist/dagre.min.js"></script>
+  <script src="stories/manifest.js"></script>
+  <script src="phrasebook.js"></script>
+  <script>
+  // Ordered, dynamic script loading. play/game.js runs on load and expects
+  // window.GRAPH to be set already, so the story must finish loading before
+  // the engine script is even appended. A plain pair of <script> tags cannot
+  // express "whichever story the query string names", hence this shim.
+  (function () {
+    var stories = window.STORIES || []
+    if (!stories.length) {
+      document.getElementById('error').style.display = 'block'
+      document.getElementById('error').textContent =
+        'No stories built. Run: make site'
+      return
+    }
+
+    var params = new URLSearchParams(location.search)
+    var want = params.get('story')
+    var chosen = stories.filter(function (s) {
+      return s.file === want || (s.id + '.' + s.seed) === want || s.id === want
+    })[0] || stories[0]
+
+    var sel = document.getElementById('story-select')
+    stories.forEach(function (s) {
+      var opt = document.createElement('option')
+      opt.value = s.id + '.' + s.seed
+      opt.textContent = s.id + ' · seed ' + s.seed
+      if (s === chosen) opt.selected = true
+      sel.appendChild(opt)
+    })
+    sel.addEventListener('change', function () {
+      location.search = '?story=' + encodeURIComponent(sel.value)
+    })
+
+    document.getElementById('story-meta').textContent =
+      chosen.title + ' — ' + chosen.topology +
+      (chosen.puzzles ? ', puzzles' : ', no puzzles') +
+      ' — ' + chosen.nodes + ' nodes, ' + chosen.edges + ' edges'
+
+    function load (src, next) {
+      var el = document.createElement('script')
+      el.src = src
+      el.onload = next
+      el.onerror = function () {
+        document.getElementById('error').style.display = 'block'
+        document.getElementById('error').textContent = 'Failed to load ' + src
+      }
+      document.body.appendChild(el)
+    }
+
+    load('stories/' + chosen.file, function () { load('game.js', function () {}) })
+  })()
+  </script>
+</body>
+</html>

@@ -167,11 +167,52 @@ listMd(path.join(DOCS, 'spec')).forEach(function (f) {
 const mdToHtml = {}
 pages.forEach(function (p) { mdToHtml[path.normalize(p.src)] = p.out })
 
+// --- generated fragments ---------------------------------------------------
+
+// The example gallery's prose is hand-written, but the facts in it — ids,
+// seeds, budgets, which formats exist — are generated, so the page cannot drift
+// from the catalogue. `docs/src/examples.md` carries the placeholder.
+function exampleCards () {
+  let examples
+  try {
+    examples = require('../examples')
+  } catch (e) {
+    // The gallery is buildable before every example module exists; say so
+    // rather than failing the whole site build.
+    return '<p><em>Example catalogue unavailable: ' + escapeHtml(e.message) + '</em></p>'
+  }
+  const cards = examples.list().map(function (ex) {
+    const seed = ex.defaultSeeds[0]
+    const budget = Object.keys(ex.budget || {})
+      .filter(function (k) { return ex.budget[k] })
+      .map(function (k) { return k + ' ' + ex.budget[k] })
+      .join(' · ')
+    return [
+      '<li class="card">',
+      '<h3><a href="play/index.html?story=' + ex.id + '.' + seed + '">' + escapeHtml(ex.title) + '</a></h3>',
+      '<p><span class="pill">' + ex.topology + '</span>',
+      '<span class="pill">' + (ex.puzzles ? 'puzzles' : 'no puzzles') + '</span></p>',
+      '<p><code>' + ex.id + '</code>, canonical seed <code>' + seed + '</code>.',
+      ' Other pinned seeds: ' + ex.defaultSeeds.slice(1).map(function (s) {
+        return '<a href="play/index.html?story=' + ex.id + '.' + s + '">' + s + '</a>'
+      }).join(', ') + '.</p>',
+      '<span class="meta">' + escapeHtml(budget) + '</span>',
+      '</li>'
+    ].join('\n')
+  })
+  return '<ul class="cards">\n' + cards.join('\n') + '\n</ul>'
+}
+
+const FRAGMENTS = { '<!--EXAMPLE-CARDS-->': exampleCards }
+
 // --- build -----------------------------------------------------------------
 
 let written = 0
 pages.forEach(function (p) {
-  const md = fs.readFileSync(path.join(ROOT, p.src), 'utf-8')
+  let md = fs.readFileSync(path.join(ROOT, p.src), 'utf-8')
+  Object.keys(FRAGMENTS).forEach(function (token) {
+    if (md.indexOf(token) >= 0) md = md.split(token).join(FRAGMENTS[token]())
+  })
   const title = firstHeading(md, path.basename(p.out, '.html'))
   const ctx = { srcDir: path.dirname(p.src), depth: p.depth }
   const body = render(md, ctx, mdToHtml)

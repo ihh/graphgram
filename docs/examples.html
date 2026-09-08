@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Worked examples · graphgram</title>
+<meta name="description" content="graphgram — a graph grammar library for procedural narrative">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<header class="site-nav">
+  <nav>
+      <a href="index.html" class="brand">graphgram</a>
+      <a href="guide.html">Guide</a>
+      <a href="advanced.html">Advanced</a>
+      <a href="examples.html" class="active">Examples</a>
+      <a href="play/index.html">Play</a>
+      <a href="papers/index.html">Papers</a>
+      <a href="spec/story-ir.html">Spec</a>
+      <a href="jsdoc/index.html">API</a>
+      <a href="https://github.com/ihh/graphgram" rel="noopener">GitHub</a>
+  </nav>
+</header>
+<main class="prose">
+<h1 id="worked-examples">Worked examples</h1>
+<p><em>Five reproducible stories spanning the design space: DAG and bidirectional hypertexts, with and without puzzles, plus the murder mystery. Every one buildable from the command line at a pinned seed, and playable here.</em></p>
+<h2 id="the-axes">The axes</h2>
+<p>A hypertext can be <strong>acyclic</strong> — every link moves you strictly forward, you
+never revisit a passage, the whole story is a partial order — or
+<strong>bidirectional</strong>, where corridors run both ways, loops close, and the player
+can and will come back to somewhere they have been. The two want different
+primitives, different text, and different things from an exporter. An acyclic
+story never needs <code>text.repeat</code>; a bidirectional one is unreadable without it.</p>
+<p>Orthogonally, a map can be <strong>puzzle-free</strong> — the shape of the graph is the
+whole of the content — or <strong>puzzle-inclusive</strong>, where some links are gated on
+state the player has to go and acquire. Adding a lock to an acyclic graph is
+harder than it sounds, and <code>dag-locked</code> exists to show one way to do it.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>puzzle-free</th>
+<th>puzzle-inclusive</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>DAG hypertext</strong></td>
+<td><code>dag-plain</code></td>
+<td><code>dag-locked</code></td>
+</tr>
+<tr>
+<td><strong>bidirectional hypertext</strong></td>
+<td><code>maze-plain</code></td>
+<td><code>maze-locked</code></td>
+</tr>
+</tbody></table>
+<ul class="cards">
+<li class="card">
+<h3><a href="play/index.html?story=dag-plain.42">The One-Way Wood</a></h3>
+<p><span class="pill">dag</span>
+<span class="pill">no puzzles</span></p>
+<p><code>dag-plain</code>, canonical seed <code>42</code>.
+ Other pinned seeds: <a href="play/index.html?story=dag-plain.1729">1729</a>, <a href="play/index.html?story=dag-plain.8675309">8675309</a>.</p>
+<span class="meta">rooms 10</span>
+</li>
+<li class="card">
+<h3><a href="play/index.html?story=dag-locked.42">The Sealed Gate</a></h3>
+<p><span class="pill">dag</span>
+<span class="pill">puzzles</span></p>
+<p><code>dag-locked</code>, canonical seed <code>42</code>.
+ Other pinned seeds: <a href="play/index.html?story=dag-locked.1729">1729</a>, <a href="play/index.html?story=dag-locked.8675309">8675309</a>.</p>
+<span class="meta">rooms 14 · keys 2 · nestingDepth 2</span>
+</li>
+<li class="card">
+<h3><a href="play/index.html?story=maze-plain.42">The Warren</a></h3>
+<p><span class="pill">bidirectional</span>
+<span class="pill">no puzzles</span></p>
+<p><code>maze-plain</code>, canonical seed <code>42</code>.
+ Other pinned seeds: <a href="play/index.html?story=maze-plain.1729">1729</a>, <a href="play/index.html?story=maze-plain.8675309">8675309</a>.</p>
+<span class="meta">rooms 12</span>
+</li>
+<li class="card">
+<h3><a href="play/index.html?story=maze-locked.42">The Cindermoor Vault</a></h3>
+<p><span class="pill">bidirectional</span>
+<span class="pill">puzzles</span></p>
+<p><code>maze-locked</code>, canonical seed <code>42</code>.
+ Other pinned seeds: <a href="play/index.html?story=maze-locked.1729">1729</a>, <a href="play/index.html?story=maze-locked.8675309">8675309</a>.</p>
+<span class="meta">rooms 16 · keys 3 · nestingDepth 2 · minigames 2</span>
+</li>
+<li class="card">
+<h3><a href="play/index.html?story=mystery-daily.1024651441">A Note in Another Hand</a></h3>
+<p><span class="pill">bidirectional</span>
+<span class="pill">puzzles</span></p>
+<p><code>mystery-daily</code>, canonical seed <code>1024651441</code>.
+ Other pinned seeds: <a href="play/index.html?story=mystery-daily.42">42</a>, <a href="play/index.html?story=mystery-daily.1729">1729</a>.</p>
+<span class="meta">rooms 8 · keys 4 · nestingDepth 3 · npcs 5 · minigames 1</span>
+</li>
+</ul><h2 id="building-them-yourself">Building them yourself</h2>
+<p>Every example is a module under <code>examples/</code> matching one small interface
+(see <a href="https://github.com/ihh/graphgram/blob/master/docs/src/spec/examples.html">the catalogue spec</a>), and every artefact on this page
+came from <code>bin/story.js</code>:</p>
+<pre><code class="language-bash">bin/story.js --list                      # the catalogue, with budgets
+
+bin/story.js --example maze-locked --seed 42 --format ir           --out story.json
+bin/story.js --example maze-locked --seed 42 --format twine        --out story.twee
+bin/story.js --example maze-locked --seed 42 --format choicescript --out story-cs/
+bin/story.js --example maze-locked --seed 42 --format inform7      --out story.ni
+bin/story.js --example maze-locked --seed 42 --format play         --out play/graph.js
+bin/story.js --example maze-locked --seed 42 --format dot          --out story.dot
+
+make examples                            # all of the above, for all five
+</code></pre>
+<h3 id="reproducibility">Reproducibility</h3>
+<p>For a fixed library version, <code>--example E --seed S</code> produces <strong>byte-identical</strong>
+output on every machine, in every format. Four things hold that up: a single
+seeded Mersenne Twister as the only entropy source; a theme derived from the
+seed rather than sampled; no wall-clock timestamp anywhere in the output (the
+Twine IFID is a hash of <code>id + seed</code>, not a fresh UUID); and a defined ordering
+for IR passages and links.</p>
+<p>That is what makes a &quot;seed you can share&quot; meaningful, and it is why
+<a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/murder-mystery.html">the daily mystery</a> can key off a date.</p>
+<h2 id="what-each-one-demonstrates">What each one demonstrates</h2>
+<h3 id="dag-plain-the-shape-of-a-branching-story"><code>dag-plain</code> — the shape of a branching story</h3>
+<p>Fork and join, nothing else. Two arms diverge from a passage and rejoin at the
+next, so a choice is real without fragmenting the story into two disjoint
+futures that both have to be written. There is no state at all: no variables, no
+conditions, no locks. If an exporter can round-trip this one, its passage and
+link machinery is correct, and everything after this is about state.</p>
+<h3 id="dag-locked-a-lock-the-player-cannot-walk-back-to"><code>dag-locked</code> — a lock the player cannot walk back to</h3>
+<p>The interesting acyclic problem. In a bidirectional map a key-lock is easy: you
+hang the key off a side branch, and if you reach the door without it you walk
+back. With no way back, that construction is unavailable.</p>
+<p><code>dagKeyLock</code> solves it with a fork whose two arms rejoin before the lock:</p>
+<pre><code>        ┌── key room ──┐
+   a ───┤              ├─── join ──[locked]──▶ b
+        └── skip room ─┘             │
+                                     └──▶ (a losing ending)
+</code></pre>
+<p>The choice at <code>a</code> is a genuine commitment made <em>before</em> its consequence is
+visible, and the failure is legible in hindsight. That is a real trade: you give
+up recoverability, and what you buy is a puzzle solvable by reasoning rather
+than by exhaustive walking — which is exactly what a daily puzzle wants.
+<a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/key-lock-transformations.html">Key and lock as graph transformation</a>
+catalogues the alternatives.</p>
+<h3 id="maze-plain-why-text-repeat-exists"><code>maze-plain</code> — why <code>text.repeat</code> exists</h3>
+<p>Two-way midpoint rooms, dead ends with explicit backtracks, parallel routes,
+and cycle-closing returns. No locks anywhere. The point is that a map with no
+puzzles in it at all is still worth walking, provided the writing knows you have
+been here before. Every room and every passage in this example carries its own
+narrative slot; a generated map where they do not is the specific failure this
+example exists to catch.</p>
+<h3 id="maze-locked-the-full-apparatus"><code>maze-locked</code> — the full apparatus</h3>
+<p>Key/door side-branches with shared <code>pairId</code>s, nested locks, gated returns that
+turn the tree into a Metroidvania graph, health potions, Markov monster battles,
+and multiple-choice puzzle gates. This is the file to copy when starting
+something new; its header comment walks through all six stages.</p>
+<h3 id="mystery-daily-the-destination"><code>mystery-daily</code> — the destination</h3>
+<p>Suspects, secrets, and social locks. The keys are facts rather than brass:
+<em>confront the butler about his affair</em> is a key, and a suspect&#39;s silence is a
+door. What a lock yields need not be a room — more often it is the next
+person&#39;s willingness to receive you at all, which is what turns a set of
+suspects into a conspiracy with a shape.</p>
+<p>The seed derives from the date, so everyone gets the same puzzle on the same
+day. <a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/murder-mystery.html">The design paper</a> is the long version.</p>
+<h2 id="playing-them">Playing them</h2>
+<p>The <a href="https://github.com/ihh/graphgram/blob/master/docs/src/play/index.html">play page</a> runs any of these in the browser: a text pane
+with the narrative and its link affordances, a live map of the neighbourhood
+you are standing in, and a status bar with HP, inventory and a trace dump. Pick
+a story from the menu, or link straight to one:</p>
+<pre><code>play/index.html?story=maze-locked.42
+</code></pre>
+<p>The text you will see is <em>placeholder prose</em> — <code>[gothic_horror:describe_room#room_4]</code>
+— unless the story was built with <code>--sonnet</code>. That is the debug mode working as
+designed: it shows exactly which narrative slot each piece of text will occupy,
+which is far more useful when developing a grammar than plausible-sounding
+filler would be. See <a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/narrative-slots.html">the narrative slot taxonomy</a>
+for what the slot names mean.</p>
+
+</main>
+<footer class="site-foot">
+  <p>graphgram · <a href="https://github.com/ihh/graphgram">github.com/ihh/graphgram</a> · ISC</p>
+</footer>
+</body>
+</html>

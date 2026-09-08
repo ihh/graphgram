@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Narrative Slot Taxonomy · graphgram</title>
+<meta name="description" content="graphgram — a graph grammar library for procedural narrative">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+<header class="site-nav">
+  <nav>
+      <a href="../index.html" class="brand">graphgram</a>
+      <a href="../guide.html">Guide</a>
+      <a href="../advanced.html">Advanced</a>
+      <a href="../examples.html">Examples</a>
+      <a href="../play/index.html">Play</a>
+      <a href="../papers/index.html">Papers</a>
+      <a href="../spec/story-ir.html">Spec</a>
+      <a href="../jsdoc/index.html">API</a>
+      <a href="https://github.com/ihh/graphgram" rel="noopener">GitHub</a>
+  </nav>
+</header>
+<main class="prose">
+<h1 id="the-narrative-slot-taxonomy">The Narrative Slot Taxonomy</h1>
+<p><em>A key and a door are one graph transformation and at least ten pieces of
+text. This paper enumerates those pieces and gives the criterion that
+admits an eleventh. It does the same for rooms and passages, where an
+advertisement naively depends on three booleans and so on eight states —
+five reachable, two surviving graphgram&#39;s gating. It separates</em> which slot
+<em>a string fills from</em> which version <em>of it is wanted, gives the general
+type (trajectory to string), shows that edge-traversal counts are
+a sufficient statistic for it except for recency, and explains why Story
+IR v1 ships only the boolean projection of that vector. It ends with an
+audit of how slots are filled here today, and where code and taxonomy have
+come apart.</em></p>
+<h2 id="1-notation">1. Notation</h2>
+<p>The generator emits a directed multigraph <code>G = (V, E)</code> whose nodes and
+edges carry <code>label</code> objects; call a node or edge an <strong>element</strong>. A <strong>slot</strong>
+is a named position in an element&#39;s text — not a string, a hole where one
+goes. A <strong>moment</strong> is a pair (element, player state) at which the engine
+must emit text; slots are individuated by moments (§2.2). A <strong>trajectory</strong>
+is the walk <code>v0 -e1-&gt; v1 -...-&gt; vn</code> from the start. For <code>e = (u→v)</code>, <code>ē</code>
+is the reverse edge <code>(v→u)</code> when one exists — here a separate edge with
+its own label, usually <code>type: &quot;backtrack&quot;</code>, never a direction flag. <code>T(e)</code>
+and <code>V(x)</code> are traversal and visit counts; <code>c ∈ ℕ^E</code> is the vector of all
+<code>T(e)</code>. Two registers recur, named in <code>narrator.js</code>: <strong>narrator</strong> text
+(<code>asNarrator</code>) and <strong>player-command</strong> text (<code>asPlayer</code>, the words on the
+affordance).</p>
+<h2 id="2-the-slot-inventory-for-a-key-lock">2. The slot inventory for a key–lock</h2>
+<h3 id="2-1-the-ten">2.1 The ten</h3>
+<p>One <code>keyDoor</code> application (<code>dungeon-primitives.js:289</code>) rewrites one path
+edge into a key branch, a door node, and a gated forward edge. That single
+transformation opens ten moments.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Slot</th>
+<th>Fires when</th>
+<th>Register</th>
+<th>Optional</th>
+<th>What breaks without it</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td><code>lock.closed</code></td>
+<td>the gated edge is offered and its condition is false</td>
+<td>narrator</td>
+<td>no</td>
+<td>the refusal has no stated reason and reads as a bug, not a puzzle</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>key.location</code></td>
+<td>entering the node holding the key, before pickup</td>
+<td>narrator</td>
+<td>no</td>
+<td>the key materialises from nowhere; its room has no reason to exist</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>key.description</code></td>
+<td>the key as an object, wherever it is named</td>
+<td>narrator</td>
+<td>no</td>
+<td>the unlock line can only say &quot;the key&quot;; key and lock cannot be matched by description</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>key.take</code></td>
+<td>the moment of acquisition</td>
+<td>player-command</td>
+<td>yes</td>
+<td>acquisition is silent; the player does not learn they hold it</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>key.carry</code></td>
+<td>the standing state, in inventory or status chip</td>
+<td>narrator (terse)</td>
+<td>yes</td>
+<td>the status bar shows an internal id (<code>Key pair_3</code>)</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>lock.recognition</code></td>
+<td>key and lock first co-present</td>
+<td>narrator</td>
+<td>yes</td>
+<td>the solution is invisible: a greyed affordance silently turns live</td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>lock.unlock</code></td>
+<td>the traversal that first opens the gate</td>
+<td>player-command</td>
+<td>no</td>
+<td>there is no moment of solving; the lock is a speed bump</td>
+</tr>
+<tr>
+<td>8</td>
+<td><code>lock.open</code></td>
+<td>the door as a standing object, on any later encounter</td>
+<td>narrator</td>
+<td>no</td>
+<td>the door is described as shut forever, including from behind (§7, D5)</td>
+</tr>
+<tr>
+<td>9</td>
+<td><code>edge.preface</code></td>
+<td>the affordance for taking the now-open edge</td>
+<td>player-command</td>
+<td>no</td>
+<td>the button reads <code>path</code>, the engine&#39;s last-resort fallback (<code>play/game.js:455</code>)</td>
+</tr>
+<tr>
+<td>10</td>
+<td><code>edge.traverse</code></td>
+<td>narration printed on going through, once open</td>
+<td>narrator</td>
+<td>yes</td>
+<td>the move between rooms is abrupt</td>
+</tr>
+</tbody></table>
+<p>Slots 7 and 9 get confused because both are player-command text on the
+same edge. They are different moments: 7 fires once, on the traversal that
+flips the gate; 9 on every traversal after. The IR fixture encodes them as
+one field&#39;s two <em>versions</em>, which §4 argues is a category error.</p>
+<h3 id="2-2-the-admission-criterion">2.2 The admission criterion</h3>
+<p>The list is deliberately open. The rule for admitting an eleventh slot:</p>
+<pre><code>A slot exists iff there is a player-visible moment at which the
+text must differ from every other slot&#39;s text.
+</code></pre>
+<p>Two corollaries do the work. <em>A distinction the player cannot observe is
+not a slot</em>: if the engine knows the door slides but never renders that,
+there is no <code>door.mechanism</code>. <em>Two positions that always co-fire and never
+need to differ are one slot</em>: slots 2 and 3 are separate only because a
+key can be named away from where it lies.</p>
+<p>Three slots the list lacks and plausibly needs:</p>
+<ol>
+<li><strong><code>lock.wrong_key</code>.</strong> The gate is <code>prereq.pairId</code>, so the only failure
+is &quot;no key with this id&quot;, which reads as &quot;no key at all&quot;. Once a budget
+permits two keys held at once (see <a href="https://github.com/ihh/graphgram/blob/master/papers/budgets.md">budgets</a>), &quot;that key
+does not fit&quot; is a visibly different moment from &quot;you have nothing to
+try&quot;.</li>
+<li><strong><code>lock.far_side</code>.</strong> Arriving at a door from behind, never having
+unlocked it. <code>keyDoor</code> makes this unreachable — the <code>b→d</code> backtrack is
+gated on the locked edge&#39;s <code>traversed</code> — but <code>cycleCloseShortcut</code>
+exists to route players around, and the first cycle that lands someone
+behind a locked door needs text other than &quot;a locked door blocks the
+way&quot;.</li>
+<li><strong><code>lock.refused_again</code>.</strong> A player who pushes a door five times gets
+one sentence five times. It is a version rather than a slot only if
+<code>first</code>/<code>repeat</code> is granted to the rejected-offer moment; nothing gives
+<code>closedText</code> a <code>repeat</code> today, though the grammar allows one.</li>
+</ol>
+<h2 id="3-rooms-and-passages">3. Rooms and passages</h2>
+<p><strong>Rooms</strong> need a first and a subsequent description, plus a third moment
+that is easy to misfile: the <em>look</em> affordance (<code>play/game.js:411-427</code>)
+reprints the long description on demand. That is a slot, not a version,
+because it fires on a player action — arrival prose (&quot;You push through
+into the nave&quot;) is wrong in answer to a deliberate re-examination.</p>
+<p><strong>Passage advertisements</strong> are the text on the affordance for <code>e = (u→v)</code>
+rendered while the player stands at <code>u</code>. Naively it depends on three
+booleans: <code>T</code> (has <code>e</code> been traversed?), <code>R</code> (has <code>ē</code>?), <code>V</code> (has <code>v</code> been
+visited?). Eight combinations; three are structurally unreachable:</p>
+<pre><code>T(e) ≥ 1  ⇒  V(v) ≥ 1
+T(ē) ≥ 1  ⇒  V(v) ≥ 1
+</code></pre>
+<p>In English: you cannot have walked the passage without arriving at its far
+end, and cannot have walked <em>back</em> along it without having been at that
+end to start from. <code>V = 0</code> therefore forces <code>T = R = 0</code>, killing
+<code>(1,0,0)</code>, <code>(0,1,0)</code> and <code>(1,1,0)</code>. Five remain:</p>
+<table>
+<thead>
+<tr>
+<th>State</th>
+<th>Name</th>
+<th>What it must convey</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>(0,0,0)</code></td>
+<td>invitation</td>
+<td>an unexplored way out, target unknown</td>
+</tr>
+<tr>
+<td><code>(0,0,1)</code></td>
+<td>connection</td>
+<td>an unwalked passage toward somewhere known — the shortcut</td>
+</tr>
+<tr>
+<td><code>(0,1,1)</code></td>
+<td>return</td>
+<td>the way you came in, going back</td>
+</tr>
+<tr>
+<td><code>(1,0,1)</code></td>
+<td>again</td>
+<td>a route walked in this direction before</td>
+</tr>
+<tr>
+<td><code>(1,1,1)</code></td>
+<td>familiar</td>
+<td>a corridor you have worn a groove in</td>
+</tr>
+</tbody></table>
+<p>A 300-walk uniform-random simulation over the seed-42 dungeon
+(<code>bin/transform.js -g grammars/dunjs-dungeon.js -s 42 --placeholder</code>;
+28,849 player-facing offers, engine-rolled <code>random</code> nodes excluded)
+reaches all five and none of the other three: <code>(0,0,0)</code> 47.7%, <code>(1,0,1)</code>
+23.4%, <code>(1,1,1)</code> 18.6%, <code>(0,1,1)</code> 5.9%, <code>(0,0,1)</code> 4.3%. A uniform walker
+is not a player and ignores HP, so read those as an existence proof for
+the five states, not a frequency model.</p>
+<p>Three further collapses are cheap wins.</p>
+<p><strong>Epistemic.</strong> <code>(0,0,1)</code> differs from <code>(0,0,0)</code> only if the player can know
+the unwalked passage leads somewhere they have been. In mapless prose they
+cannot, and the two must render alike — otherwise the narrator is reading
+the player&#39;s map aloud. The play app <em>does</em> draw a map, so there the
+states are distinguishable and <code>(0,0,1)</code> earns its own text. Prose
+exporters should collapse it.</p>
+<p><strong>Gating.</strong> A <code>backtrack</code> edge carries <code>prereq: { traversed: &lt;edgeId of e&gt; }</code>, so it is offered only when <code>T(e) = 1</code>: exactly two reachable states,
+<code>(0,1,1)</code> and <code>(1,1,1)</code>, and exactly two strings needed. That is why one
+constant (<code>backtrack: { link: &#39;Go back&#39; }</code>) covers 18 of seed 42&#39;s 313
+edges without anyone noticing.</p>
+<p><strong>Topology.</strong> In a DAG the player never returns to <code>u</code>, so an edge is
+offered at most once: <code>T = R = 0</code> always, and <code>(0,0,1)</code> would need a
+second route back to the fork, which a DAG has not got. Every
+advertisement in a <code>meta.topology: &quot;dag&quot;</code> story is in state <code>(0,0,0)</code> and
+link-level <code>repeat</code> is dead storage — the advertisement taxonomy is
+entirely a <code>&quot;bidirectional&quot;</code> concern. It also covers fewer edges than the
+edge count suggests: at seed 42, 120 of 313 edges are <code>consequence</code> edges
+out of <code>random</code> nodes, which the engine rolls and never advertises.</p>
+<h2 id="4-the-version-axes">4. The version axes</h2>
+<p>Orthogonal to <em>which slot</em> is <em>which version</em>: first vs subsequent, long
+vs terse, and a rotation among equivalent phrasings. Story IR §7 names
+these <code>first</code>, <code>repeat</code>, <code>brief</code>, <code>variants</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Slot</th>
+<th><code>first</code></th>
+<th><code>repeat</code></th>
+<th><code>brief</code></th>
+<th><code>variants</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>room description</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓ (map legend)</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>passage advertisement</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓ (button vs sentence)</td>
+<td>✓</td>
+</tr>
+<tr>
+<td><code>lock.closed</code></td>
+<td>✓</td>
+<td>✓ (unrealised)</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td><code>key.carry</code></td>
+<td>—</td>
+<td>—</td>
+<td>✓ (it <em>is</em> the terse register)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>lock.unlock</code></td>
+<td>✓</td>
+<td>n/a (fires once)</td>
+<td>—</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>ending / <code>describe_win</code></td>
+<td>✓</td>
+<td>n/a</td>
+<td>✓</td>
+<td>n/a</td>
+</tr>
+</tbody></table>
+<p>Any version can be wanted for most slots independently of the others.
+Orthogonality fails in three places.</p>
+<p><strong>Multiplicity-1 slots.</strong> <code>theme_intro</code>, <code>describe_win</code>, <code>describe_death</code>
+and <code>lock.unlock</code> fire once per playthrough by construction, so <code>repeat</code>
+and <code>variants</code> are unreachable and a model call spent filling them is
+spent on text nobody sees.</p>
+<p><strong><code>brief</code> is sometimes an identity, not a version.</strong> For a room it
+shortens the same content. For <code>key.carry</code> — a status chip — terseness
+<em>is</em> the slot. Slots already terse by register (everything named
+<code>button_*</code> in <code>themes.js</code>) have no long/short axis; the &quot;long version of
+the button&quot; is a different slot, <code>edge.traverse</code>.</p>
+<p><strong>The lock conflates the axes outright.</strong> From
+<code>test/fixtures/story-ir.sample.json</code>:</p>
+<pre><code class="language-json">&quot;linkText&quot;: {
+  &quot;first&quot;:  &quot;Turn the brass key in the wing-shaped lock&quot;,
+  &quot;repeat&quot;: &quot;Go through the open door&quot;
+}
+</code></pre>
+<p>These are slots 7 and 9 riding on one field pair, because the IR gives
+exactly two versions and the lock has exactly two moments. It works and
+will keep working, but an exporter shortening <code>first</code> for a narrow layout
+would be shortening a once-per-game dramatic beat as if it were a corridor
+label.</p>
+<h2 id="5-the-general-form">5. The general form</h2>
+<p>The general answer is a function from the trajectory to a string:</p>
+<pre><code>render : Slot × Trajectory → String
+Trajectory = walk(G) rooted at start = v0 -e1-&gt; v1 -...-&gt; vn
+</code></pre>
+<p>Almost nobody wants the whole trajectory. The count vector <code>c</code> is a
+sufficient statistic for nearly every decision an author makes, and it
+carries more than it looks like. Node visit counts follow from <code>c</code>
+(arrivals at <code>v</code> = the sum of <code>c_e</code> over edges into <code>v</code>, plus one if <code>v</code>
+is the start). So does the player&#39;s position: the excess <code>out(x) − in(x)</code>
+computed from <code>c</code> is <code>+1</code> at <code>v0</code>, <code>−1</code> at <code>vn</code> and <code>0</code> elsewhere, and is
+zero everywhere exactly when the walk has returned to <code>v0</code>. Every <code>prereq</code>
+in <code>dungeon-primitives.js</code> is a function of <code>c</code> — <code>traversed</code> reads one
+component, <code>visited</code> a sum, <code>pairId</code> a sum over the key nodes with that
+id.</p>
+<p>What <code>c</code> loses is order, and that costs less than it looks, because text
+fires <em>at a moment</em> and the counts at that moment already encode
+precedence: &quot;you accuse the butler before finding the letter&quot; needs no
+ordering, since when the accusation fires the letter&#39;s count is 0 or 1 and
+that settles it. What <code>c</code> cannot express is <strong>recency</strong> — which of several
+things that have all happened, happened last.</p>
+<p>The minimal example is a crossroads with two loops: <code>L, L&#39;</code> the left
+passage and its return, <code>R, R&#39;</code> the right.</p>
+<pre><code>history A:  L  L&#39;  R  R&#39;
+history B:  R  R&#39;  L  L&#39;
+</code></pre>
+<p>Same current node, same count vector, and the correct advertisement
+differs: &quot;last time you went right, so try left&quot; is right in A and wrong
+in B. Any text that says <em>last time</em> rather than <em>ever</em> needs the ordered
+path, or a variable standing in for it (§6).</p>
+<h2 id="6-the-projection-we-actually-ship">6. The projection we actually ship</h2>
+<p>Story IR v1 (<code>docs/spec/story-ir.md</code> §7) ships the boolean projection of
+<code>c</code>: per element, <code>c == 0</code> (<code>first</code>) versus <code>c &gt; 0</code> (<code>repeat</code>), plus
+<code>brief</code> and an unconsumed <code>variants</code> rotation — nothing in the repository
+reads <code>variants</code>, <code>exporters/</code> being empty and <code>play/game.js</code> never
+mentioning the field.</p>
+<p>The justification is target uniformity, not expressive poverty. All three
+targets carry one bit per element without an interpreter, and two do it
+with no declaration at all (Harlowe&#39;s <code>visits</code>, Inform 7&#39;s &quot;for the first
+time&quot;); ChoiceScript needs one created flag per element, which is why the
+IR declares them in <code>vars</code> as <code>kind: &quot;visited&quot;</code> and <code>kind: &quot;traversed&quot;</code>.
+Counting is expressible in all three too, but it costs a variable and an
+increment per element and is not uniform across targets. What the IR must
+not ship is a <code>render</code> function: none of the three can evaluate
+JavaScript, and a closure does not serialise.</p>
+<p>The migration path is additive:</p>
+<pre><code class="language-jsonc">{
+  &quot;first&quot;:  &quot;The door will not budge.&quot;,
+  &quot;repeat&quot;: &quot;Still shut.&quot;,
+  &quot;conditions&quot;: [
+    { &quot;when&quot;: { &quot;var&quot;: &quot;n_e_db_2&quot;, &quot;gte&quot;: 3 },
+      &quot;text&quot;: &quot;You have tried this door three times. It is still a door.&quot; }
+  ]
+}
+</code></pre>
+<p>An implementer owes four things. (1) <code>buildStoryIR</code> emits a
+<code>kind: &quot;counter&quot;</code> var per <em>counted</em> element — demand-driven, only where a
+text object conditions on it, or the var table grows with the graph.
+(2) The matching <code>onTraverse</code> / <code>onEnter</code> gains
+<code>{ &quot;op&quot;: &quot;add&quot;, &quot;var&quot;: &quot;n_e_db_2&quot;, &quot;value&quot;: 1 }</code>. (3) Evaluation is
+top-down, first match wins, falling through to <code>repeat</code> then <code>first</code>, so
+both must stay populated even when <code>conditions</code> is present; an exporter
+ignoring the field still emits a playable story. (4) <code>validateStoryIR</code>
+extends its §10.6 check to vars named inside text conditions.</p>
+<p>Recency needs one further thing only: a single
+<code>{ &quot;name&quot;: &quot;last_edge&quot;, &quot;kind&quot;: &quot;string&quot; }</code> var, set by an <code>onTraverse</code>
+effect on each edge anyone conditions on. That requires <code>set</code> and <code>eq</code> to
+admit string values, which the fixture exercises only for booleans and
+numbers today. One variable buys the recency axis, per-element counters
+buy the frequency axis, and neither needs an interpreter.</p>
+<h2 id="7-how-slots-are-filled-today">7. How slots are filled today</h2>
+<p><strong><code>themes.js</code> <code>MACROS</code> is the slot registry</strong> — 43 entries, each a slot
+name mapped to a one-line description that <code>macroPrompt</code> splices verbatim
+into the prompt. Names beginning <code>button_</code> render as 2–6 word imperatives,
+the rest as 1–2 sentences. The registry is advisory: <code>macroPrompt</code> falls
+back to <code>&#39;Narrative slot &quot;X&quot;.&#39;</code> for unknown names, so nothing catches a
+typo. 16 of the 43 are referenced nowhere in the repository
+(<code>describe_fork</code>, <code>describe_chest*</code>, <code>describe_trap</code>, <code>button_approach</code>,
+…) — the registry runs ahead of the primitives, which is the right
+direction for it to run.</p>
+<p><strong><code>narrator.js</code> <code>kdBundle</code> is the bundling mechanism.</strong> It caches one
+bundle per <code>$$iter</code> — per rule application — with fields <code>theme, pairId, shutText, keyText, before, link, unlock, after</code>. Bundling buys coherence:
+<code>doorContext</code> concatenates the key text and the door text before asking
+for the unlock line, so the wing-shaped ward in the key description is the
+wing-shaped keyhole in the door. It also saves a call: <code>unlock</code> is
+requested once and stamped into both <code>link</code> and <code>prereq.link</code>.</p>
+<p><strong><code>play/phrasebook.js</code> is the fallback layer</strong> — lookup by <code>nodeId</code>, then
+<code>type</code>, then <code>_default</code>, with <code>{field}</code> interpolation over the label
+(<code>play/game.js:119-149</code>) — so an unfilled slot renders as something rather
+than nothing. Where code and taxonomy have diverged:</p>
+<ul>
+<li><strong>D1 — three slots welded into one.</strong> <code>keyText</code> is <code>&quot;There is a key here. You pick it up.&quot;</code>: slots 2, 3 and 4 in one string, which is why
+nothing can name the key in the unlock sentence without restating where
+it lay. Slots 5 and 6 have no field at all.</li>
+<li><strong>D2 — <code>prereq.link</code> is written and never read.</strong> <code>keyDoor</code> stamps it
+(<code>dungeon-primitives.js:363</code>), but the <code>path</code>/<code>passage</code> templates read
+<code>{link}</code> and <code>{prereq.after}</code> only, and <code>story-ir.js</code>&#39;s
+<code>linkAffordance</code> reads <code>label.link</code>, then <code>dot.label</code>, then the type. No
+consumer has ever looked at it.</li>
+<li><strong>D3 — <code>pairId</code> is off by one against its own text.</strong> <code>pairId</code> is
+<code>&quot;pair_&quot; + ($$iter + 1)</code> while <code>kdBundle</code>&#39;s cache key is <code>$$iter</code>. At
+seed 3 a key node with <code>pairId: &quot;pair_8&quot;</code> carries
+<code>text: &quot;[high_fantasy:describe_key#pair_7]&quot;</code>. Cosmetic in placeholder
+mode, but the ctxId is also the model&#39;s variation anchor and cache key,
+so pair <em>N</em>&#39;s prose is anchored on pair <em>N−1</em>&#39;s context id.</li>
+<li><strong>D4 — inheritance duplicates a lock.</strong> <code>parallelPath</code> and
+<code>puzzleChoice</code> propagate <code>edgeId</code> <em>and</em> <code>prereq</code> onto the first edge of
+their expansion, correctly, so a new route cannot bypass a gate. The
+narrative consequence is one door becoming two gated affordances: at
+seed 3, node <code>569</code> (<code>door_3</code>) has two outgoing edges both carrying
+<code>prereq.pairId: &quot;pair_3&quot;</code> and <code>edgeId: &quot;e_db_3&quot;</code>, and on both the unlock
+affordance has been overwritten by a later stage with a generic
+<code>button_passage</code> label. Structural identity is inherited; narrative
+identity is not.</li>
+<li><strong>D5 — <code>lock.open</code> does not exist, so the door opens forever.</strong> The
+<code>path</code>/<code>passage</code> entries define <code>initial</code> and no <code>repeat</code>, and
+<code>lookupText</code> falls back from <code>repeat</code> to <code>initial</code>, so <code>{prereq.after}</code>
+— &quot;the key unlocks the door, you go through&quot; — prints on <em>every</em>
+traversal of the open door.</li>
+<li><strong>D6 — <code>repeat</code> is unreachable for most edges anyway.</strong> The engine&#39;s
+first-vs-repeat test keys on <code>label.edgeId</code>; at seed 42 only 56 of 313
+edges carry one, so 82% of edges are permanently first-traversal.</li>
+<li><strong>D7 — <code>brief</code> means opposite things in the two systems.</strong> In
+<code>play/phrasebook.js</code> it is the subsequent-visit description; in IR §7 it
+is the terse register and <code>repeat</code> is the subsequent-visit text.
+<code>buildStoryIR</code> must map phrasebook <code>verbose → first</code> and
+<code>brief → repeat</code>, and synthesise IR <code>brief</code> separately; <code>brief → brief</code>
+silently swaps two axes.</li>
+<li><strong>D8 — an engine slot with no registry entry.</strong> The look affordance
+consults <code>lookupText(&#39;node&#39;, label, &#39;verboseRepeat&#39;)</code>, but no phrasebook
+entry, macro or primitive defines <code>verboseRepeat</code>, so looking always
+reprints the arrival text.</li>
+<li><strong>D9 — nine dungeons in twenty-four contain no lock.</strong> Across seeds
+1–24 with the shipped grammar, 15 of 24 produced at least one key–door
+pair, 18 pairs in total against a per-run limit of 3. Measure key–lock
+text on chosen seeds, not sampled ones.</li>
+</ul>
+<h2 id="open-problems">Open problems</h2>
+<ol>
+<li><strong>Make the registry checkable.</strong> Assert at build time that every name
+passed to <code>$macro</code> appears in <code>MACROS</code>, and report entries no primitive
+references. Both checks are static.</li>
+<li><strong>Split <code>keyText</code> into slots 2–5.</strong> Give <code>kdBundle</code> <code>keyLocation</code>,
+<code>keyDescription</code>, <code>keyTake</code> and <code>keyCarry</code> in one bundle so coherence
+survives, and let the <code>key</code> phrasebook entry compose them.</li>
+<li><strong>Add <code>lock.open</code> and fix D5:</strong> a <code>repeat</code> on the <code>path</code>/<code>passage</code>
+entries plus an <code>after</code>/<code>afterRepeat</code> split in the bundle. Regression
+test: traverse a locked edge twice, assert the unlock sentence appears
+once.</li>
+<li><strong>Carry narrative identity through inheritance (D4)</strong> with a <code>lockId</code>
+distinct from <code>edgeId</code>, so a split or parallelised locked edge is one
+door and only the first gated affordance taken fires <code>lock.unlock</code>.</li>
+<li><strong>Implement the <code>conditions</code> extension of §6</strong> — counters, demand-driven
+var emission, top-down evaluation, the validator rule — then use it to
+give <code>closedText</code> a second refusal.</li>
+<li><strong>Decide the epistemic policy per exporter.</strong> Either the IR marks which
+advertisement states an exporter may distinguish, or <code>buildStoryIR</code>
+collapses <code>(0,0,1)</code> into <code>(0,0,0)</code> and the play engine loses a
+distinction it can make.</li>
+<li><strong>Replace the uniform-random walker of §3 with a policy that backtracks
+like a person</strong> and re-measure. The current numbers establish which
+states are reachable, not how often a player meets them.</li>
+</ol>
+<h2 id="see-also">See also</h2>
+<ul>
+<li><a href="https://github.com/ihh/graphgram/blob/master/papers/key-lock-transformations.md">key-lock-transformations</a> — the rewrite
+whose slots this paper enumerates.</li>
+<li><a href="https://github.com/ihh/graphgram/blob/master/papers/budgets.md">budgets</a> — why only some runs contain a lock (D9).</li>
+<li><a href="https://github.com/ihh/graphgram/blob/master/papers/matching-engine.md">matching-engine</a> — how the patterns are found.</li>
+<li><a href="https://github.com/ihh/graphgram/blob/master/papers/murder-mystery.md">murder-mystery</a> — social locks, where <code>lock.closed</code>
+is an NPC&#39;s unwillingness.</li>
+<li><a href="https://github.com/ihh/graphgram/blob/master/papers/logic-minigames.md">logic-minigames</a> — lock skins, which multiply the
+<code>lock.*</code> slots without changing the transformation.</li>
+<li>Source: <a href="https://github.com/ihh/graphgram/blob/master/themes.js"><code>themes.js</code></a>,
+<a href="https://github.com/ihh/graphgram/blob/master/narrator.js"><code>narrator.js</code></a>,
+<a href="https://github.com/ihh/graphgram/blob/master/dungeon-primitives.js"><code>dungeon-primitives.js</code></a>,
+<a href="https://github.com/ihh/graphgram/blob/master/play/phrasebook.js"><code>play/phrasebook.js</code></a>,
+<a href="https://github.com/ihh/graphgram/blob/master/play/game.js"><code>play/game.js</code></a>,
+<a href="../spec/story-ir.html"><code>docs/spec/story-ir.md</code></a> §7,
+<a href="https://github.com/ihh/graphgram/blob/master/test/fixtures/story-ir.sample.json"><code>test/fixtures/story-ir.sample.json</code></a>.</li>
+</ul>
+
+</main>
+<footer class="site-foot">
+  <p>graphgram · <a href="https://github.com/ihh/graphgram">github.com/ihh/graphgram</a> · ISC</p>
+</footer>
+</body>
+</html>

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Graph to Story IR — the mapping · graphgram</title>
+<meta name="description" content="graphgram — a graph grammar library for procedural narrative">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+<header class="site-nav">
+  <nav>
+      <a href="../index.html" class="brand">graphgram</a>
+      <a href="../guide.html">Guide</a>
+      <a href="../advanced.html">Advanced</a>
+      <a href="../examples.html">Examples</a>
+      <a href="../play/index.html">Play</a>
+      <a href="../papers/index.html">Papers</a>
+      <a href="../spec/story-ir.html">Spec</a>
+      <a href="../jsdoc/index.html">API</a>
+      <a href="https://github.com/ihh/graphgram" rel="noopener">GitHub</a>
+  </nav>
+</header>
+<main class="prose">
+<h1 id="graph-to-story-ir-the-mapping">Graph to Story IR — the mapping</h1>
+<p><code>buildStoryIR(graph, opts)</code> in <a href="https://github.com/ihh/graphgram/blob/master/story-ir.js"><code>story-ir.js</code></a> is the
+only place in the library that reads both the graphlib label conventions of
+<a href="https://github.com/ihh/graphgram/blob/master/dungeon-primitives.js"><code>dungeon-primitives.js</code></a> and the export
+contract of <a href="story-ir.html"><code>story-ir.md</code></a>. This page is the reference for
+what it does. The contract itself is <code>story-ir.md</code>; where the two disagree,
+<code>story-ir.md</code> — and above it <code>test/fixtures/story-ir.sample.json</code> — wins.</p>
+<pre><code class="language-js">const { buildStoryIR, validateStoryIR } = require(&#39;graphgram/story-ir&#39;)
+
+const graph = grammar.evolve({ seed: 42 }).graph
+const ir = buildStoryIR(graph, { id: &#39;maze-locked&#39;, seed: 42, theme: &#39;gothic_horror&#39; })
+const errors = validateStoryIR(ir)      // [] when exportable
+</code></pre>
+<h2 id="1-nodes-to-passages">1. Nodes to passages</h2>
+<table>
+<thead>
+<tr>
+<th>graph node label</th>
+<th>IR passage field</th>
+<th>rule</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>—</td>
+<td><code>id</code></td>
+<td><code>P_</code> + sanitized <code>nodeId</code>, or the host id when there is no <code>nodeId</code></td>
+</tr>
+<tr>
+<td>the graphlib key</td>
+<td><code>hostId</code></td>
+<td>verbatim, as a string. Debug provenance only</td>
+</tr>
+<tr>
+<td><code>nodeId</code></td>
+<td><code>nodeId</code></td>
+<td>verbatim, or <code>null</code></td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td><code>type</code></td>
+<td>verbatim, or <code>null</code></td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td><code>role</code></td>
+<td><code>start</code>→<code>start</code>, <code>win</code>→<code>ending</code>, <code>death</code>→<code>death</code>, <code>random</code>→<code>random</code>, <code>choice</code>→<code>choice</code>, <code>key</code>/<code>potion</code>→<code>item</code>, anything else→<code>normal</code>. A <code>normal</code> node with no outgoing edges is promoted to <code>ending</code>, because the spec forbids a role-less sink</td>
+</tr>
+<tr>
+<td><code>nodeId</code></td>
+<td><code>title</code></td>
+<td>title-cased (<code>battle_normal_3</code> → <code>Battle Normal 3</code>)</td>
+</tr>
+<tr>
+<td><code>text</code></td>
+<td><code>text</code></td>
+<td>normalized to a text object. Falls back to <code>dot.label</code>, then to <code>title</code></td>
+</tr>
+<tr>
+<td><code>pairId</code>, <code>healValue</code></td>
+<td><code>status</code></td>
+<td><code>Key (pair_1)</code>, <code>Door (pair_1)</code>, <code>Potion (+30)</code>, else <code>null</code></td>
+</tr>
+<tr>
+<td><code>pairId</code>, <code>healValue</code></td>
+<td><code>onEnter</code></td>
+<td>always <code>set seen_&lt;nodeId&gt;</code>; a <code>key</code> node also <code>acquire</code>s its <code>pairId</code>; a <code>potion</code> node also <code>add</code>s <code>healValue × 100</code> to <code>hp</code></td>
+</tr>
+<tr>
+<td>—</td>
+<td><code>links</code></td>
+<td>ids of the outgoing links, in presentation order (§4)</td>
+</tr>
+<tr>
+<td><code>type</code>, <code>beat</code>, <code>role</code></td>
+<td><code>tags</code></td>
+<td>the node type, plus <code>ending</code>/<code>death</code>/<code>item</code> from the role, plus a set-piece&#39;s <code>beat_&lt;n&gt;</code> and its <code>decline</code>/<code>bypass</code> role</td>
+</tr>
+</tbody></table>
+<p>Placeholder strings of the form <code>[theme:macro#ctx]</code> — what
+<a href="https://github.com/ihh/graphgram/blob/master/narrator.js"><code>narrator.js</code></a> emits in placeholder mode — pass through
+<strong>verbatim</strong>. That is debug mode working as designed; stripping them would
+turn a visibly unfilled slot into an invisibly empty one.</p>
+<h2 id="2-edges-to-links">2. Edges to links</h2>
+<table>
+<thead>
+<tr>
+<th>graph edge label</th>
+<th>IR link field</th>
+<th>rule</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>edgeId</code></td>
+<td><code>id</code></td>
+<td><code>L_</code> + sanitized <code>edgeId</code>; <code>L_&lt;fromHostId&gt;_&lt;toHostId&gt;</code> when the edge has none</td>
+</tr>
+<tr>
+<td><code>edgeId</code></td>
+<td><code>edgeId</code></td>
+<td>verbatim, or <code>null</code></td>
+</tr>
+<tr>
+<td>—</td>
+<td><code>from</code>, <code>to</code></td>
+<td>the endpoints&#39; passage ids</td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td><code>type</code></td>
+<td>verbatim, or <code>null</code></td>
+</tr>
+<tr>
+<td><code>type</code>, source node <code>type</code></td>
+<td><code>kind</code></td>
+<td><code>random</code> when the edge type is <code>consequence</code> or the source node is a <code>random</code> node; otherwise <code>choice</code></td>
+</tr>
+<tr>
+<td><code>weight</code></td>
+<td><code>weight</code></td>
+<td><code>label.weight</code> when it is a positive finite number, else <code>1</code></td>
+</tr>
+<tr>
+<td><code>link</code>, <code>dot.label</code>, <code>type</code></td>
+<td><code>linkText</code></td>
+<td>the first of those that is non-empty; the type falls back through a phrase table (<code>backtrack</code> → &quot;Go back&quot;). Never empty — a blank button is unusable</td>
+</tr>
+<tr>
+<td><code>before</code>, <code>prereq.after</code></td>
+<td><code>text</code></td>
+<td>the two joined with a space, in that order; <code>null</code> when neither is present</td>
+</tr>
+<tr>
+<td><code>prereq</code></td>
+<td><code>condition</code></td>
+<td>see §3</td>
+</tr>
+<tr>
+<td>source node <code>text</code></td>
+<td><code>closedText</code></td>
+<td>the <strong>door node&#39;s own</strong> text for a <code>pairId</code> lock — that is the &quot;description of closed door&quot; the player is standing in front of. <code>null</code> otherwise</td>
+</tr>
+<tr>
+<td><code>prereq</code></td>
+<td><code>whenBlocked</code></td>
+<td><code>show</code> for a <code>pairId</code> lock; <code>hide</code> for <code>traversed</code> and <code>visited</code> gates</td>
+</tr>
+<tr>
+<td><code>edgeId</code>, <code>playerDamage</code></td>
+<td><code>onTraverse</code></td>
+<td><code>set took_&lt;edgeId&gt;</code> when there is an <code>edgeId</code>; then <code>add 1</code> to <code>moves</code>; then, on a <code>consequence</code> edge, <code>add -(playerDamage × 100)</code> to <code>hp</code></td>
+</tr>
+</tbody></table>
+<p><code>whenBlocked</code> splits the way it does because the two gates mean different
+things to the player. A locked door is a <em>puzzle</em>: the player has to see it
+to know a key is worth finding, so it renders with its <code>closedText</code>. A
+<code>traversed</code> or <code>visited</code> gate is a route the player has not earned yet;
+advertising a &quot;Go back&quot; that does nothing is noise, so it is omitted
+entirely until it opens.</p>
+<h2 id="3-prereqs-to-conditions">3. Prereqs to conditions</h2>
+<p>Every prereq the CYOA gating model defines (see the README&#39;s gating table)
+carries exactly one of three keys, and each becomes one boolean test:</p>
+<table>
+<thead>
+<tr>
+<th><code>prereq</code></th>
+<th><code>condition</code></th>
+<th><code>whenBlocked</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>{ pairId: &#39;pair_1&#39; }</code></td>
+<td><code>{ all: [ { var: &#39;has_pair_1&#39;, is: true } ] }</code></td>
+<td><code>show</code></td>
+</tr>
+<tr>
+<td><code>{ traversed: &#39;e_ak_2&#39; }</code></td>
+<td><code>{ all: [ { var: &#39;took_e_ak_2&#39;, is: true } ] }</code></td>
+<td><code>hide</code></td>
+</tr>
+<tr>
+<td><code>{ visited: &#39;room_3&#39; }</code></td>
+<td><code>{ all: [ { var: &#39;seen_room_3&#39;, is: true } ] }</code></td>
+<td><code>hide</code></td>
+</tr>
+<tr>
+<td>absent</td>
+<td><code>null</code></td>
+<td><code>show</code></td>
+</tr>
+</tbody></table>
+<p>A locked door&#39;s prereq also carries narrative <code>link</code> and <code>after</code> fields;
+<code>after</code> lands in the link&#39;s <code>text</code> (§2) and <code>link</code> is redundant with the
+edge&#39;s own <code>link</code>, which is where <code>linkText</code> reads it from.</p>
+<h2 id="4-ordering">4. Ordering</h2>
+<ul>
+<li><strong>Passages</strong> are breadth-first from <code>start</code>, each level sorted by
+ascending numeric host id, with anything the start cannot reach appended
+afterwards in host order. Unreachable nodes are emitted rather than
+dropped, so <code>validateStoryIR</code> can report them instead of the story
+silently getting smaller.</li>
+<li><strong>Links</strong> are grouped by source passage in that passage&#39;s order, and
+within a passage sorted by <em>presentation bucket</em> first: forward and
+choice links, then locked links, then backtracks, returns and retreats.
+A player offered &quot;Go back&quot; as their first option will take it.</li>
+<li>Ties inside a bucket break on target host id, then edge type, then
+<code>edgeId</code> — a total order, so two runs at one seed emit the same sequence
+regardless of what graphlib promises about <code>outEdges</code>.</li>
+</ul>
+<h2 id="5-names">5. Names</h2>
+<p><code>nodeId</code>s and <code>edgeId</code>s come from grammar templates, so nothing about them
+is safe by construction. Every id that reaches the IR is lowercased,
+non-alphanumerics collapse to <code>_</code>, and the result is checked against the
+union of ChoiceScript&#39;s reserved words (the strictest of the three
+targets). Two <em>distinct</em> raw ids that sanitize to the same string get
+<code>_2</code>, <code>_3</code> suffixes in emission order — deterministic, never random.</p>
+<p>One raw id asked for twice gets the <em>same</em> variable, which matters: a
+<code>monsterBattle</code> stamps one inherited <code>edgeId</code> onto three different edges,
+and the backtrack gated on that <code>edgeId</code> has to be satisfied by whichever
+of them the player walks. Link ids are the opposite case — they address an
+edge, not a gate, so those three edges get <code>L_e_x</code>, <code>L_e_x_2</code>, <code>L_e_x_3</code>.</p>
+<h2 id="6-meta-and-what-is-derived">6. <code>meta</code>, and what is derived</h2>
+<p>Anything <code>opts</code> does not supply is derived:</p>
+<table>
+<thead>
+<tr>
+<th>field</th>
+<th>derivation when <code>opts</code> is silent</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>seed</code></td>
+<td><code>0</code></td>
+</tr>
+<tr>
+<td><code>theme</code></td>
+<td><code>themes.pickTheme(seed)</code></td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td><code>&quot;The &quot; + word(seed) + &quot; &quot; + noun(theme)</code> — e.g. <code>The Lowbarrow Vault</code></td>
+</tr>
+<tr>
+<td><code>id</code></td>
+<td>the title, slugged</td>
+</tr>
+<tr>
+<td><code>topology</code></td>
+<td>measured: <code>dag</code> when the link graph is acyclic, else <code>bidirectional</code></td>
+</tr>
+<tr>
+<td><code>puzzles</code></td>
+<td>measured: true when any link has a condition</td>
+</tr>
+<tr>
+<td><code>generator</code></td>
+<td><code>graphgram &lt;package version&gt;</code></td>
+</tr>
+<tr>
+<td><code>grammar</code>, <code>budget</code></td>
+<td><code>null</code></td>
+</tr>
+</tbody></table>
+<p><code>topology</code> and <code>puzzles</code> are <em>measured</em>, not assumed, so a caller who
+passes <code>topology: &#39;dag&#39;</code> for a cyclic graph gets their claim recorded and
+then rejected by <code>validateStoryIR</code> — which is where you want to find out.
+<code>budget</code> is a property of the generator <em>run</em>, not of the graph: caps that
+never bound anything leave no trace to recover, so it stays <code>null</code> unless
+the caller says. <code>meta</code> carries no timestamp, by contract.</p>
+<p>Note that the theme in <code>meta</code> is <em>not</em> read back out of the graph — the
+narrator picked its theme before evolution, so a caller that ran the
+narrator on a non-default theme should pass the same <code>theme</code> here.</p>
+<h2 id="7-worked-example-one-keydoor">7. Worked example: one <code>keyDoor</code></h2>
+<p>Four nodes — the branch point, the key, the door, and what is behind it —
+with the two backtracks the primitive pairs them with. Abridged:</p>
+<pre><code class="language-jsonc">// nodes
+&quot;3&quot;: { &quot;type&quot;: &quot;key&quot;,  &quot;nodeId&quot;: &quot;key_1&quot;,  &quot;pairId&quot;: &quot;pair_1&quot;, &quot;text&quot;: &quot;A key, still warm.&quot; },
+&quot;5&quot;: { &quot;type&quot;: &quot;door&quot;, &quot;nodeId&quot;: &quot;door_1&quot;, &quot;pairId&quot;: &quot;pair_1&quot;, &quot;text&quot;: &quot;A door of blackened oak, banded in iron.&quot; },
+&quot;7&quot;: { &quot;type&quot;: &quot;win&quot;,  &quot;nodeId&quot;: &quot;win&quot;,    &quot;text&quot;: &quot;Ledgers, in one hand throughout.&quot; },
+
+// edges
+&quot;1&quot; -&gt; &quot;3&quot;: { &quot;type&quot;: &quot;passage&quot;, &quot;edgeId&quot;: &quot;e_ak_1&quot;, &quot;before&quot;: &quot;A stair falls away.&quot;, &quot;link&quot;: &quot;Take the stair down&quot; },
+&quot;3&quot; -&gt; &quot;1&quot;: { &quot;type&quot;: &quot;backtrack&quot;, &quot;prereq&quot;: { &quot;traversed&quot;: &quot;e_ak_1&quot; } },
+&quot;5&quot; -&gt; &quot;7&quot;: { &quot;type&quot;: &quot;passage&quot;, &quot;edgeId&quot;: &quot;e_db_1&quot;, &quot;link&quot;: &quot;Turn the key in the lock&quot;,
+              &quot;prereq&quot;: { &quot;pairId&quot;: &quot;pair_1&quot;, &quot;link&quot;: &quot;Turn the key in the lock&quot;,
+                          &quot;after&quot;: &quot;The wards line up.&quot; } }
+</code></pre>
+<p>becomes, at <code>{ id: &#39;keydoor&#39;, seed: 42, theme: &#39;gothic_horror&#39; }</code>:</p>
+<pre><code class="language-jsonc">&quot;items&quot;: [ { &quot;id&quot;: &quot;pair_1&quot;, &quot;var&quot;: &quot;has_pair_1&quot;, &quot;name&quot;: &quot;the tarnished key&quot;,
+             &quot;description&quot;: { &quot;first&quot;: &quot;A key, still warm.&quot; },
+             &quot;takeText&quot;: { &quot;first&quot;: &quot;A key, still warm.&quot; }, &quot;carryText&quot;: null } ]
+
+{ &quot;id&quot;: &quot;P_key_1&quot;, &quot;hostId&quot;: &quot;3&quot;, &quot;nodeId&quot;: &quot;key_1&quot;, &quot;type&quot;: &quot;key&quot;, &quot;role&quot;: &quot;item&quot;,
+  &quot;title&quot;: &quot;Key 1&quot;, &quot;text&quot;: { &quot;first&quot;: &quot;A key, still warm.&quot; },
+  &quot;status&quot;: &quot;Key (pair_1)&quot;,
+  &quot;onEnter&quot;: [ { &quot;op&quot;: &quot;set&quot;, &quot;var&quot;: &quot;seen_key_1&quot;, &quot;value&quot;: true },
+               { &quot;op&quot;: &quot;acquire&quot;, &quot;item&quot;: &quot;pair_1&quot; } ],
+  &quot;links&quot;: [&quot;L_3_1&quot;], &quot;tags&quot;: [&quot;key&quot;, &quot;item&quot;] }
+
+{ &quot;id&quot;: &quot;L_e_db_1&quot;, &quot;edgeId&quot;: &quot;e_db_1&quot;, &quot;from&quot;: &quot;P_door_1&quot;, &quot;to&quot;: &quot;P_win&quot;,
+  &quot;type&quot;: &quot;passage&quot;, &quot;kind&quot;: &quot;choice&quot;, &quot;weight&quot;: 1,
+  &quot;linkText&quot;:   { &quot;first&quot;: &quot;Turn the key in the lock&quot; },
+  &quot;text&quot;:       { &quot;first&quot;: &quot;The wards line up.&quot; },
+  &quot;closedText&quot;: { &quot;first&quot;: &quot;A door of blackened oak, banded in iron.&quot; },
+  &quot;condition&quot;:  { &quot;all&quot;: [ { &quot;var&quot;: &quot;has_pair_1&quot;, &quot;is&quot;: true } ] },
+  &quot;whenBlocked&quot;: &quot;show&quot;,
+  &quot;onTraverse&quot;: [ { &quot;op&quot;: &quot;set&quot;, &quot;var&quot;: &quot;took_e_db_1&quot;, &quot;value&quot;: true },
+                  { &quot;op&quot;: &quot;add&quot;, &quot;var&quot;: &quot;moves&quot;, &quot;value&quot;: 1 } ] }
+
+{ &quot;id&quot;: &quot;L_3_1&quot;, &quot;edgeId&quot;: null, &quot;from&quot;: &quot;P_key_1&quot;, &quot;to&quot;: &quot;P_start&quot;,
+  &quot;type&quot;: &quot;backtrack&quot;, &quot;kind&quot;: &quot;choice&quot;, &quot;weight&quot;: 1,
+  &quot;linkText&quot;: { &quot;first&quot;: &quot;Go back&quot; }, &quot;text&quot;: null, &quot;closedText&quot;: null,
+  &quot;condition&quot;: { &quot;all&quot;: [ { &quot;var&quot;: &quot;took_e_ak_1&quot;, &quot;is&quot;: true } ] },
+  &quot;whenBlocked&quot;: &quot;hide&quot;,
+  &quot;onTraverse&quot;: [ { &quot;op&quot;: &quot;add&quot;, &quot;var&quot;: &quot;moves&quot;, &quot;value&quot;: 1 } ] }
+</code></pre>
+<p>Passage order is <code>P_start</code>, <code>P_key_1</code>, <code>P_door_1</code>, <code>P_win</code>; <code>start</code> is
+<code>P_start</code> and <code>endings</code> is <code>[&quot;P_win&quot;]</code>. The door&#39;s own links come out as
+<code>[&quot;L_e_db_1&quot;, &quot;L_5_1&quot;]</code> — the locked way forward before the way back.</p>
+<p>The same fragment is asserted field by field in
+<a href="https://github.com/ihh/graphgram/blob/master/test/story-ir.test.js"><code>test/story-ir.test.js</code></a>, so this example
+cannot drift away from the code without a test failing.</p>
+
+</main>
+<footer class="site-foot">
+  <p>graphgram · <a href="https://github.com/ihh/graphgram">github.com/ihh/graphgram</a> · ISC</p>
+</footer>
+</body>
+</html>
