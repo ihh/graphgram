@@ -150,11 +150,14 @@ function makeSetpiece (spec, opts) {
         // Decline: oneTime, routed via an intermediate node to avoid a
         // parallel a→b edge. Shares edgeId with entry, so taking either
         // commits the player (both become unavailable on revisit).
+        // link: themed short "walk past" button (new ctx, so distinct from
+        // the entry button even for the same set-piece).
         { v: 'a', w: 'dec', label: {
             type: EDGE_DECL,
             setpieceId: spId,
             edgeId: sharedEdgeId,
             oneTime: true,
+            link: { $macro: ['button_retreat', { $eval: '"sp_dec_" + ($$iter + 1)' }] },
             dot: { label: role + ' decline', style: 'dashed', color: '#b85' }
         } },
         { v: 'dec', w: 'b', label: { type: EDGE_INNER, setpieceId: spId } },
@@ -168,6 +171,7 @@ function makeSetpiece (spec, opts) {
             setpieceId: spId,
             edgeId: sharedEdgeId,
             prereq: { visited: '${b.match.nodeId[1]}' },
+            link: { $macro: ['button_passage', { $eval: '"sp_byp_" + ($$iter + 1)' }] },
             dot: { label: role + ' bypass', style: 'dotted', color: '#58b' }
         } },
         { v: 'byp', w: 'b', label: { type: EDGE_INNER, setpieceId: spId } }

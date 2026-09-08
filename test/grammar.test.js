@@ -3,7 +3,7 @@
 
 const test = require('node:test')
 const assert = require('node:assert')
-const { Grammar } = require('../index')
+const { Grammar } = require('./helpers')
 const dp = require('../dungeon-primitives')
 
 function runDungeon (seed, expandLimit) {

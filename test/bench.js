@@ -2,7 +2,7 @@
 // several times at a fixed seed and reports the median time. Use it as a
 // before/after check when touching the subgraph matcher. Not a test.
 
-const { Grammar } = require('../index')
+const { Grammar } = require('./helpers')
 const dp = require('../dungeon-primitives')
 
 function runDungeon (seed) {

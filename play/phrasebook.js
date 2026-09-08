@@ -20,16 +20,20 @@
 window.DEFAULT_TEXT = {
   node: {
     // --- Structural / map nodes -------------------------------------
-    start:        { verbose: 'You stand at the entrance.',
+    // `{text}` surfaces whatever the grammar stamped onto the label —
+    // a themed-macro placeholder in --placeholder / --no-llm mode, or
+    // LLM-generated prose in --sonnet mode. Interpolates to empty when
+    // absent, so the fallback copy still reads cleanly.
+    start:        { verbose: '{text}',
                     brief:   'The entrance.' },
 
-    win:          { verbose: 'You reach the goal. You have won!',
+    win:          { verbose: '{text}',
                     brief:   'The goal.' },
 
-    room:         { verbose: 'A room.',
-                    brief:   'A room.' },
+    room:         { verbose: '{text}',
+                    brief:   'The room, as you remember it.' },
 
-    dead_end:     { verbose: 'A dead end; nothing here but dust.',
+    dead_end:     { verbose: '{text}',
                     brief:   'A dead end.' },
 
     // --- Inventory-bearing nodes ------------------------------------
@@ -44,12 +48,14 @@ window.DEFAULT_TEXT = {
     door:         { verbose: 'A locked door ({pairId}) blocks the way. {text}',
                     brief:   'A locked door ({pairId}). {text}' },
 
-    potion:       { verbose: 'A health potion. You drink it. (+{healValue})',
+    potion:       { verbose: '{text} You drink it. (+{healValue})',
                     brief:   'An empty vial where the potion was.',
                     status:  'potion used' },
 
     // --- Combat mini-game nodes -------------------------------------
-    choice:       { verbose: 'A monster snarls. The fight is on.',
+    // {text} is only present on the entry choice node (stamped by
+    // monsterBattle on cN); the advantage state keeps its generic copy.
+    choice:       { verbose: '{text}',
                     brief:   'The monster faces you. The fight continues.' },
 
     random:       { verbose: '...',
@@ -59,7 +65,7 @@ window.DEFAULT_TEXT = {
                     brief:   'You have died.' },
 
     // --- Puzzle mini-game nodes -------------------------------------
-    puzzle_intro: { verbose: 'A puzzle bars the way. Solve it.',
+    puzzle_intro: { verbose: '{text}',
                     brief:   'The puzzle bars the way.' },
 
     distractor:   { verbose: 'That was wrong. You are forced back to the puzzle.',
@@ -89,22 +95,24 @@ window.DEFAULT_TEXT = {
     // `link` is the hyperlink text used as the outgoing affordance.
 
     // --- Forward corridors ------------------------------------------
-    // `{before}` and `{link}` carry placeholders stamped on the
-    // key-branch edge (a->k from keyDoor). `{prereq.link}` and
-    // `{prereq.after}` appear on the locked edge (d->b). All
-    // interpolate to empty when absent, so the templates stay clean
-    // for non-keyDoor edges.
-    path:        { initial: 'You continue forward. {before} {prereq.after}',
-                   link:    'Continue {link} {prereq.link}' },
+    // `{link}` IS the button label when the edge's label stamped one
+    // (via a button_ macro or kdBundle). When empty, the engine's
+    // linkTextFor falls through to dot.label, then to the type name —
+    // so a missing-link edge still gets a readable button.
+    // `{before}` (passage preview) and `{prereq.after}` (opened-door
+    // description) are set by kdBundle on the key-branch and locked
+    // edges respectively; empty elsewhere.
+    path:        { initial: '{before} {prereq.after}',
+                   link:    '{link}' },
 
-    passage:     { initial: 'A quiet passage unfolds. {before} {prereq.after}',
-                   link:    'Take the passage {link} {prereq.link}' },
+    passage:     { initial: '{before} {prereq.after}',
+                   link:    '{link}' },
 
-    monster:     { initial: 'A monster lunges! {before} {prereq.after}',
-                   link:    'Fight {link} {prereq.link}' },
+    monster:     { initial: '{before} {prereq.after}',
+                   link:    '{link}' },
 
-    puzzle:      { initial: 'A puzzle bars the way. {before} {prereq.after}',
-                   link:    'Tackle the puzzle {link} {prereq.link}' },
+    puzzle:      { initial: '{before} {prereq.after}',
+                   link:    '{link}' },
 
     // --- Return corridors -------------------------------------------
     backtrack:   { initial: 'You double back the way you came.',
@@ -130,21 +138,19 @@ window.DEFAULT_TEXT = {
                    link:    'Retreat' },
 
     // --- Set-piece edges --------------------------------------------
-    // Entry is oneTime — after first traversal, the affordance vanishes.
-    // The label.link field carries a themed "accept the call" macro.
-    setpiece_entry:   { initial: 'You commit. {link}',
+    // All three surface `{link}` directly — the set-piece primitive stamps
+    // a themed button macro on each so they read as distinct affordances.
+    // The narrative line printed on traversal is suppressed to avoid
+    // echoing the button text; the destination node's `text` carries the
+    // beat / decline / bypass prose.
+    setpiece_entry:   { initial: '',
                         link:    '{link}' },
 
-    // Decline is oneTime too — once declined, gone. The affordance text
-    // is a deliberately-unflashy "walk on by".
-    setpiece_decline: { initial: 'You walk on by.',
-                        link:    'Walk on by' },
+    setpiece_decline: { initial: '',
+                        link:    '{link}' },
 
-    // Bypass only appears once `b` has been visited (gated via
-    // prereq.visited on the rule's RHS). Narrative implies "you've
-    // already dealt with this area".
-    setpiece_bypass:  { initial: 'You move past, the moment already behind you.',
-                        link:    'Move on' },
+    setpiece_bypass:  { initial: '',
+                        link:    '{link}' },
 
     // Internal linear edges inside the set-piece; no affordance flair,
     // just short forward-movement prose.

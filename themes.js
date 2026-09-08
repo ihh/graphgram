@@ -69,7 +69,15 @@ const MACROS = {
   seance_contact:           'Seance beat 2: a voice answers through the veil — it knows things it should not.',
   seance_consequence:       'Seance beat 3: the price is paid; the circle breaks.',
   seance_decline:           'Choosing not to begin the ritual — the candles are left dark.',
-  seance_bypass:            'Returning past the cold parlor where the seance once bled through; the room is empty now.'
+  seance_bypass:            'Returning past the cold parlor where the seance once bled through; the room is empty now.',
+
+  // --- button_ slots: short click affordances ---------------------------
+  // Rendered short (2 to 6 words, imperative) rather than 1-2 sentences —
+  // see macroPrompt. Use when a narrative slot is a button / link label
+  // rather than descriptive prose.
+  button_passage:           'Button label: move forward down a corridor / passage. Neutral about what lies ahead.',
+  button_retreat:           'Button label: double back the way you came.',
+  button_approach:          'Button label: step toward a thing the player has already noticed (door, object, figure).'
 }
 
 // FNV-1a over the seed string — same seed in, same theme out.
@@ -91,13 +99,65 @@ function formatPlaceholder (theme, name, ctxId) {
 
 // Build the prompt we'll send to the LLM for a given macro. Kept short and
 // well-formed so that prompt caching sees a stable preamble — the per-call
-// payload is just the theme/slot/ctx lines.
-function macroPrompt (theme, name, ctxId) {
+// payload is just the theme/slot/ctx lines. `worldBlurb` (optional) is a
+// 1-2 sentence world-setup shared across all calls in one run; threading it
+// in gives every snippet the same lore, props, and tone — so a sequence of
+// rooms reads as one place rather than ten disconnected vignettes.
+// Small vocabulary of concrete spatial nouns, used to seed a per-call
+// variation anchor for button macros. Without a concrete anchor the
+// model converges to a single modal answer ("Venture Deeper into the
+// Dark", every time) because the ctxId is opaque to it. Deterministic
+// hash(ctxId) -> one of these, so per-call variety is reproducible and
+// cache-stable across replays.
+const VARY_WORDS = [
+  'stair', 'archway', 'corridor', 'threshold', 'descent', 'aperture',
+  'vestibule', 'landing', 'antechamber', 'gallery', 'cloister', 'transept',
+  'narthex', 'annex', 'undercroft', 'mezzanine', 'catwalk', 'spiral',
+  'gateway', 'breach', 'passage', 'hall', 'chamber', 'concourse', 'ramp',
+  'bridge', 'walkway', 'alcove', 'tunnel', 'grate'
+]
+function varyHint (ctxId) {
+  const s = String(ctxId == null ? '' : ctxId)
+  let h = 5381
+  for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0
+  return VARY_WORDS[h % VARY_WORDS.length]
+}
+
+function macroPrompt (theme, name, ctxId, worldBlurb) {
   const desc = MACROS[name] || ('Narrative slot "' + name + '".')
+  // Naming convention: any slot whose name starts with "button_" is a
+  // short click affordance, not descriptive prose. Kept to 2-6 words so
+  // a link / button stays legible. This lets grammar authors reach for
+  // a button macro without having to wire a separate runner path — the
+  // prompt template just adapts to the slot name.
+  const isButton = /^button_/.test(name)
+  let p = 'Theme: ' + theme + '.\n'
+  if (worldBlurb) p += 'World: ' + worldBlurb + '\n'
+  p += 'Slot: ' + name + '.\n'
+     + 'Context id: ' + (ctxId == null || ctxId === '' ? '(none)' : ctxId) + '.\n'
+  if (isButton) {
+    p += 'Variation anchor (build the label around re-theming this spatial concept): '
+       + varyHint(ctxId) + '.\n'
+       + 'Task: ' + desc + ' '
+       + 'Write 2 to 6 words, imperative, suitable as a click-through button label. '
+       + 'No trailing punctuation. Do not reveal what lies beyond. '
+       + 'Do NOT include the word "dark" or "darkness"; reach for more specific imagery.'
+  } else {
+    p += 'Task: ' + desc + ' '
+       + 'Write 1 to 2 sentences, in second person, in the voice of the theme. '
+       + 'Do not repeat the world setup verbatim; add specific new detail that fits it.'
+  }
+  return p
+}
+
+// One-shot prompt for the shared world-setup blurb. Cached in the narrator
+// and passed into every subsequent macroPrompt, giving all per-room /
+// per-passage prose a common anchor.
+function worldBlurbPrompt (theme) {
   return 'Theme: ' + theme + '.\n'
-       + 'Slot: ' + name + '.\n'
-       + 'Context id: ' + (ctxId == null || ctxId === '' ? '(none)' : ctxId) + '.\n'
-       + 'Task: ' + desc + ' Write 1 to 2 sentences, in second person, in the voice of the theme.'
+       + 'Task: In 1 to 2 sentences, establish the world and tone of a dungeon-crawler text adventure '
+       + 'set in this theme. Name at most one concrete location / faction / artifact so later '
+       + 'descriptions can reference it. Second person, no meta-commentary.'
 }
 
 module.exports = {
@@ -106,6 +166,7 @@ module.exports = {
   pickTheme,
   formatPlaceholder,
   macroPrompt,
+  worldBlurbPrompt,
   listThemes: function () { return THEMES.slice() },
   listMacros: function () { return Object.keys(MACROS) }
 }

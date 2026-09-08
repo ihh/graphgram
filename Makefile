@@ -35,12 +35,20 @@ rebuild$(SIZE):
 #
 # Optional env vars for debug-time builds:
 #   PLACEHOLDER=1   —  narrator slots emit [theme:macro#ctx] tags
+#   SONNET=1        —  use Anthropic Sonnet via API to generate real prose
+#                      (requires ANTHROPIC_API_KEY in .env)
+#   MODEL=NAME      —  model for --sonnet (default claude-sonnet-4-6)
 #   PASSAGE_ONLY=1  —  skip monster/puzzle refinement + mini-game expansion
 #   NO_FLAVOR=1     —  keep monster/puzzle edges but don't expand them
 #   THEME=<name>    —  pin the theme (see `bin/transform.js --list-themes`)
 SEED ?= 42
 PLAY_OPTS :=
-ifeq ($(PLACEHOLDER),1)
+ifeq ($(SONNET),1)
+  PLAY_OPTS += --sonnet
+  ifdef MODEL
+    PLAY_OPTS += --model $(MODEL)
+  endif
+else ifeq ($(PLACEHOLDER),1)
   PLAY_OPTS += --placeholder
 else
   PLAY_OPTS += --no-llm

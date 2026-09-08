@@ -61,12 +61,17 @@ const anyList = { type: 'array', items: anyValue }
 // shelling to `llm`. opts.theme pins the theme globally (so kdBundle/$macro
 // see one consistent world per run). opts.placeholder short-circuits all
 // model calls and returns `[theme:slot#ctx]` strings for debug.
+//
+// `disabled` implies placeholder behavior too: with no runner attached, the
+// only way to produce readable text is the themed formatter, and falling
+// through to the old '[placeholder]' string would leak into play.
 function registerNarrator (target, opts) {
   opts = opts || {}
   const run = (typeof opts.runner === 'function') ? opts.runner : makeRunner(opts)
   const kdCache = opts.kdBundleCache || {}
   const pinnedTheme = opts.theme || null
-  const placeholder = !!opts.placeholder
+  const placeholder = !!opts.placeholder || !!opts.disabled
+  let worldBlurb = null  // lazily filled on first macro/kdBundle call
 
   function register (name, func, schema) {
     if (target && typeof target.registerRhsLabelFunction === 'function')
@@ -77,11 +82,18 @@ function registerNarrator (target, opts) {
       throw new Error('registerNarrator: target must be a Grammar or Matcher')
   }
 
+  // asNarrator / asPlayer prepend the shared world blurb (if one has been
+  // fetched — getWorldBlurb populates it on first call) so hand-composed
+  // prompts like kdBundle's themedVersion see the same lore as $macro.
+  function worldPrefix () {
+    const wb = (worldBlurb != null) ? worldBlurb : ''
+    return wb ? ('World: ' + wb + '\n') : ''
+  }
   function asNarrator (prompt) {
-    return run('In the second person, as a narrator to a player, ' + prompt)
+    return run(worldPrefix() + 'In the second person, as a narrator to a player, ' + prompt)
   }
   function asPlayer (prompt) {
-    return run('In the second person imperative, as a player commanding their character, ' + prompt)
+    return run(worldPrefix() + 'In the second person imperative, as a player commanding their character, ' + prompt)
   }
   function themedVersion (theme, template) {
     return asNarrator('reword the following text with a ' + theme + ' theme: ' + template)
@@ -119,6 +131,17 @@ function registerNarrator (target, opts) {
   // `{ theme: { $theme: [] } }` to stamp the chosen theme onto a node.
   function theme () { return getTheme() }
 
+  // Fetch (or return cached) the world-setup blurb that anchors every
+  // macro in this run. Called lazily on first $macro / $kdBundle use, so
+  // placeholder-only runs never issue the extra API request.
+  function getWorldBlurb () {
+    if (placeholder) return ''
+    if (worldBlurb !== null) return worldBlurb
+    const t = getTheme()
+    worldBlurb = run(themes.worldBlurbPrompt(t))
+    return worldBlurb
+  }
+
   // $macro: the main narrative primitive. In placeholder mode, produces a
   // structured `[theme:name#ctxId]` string; in runner mode, issues a
   // well-formed prompt via themes.macroPrompt and returns the response.
@@ -129,7 +152,7 @@ function registerNarrator (target, opts) {
   function macro (name, ctxId) {
     const t = getTheme()
     if (placeholder) return themes.formatPlaceholder(t, name, ctxId)
-    return run(themes.macroPrompt(t, name, ctxId))
+    return run(themes.macroPrompt(t, name, ctxId, getWorldBlurb()))
   }
 
   // Shared-theme narrative bundle for the keyDoor primitive.
@@ -158,6 +181,9 @@ function registerNarrator (target, opts) {
           after:    themes.formatPlaceholder(t, 'describe_after_unlock', pairId)
         }
       } else {
+        // Populate worldBlurb so the themedVersion / themedCommand calls
+        // that follow pick it up via worldPrefix().
+        getWorldBlurb()
         const shut = themedVersion(t, 'There is a door here. It is closed and locked.')
         const keyText = themedVersion(t, 'There is a key here. You pick it up.')
         const preview = themedVersion(t, 'You see a passage.')

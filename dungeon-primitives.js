@@ -101,6 +101,7 @@ function midpointRoom (opts) {
   const oneWay = !!opts.oneWay
   const idAM = edgeIdExpr('am')
   const idMB = edgeIdExpr('mb')
+  const roomNid = nodeIdExpr('room')
   function backtrackLabel (traversedId) {
     return {
       type: backtrackType,
@@ -110,10 +111,19 @@ function midpointRoom (opts) {
   }
   // Forward edges carry an `edgeId`; return edges carry the corresponding
   // `prereq.traversed` so the player can only walk them after having taken
-  // the paired forward edge.
+  // the paired forward edge. `link` is a themed button-label macro so the
+  // player's affordances are distinguishable rather than every passage
+  // reading "Continue". We use the edge's unique id as the ctxId so each
+  // button gets its own text.
   const edges = [
-    { v: 'a', w: 'm', label: { type: pathType, edgeId: idAM } },
-    { v: 'm', w: 'b', label: { type: pathType, edgeId: idMB } }
+    { v: 'a', w: 'm', label: {
+        type: pathType, edgeId: idAM,
+        link: { $macro: ['button_passage', idAM] }
+    } },
+    { v: 'm', w: 'b', label: {
+        type: pathType, edgeId: idMB,
+        link: { $macro: ['button_passage', idMB] }
+    } }
   ]
   // LHS guard: only guard b against being `win` in the two-way case, since
   // only the two-way variant adds an edge sourced at b.
@@ -141,7 +151,11 @@ function midpointRoom (opts) {
       node: [
         { id: 'a' },
         { id: 'b' },
-        { id: 'm', label: { type: roomType, nodeId: nodeIdExpr('room') } }
+        { id: 'm', label: {
+            type: roomType,
+            nodeId: roomNid,
+            text: { $macro: ['describe_room', roomNid] }
+        } }
       ],
       edge: edges
     }
@@ -165,9 +179,13 @@ function deadEnd (opts) {
   const deadEndType = opts.deadEndType || NODE_DEAD_END
   const withBacktrack = !opts.noBacktrack
   const idAD = edgeIdExpr('ad')
+  const deadEndNid = nodeIdExpr('deadend')
   const edges = [
     { v: 'a', w: 'b', label: { type: pathType } },
-    { v: 'a', w: 'd', label: { type: pathType, edgeId: idAD } }
+    { v: 'a', w: 'd', label: {
+        type: pathType, edgeId: idAD,
+        link: { $macro: ['button_passage', idAD] }
+    } }
   ]
   if (withBacktrack) {
     edges.push({
@@ -193,7 +211,11 @@ function deadEnd (opts) {
       node: [
         { id: 'a' },
         { id: 'b' },
-        { id: 'd', label: { type: deadEndType, nodeId: nodeIdExpr('deadend') } }
+        { id: 'd', label: {
+            type: deadEndType,
+            nodeId: deadEndNid,
+            text: { $macro: ['describe_dead_end', deadEndNid] }
+        } }
       ],
       edge: ['e'].concat(edges.slice(1))
     }
@@ -213,6 +235,7 @@ function parallelPath (opts) {
   opts = opts || {}
   const pathType = opts.pathType || EDGE_PATH
   const roomType = opts.roomType || NODE_ROOM
+  const roomNid = nodeIdExpr('room')
   // Preserve a->b's label (including any edgeId) via the LHS id='e' trick.
   return withOpts({
     name: 'parallel-path',
@@ -224,18 +247,26 @@ function parallelPath (opts) {
       node: [
         { id: 'a' },
         { id: 'b' },
-        { id: 'm', label: { type: roomType, nodeId: nodeIdExpr('room') } }
+        { id: 'm', label: {
+            type: roomType,
+            nodeId: roomNid,
+            text: { $macro: ['describe_room', roomNid] }
+        } }
       ],
       edge: [
         'e',
         { v: 'a', w: 'm', label: {
             $extend: [
-              { type: pathType },
+              { type: pathType,
+                link: { $macro: ['button_passage', roomNid] } },
               { edgeId: { $eval: '$e.label.edgeId' },
                 prereq: { $eval: '$e.label.prereq' } }
             ]
         } },
-        { v: 'm', w: 'b', label: { type: pathType } }
+        { v: 'm', w: 'b', label: {
+            type: pathType,
+            link: { $macro: ['button_passage', { $eval: '"e_pp_mb_" + ($$iter + 1)' }] }
+        } }
       ]
     }
   }, opts)
@@ -322,6 +353,11 @@ function keyDoor (opts) {
   const lockedEdgeLabel = {
     type: pathType,
     edgeId: idDB,
+    // label.link IS the button text (phrasebook template is `{link}`).
+    // Reuses the same kdBundle entry that the prereq.link reads — same
+    // cache key, no extra API call — so the "Unlock the door..." command
+    // shows up as the button label instead of an ugly dot-fallback.
+    link: bundled('unlock', 'Unlock the door with the key.'),
     prereq: {
       pairId: pairId,
       link: bundled('unlock', 'Unlock the door with the key.'),
@@ -382,7 +418,14 @@ function keyDoor (opts) {
       edge: [
         { v: 'a', w: 'k', label: branchEdgeLabel },
         { v: 'k', w: 'a', label: backtrackEdgeLabel },
-        { v: 'a', w: 'd', label: { type: pathType, edgeId: idAD } },
+        // Door-approach edge: label.link is the themed "approach/take" command
+        // from kdBundle (same cache entry as the branch edge to the key, so
+        // no extra API call). Without this stamp the button would fall back
+        // to the dot label ("path") since refine hasn't run yet.
+        { v: 'a', w: 'd', label: {
+            type: pathType, edgeId: idAD,
+            link: bundled('link', 'Take the passage.')
+        } },
         { v: 'd', w: 'a', label: doorFrontBacktrack },
         { v: 'd', w: 'b', label: lockedEdgeLabel },
         { v: 'b', w: 'd', label: doorBackBacktrack }
@@ -574,10 +617,14 @@ function monsterBattle (opts) {
     rhs: {
       node: [
         { id: 'a' }, { id: 'b' },
-        { id: 'cN', label: {
-            type: choiceNodeType, state: 'normal',
-            nodeId: nodeIdExpr('battle_normal'),
-            dot: { label: 'battle (normal)', shape: 'box', color: 'orange' } } },
+        { id: 'cN', label: (function () {
+            const nid = nodeIdExpr('battle_normal')
+            return {
+              type: choiceNodeType, state: 'normal',
+              nodeId: nid,
+              text: { $macro: ['describe_monster_intro', nid] },
+              dot: { label: 'battle (normal)', shape: 'box', color: 'orange' } }
+          })() },
         { id: 'cA', label: {
             type: choiceNodeType, state: 'advantage',
             nodeId: nodeIdExpr('battle_advantage'),
@@ -603,7 +650,8 @@ function monsterBattle (opts) {
         // $extend drops missing fields.
         { v: 'a', w: 'cN', label: {
             $extend: [
-              { type: pathType },
+              { type: pathType,
+                link: { $macro: ['button_passage', { $eval: '"e_mb_" + ($$iter + 1)' }] } },
               { edgeId: { $eval: '$e.label.edgeId' },
                 prereq: { $eval: '$e.label.prereq' } }
             ]
@@ -657,10 +705,12 @@ function puzzleChoice (opts) {
   const introType = opts.introType || NODE_PUZZLE_INTRO
   const distractorType = opts.distractorType || NODE_DISTRACTOR
   const numDistractors = typeof opts.numDistractors === 'number' ? opts.numDistractors : 3
+  const puzzleNid = nodeIdExpr('puzzle')
   const rhsNodes = [
     { id: 'a' }, { id: 'b' },
     { id: 'p', label: {
-        type: introType, nodeId: nodeIdExpr('puzzle'),
+        type: introType, nodeId: puzzleNid,
+        text: { $macro: ['describe_puzzle_intro', puzzleNid] },
         dot: { label: 'puzzle', shape: 'diamond', color: 'gold' } } }
   ]
   // If the matched puzzle edge carried an `edgeId` (e.g. because it was
@@ -675,7 +725,8 @@ function puzzleChoice (opts) {
     // / set-piece). $extend drops missing fields.
     { v: 'a', w: 'p', label: {
         $extend: [
-          { type: pathType },
+          { type: pathType,
+            link: { $macro: ['button_passage', puzzleNid] } },
           { edgeId: { $eval: '$e.label.edgeId' },
             prereq: { $eval: '$e.label.prereq' } }
         ]
@@ -717,6 +768,7 @@ function healthPotion (opts) {
   const potionType = opts.potionType || NODE_POTION
   const healValue = typeof opts.healValue !== 'undefined' ? opts.healValue : 0.3
   const idAP = edgeIdExpr('ap')
+  const potionNid = nodeIdExpr('potion')
   return withOpts({
     name: 'health-potion',
     lhs: {
@@ -732,13 +784,17 @@ function healthPotion (opts) {
         { id: 'a' }, { id: 'b' },
         { id: 'p', label: {
             type: potionType,
-            nodeId: nodeIdExpr('potion'),
+            nodeId: potionNid,
             healValue: healValue,
+            text: { $macro: ['describe_potion', potionNid] },
             dot: { label: 'potion (+' + healValue + ')', shape: 'invtriangle', color: 'darkgreen' } } }
       ],
       edge: [
         'e',
-        { v: 'a', w: 'p', label: { type: pathType, edgeId: idAP } },
+        { v: 'a', w: 'p', label: {
+            type: pathType, edgeId: idAP,
+            link: { $macro: ['button_passage', idAP] }
+        } },
         { v: 'p', w: 'a', label: {
             type: backtrackType,
             prereq: { traversed: idAP },
@@ -813,8 +869,14 @@ function initStartGoalStage (opts) {
         // downstream rules can reference them via `prereq.visited: 'start'`
         // or similar without worrying about iter-derived collisions.
         node: [
-          { id: 's', label: { type: startType, nodeId: 'start' } },
-          { id: 'g', label: { type: winType, nodeId: 'win' } }
+          { id: 's', label: {
+              type: startType, nodeId: 'start',
+              text: { $macro: ['theme_intro', 'start'] }
+          } },
+          { id: 'g', label: {
+              type: winType, nodeId: 'win',
+              text: { $macro: ['describe_win', 'win'] }
+          } }
         ],
         edge: [{ v: 's', w: 'g', label: { type: pathType } }]
       }
