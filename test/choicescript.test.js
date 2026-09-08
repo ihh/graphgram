@@ -212,6 +212,30 @@ function lintProject (project) {
     })
   })
 
+  // 6. reaching an *else by falling out of the branch above it is an error
+  // unless the game declared implicit_control_flow (Scene.prototype.else).
+  const icf = names.some(name => parsed[name].some(l =>
+    l.command === 'create' && /^implicit_control_flow\s+true$/.test(l.data)))
+  if (!icf) {
+    names.forEach(name => {
+      const lines = parsed[name]
+      lines.forEach((line, i) => {
+        if (line.command !== 'else' && line.command !== 'elseif' && line.command !== 'elsif') return
+        let previous = null
+        for (let j = i - 1; j >= 0; j--) {
+          if (lines[j].blank) continue
+          if (lines[j].depth <= line.depth) break
+          previous = lines[j]
+          break
+        }
+        if (previous && ['goto', 'goto_scene', 'finish', 'ending'].indexOf(previous.command) < 0) {
+          problems.push(name + ':' + line.num + ': falls in to *' + line.command +
+            ' without implicit_control_flow')
+        }
+      })
+    })
+  }
+
   // 5. startup.txt declares everything before it does anything
   const startup = parsed[project.entry]
   let lastCreate = -1
@@ -259,6 +283,9 @@ test('choicescript: startup declares every variable exactly once, before *goto_s
   loadIR().vars.forEach(v => {
     assert.ok(names.indexOf(v.name) >= 0, v.name + ' should be declared')
   })
+  // Falling out of an *if branch into the *else below it is an error unless
+  // the game opts in, and every first/repeat branch here does exactly that.
+  assert.ok(/^\*create implicit_control_flow true$/m.test(startup))
   assert.ok(startup.indexOf('*title The Cindermoor Vault') >= 0)
   assert.ok(startup.indexOf('\n*scene_list\n  startup\n  fixture_vault\n') >= 0)
   assert.ok(startup.trimEnd().endsWith('*goto_scene fixture_vault'))
@@ -451,6 +478,24 @@ test('choicescript: a passage whose options are all show-blocked still gets a fa
   const block = project.files['fixture_vault.txt'].split('*label p_hall')[1].split('*label ')[0]
   assert.ok(/^ {2}#Wait, and take stock\.$/m.test(block))
   assert.deepStrictEqual(lintProject(project), [])
+})
+
+test('choicescript: a conflicting implicit_control_flow declaration is refused', () => {
+  const ir = loadIR()
+  ir.vars.push({ name: 'implicit_control_flow', kind: 'number', ref: null, init: false })
+  assert.throws(() => exportChoiceScript(ir, { validate: false }), /needs it true/)
+  const agreeable = loadIR()
+  agreeable.vars.push({ name: 'implicit_control_flow', kind: 'number', ref: null, init: true })
+  const startup = exportChoiceScript(agreeable, { validate: false }).files['startup.txt']
+  const declarations = startup.split('\n').filter(l => /^\*create implicit_control_flow /.test(l))
+  assert.strictEqual(declarations.length, 1, 'declared once, not renamed around')
+})
+
+test('choicescript: the linter catches a fall-through into *else', () => {
+  const project = exportChoiceScript(loadIR())
+  const files = Object.assign({}, project.files)
+  files['startup.txt'] = files['startup.txt'].replace('*create implicit_control_flow true', '*create icf true')
+  assert.ok(lintProject({ entry: project.entry, files }).some(p => /without implicit_control_flow/.test(p)))
 })
 
 test('choicescript: a scene name colliding with a reserved file is renamed', () => {

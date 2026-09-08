@@ -586,8 +586,13 @@ function emitChoice (buf, passage, links, ctx) {
   // Fact 2 in the header: if every option can be conditioned away, the engine
   // throws at runtime rather than showing an empty menu. One option that no
   // condition can touch makes that impossible. It leads back into this same
-  // passage, which is the only destination guaranteed to exist and to be
-  // legal from here.
+  // passage — the only destination that is guaranteed to exist and guaranteed
+  // to be legal from here, and one that re-runs onEnter, so a passage that
+  // grants what its own exits require can still unstick itself. If the story
+  // is genuinely unwinnable at this point the player loops instead of
+  // crashing, and ChoiceScript's randomtest reports it as a looplimit: that is
+  // a bug in the IR, and this is the right place for it to become visible
+  // rather than the place to hide it.
   if (!options.some(opt => opt.unconditional)) {
     let label = opts.fallbackText || 'Wait, and take stock.'
     let n = 2
