@@ -21,7 +21,7 @@
 // multireplace over non-boolean indices, fairmath (%+) — is deliberately out
 // of scope: the IR has no way to ask for any of it.
 //
-// Four engine facts drive most of the code below, all checked against
+// Five engine facts drive most of the code below, all checked against
 // web/scene.js rather than against the prose documentation:
 //
 //   1. Indentation is semantic and a mis-indent is a parse error, so every
@@ -31,18 +31,25 @@
 //      options" and kills the game. Both ways of conditioning an option
 //      count: a false *if hides it, and a false *selectable_if marks it
 //      unselectable, and neither satisfies the engine's
-//      atLeastOneSelectableOption. Hence emitFallbackOption below.
+//      atLeastOneSelectableOption. Hence the fallback option in emitChoice.
 //   3. Expressions allow exactly one binary operator per parenthesis level
 //      (Scene.prototype.evaluateExpr), so conditions are fully parenthesized,
 //      and `not` is a *function*: `not(x)`, never `not x`.
 //   4. `*set x -20` means "subtract 20" — a leading operator is implicitly
 //      applied to the variable itself. Assigning a negative literal therefore
 //      has to go through parentheses: `*set x (0 - 20)`.
+//   5. Reaching an *else by running off the end of the *if above it is an
+//      error unless the game declares `implicit_control_flow`, so startup.txt
+//      declares it.
+//
+// The output is checked against the real engine, not only against this
+// module's idea of it: the generated project passes ChoiceScript's own
+// quicktest and randomtest.
 
-// story-ir.js is being written in parallel with this exporter. Tolerate its
-// absence so that the exporter and its tests stand alone, but use its
-// validator the moment it exists: emitting a broken game is worse than
-// refusing to emit one.
+// story-ir.js supplies the shared validator and text normalizer. Its absence
+// is tolerated so that this exporter and its tests stand alone, but when it is
+// there its verdict is binding: emitting a broken game is worse than refusing
+// to emit one.
 let storyIR = null
 try {
   storyIR = require('../story-ir')
@@ -52,11 +59,11 @@ try {
 
 const INDENT = '  '
 
-// scene.js validateVariable() reserves exactly these six names plus the
-// `choice_` prefix. The task brief also names command words (`if`, `goto`,
-// `label`, `return`, `else`, `choice`, `not`); the engine tolerates those as
-// variable names, but a variable that shadows a command turns generated
-// source into a puzzle, so they are refused here too.
+// scene.js validateVariable() reserves exactly the first six of these, plus
+// the whole `choice_` prefix. The command words that follow are legal
+// variable names as far as the engine is concerned, but a variable that
+// shadows a command turns generated source into a puzzle, so they are refused
+// here too.
 const RESERVED_VARS = [
   'and', 'or', 'true', 'false', 'scene', 'scenename',
   'choice', 'if', 'else', 'goto', 'label', 'return', 'not'

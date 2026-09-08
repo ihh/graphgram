@@ -203,6 +203,29 @@ function roleExpr () { return tableExpr(ROLES, 1, 'role') }
 function factExpr () { return tableExpr(SECRETS, 5, 'secret') }
 function actExpr () { return tableExpr(DIRECTIVE_ACTS, 7, 'act') }
 
+// Who a lock belongs to, looked up out of the graph rather than recomputed.
+//
+// Node labels and edge labels in one rule application are NOT evaluated at
+// the same moment: `applyRuleAtSite` adds every RHS node first, then removes
+// the matched ones, and only then evaluates the RHS edges. So the cast index
+// an edge label sees is one higher than the one the suspect node saw — and
+// an anonymous note addressed by recomputing the table would name the wrong
+// servant. Reading the role back off the node that already carries this
+// pairId is exact, and says what it means: the note is addressed to whoever
+// this lock belongs to.
+function lockHolderRoleExpr (idRole) {
+  const pairIdSrc = '"secret_' + idRole + '_" + ($$iter + 1)'
+  return { $eval:
+    '(function () {' +
+    ' var p = ' + pairIdSrc + ', role = null;' +
+    ' $$graph.nodes().forEach(function (n) {' +
+    '   var l = $$graph.node(n);' +
+    '   if (l && l.pairId === p && l.castRole) role = l.castRole' +
+    ' });' +
+    ' return role' +
+    '})()' }
+}
+
 // Stamp a seed-derived salt onto the start node. Runs once, after the house
 // has been laid out and before anybody is put in it; see CAST_INDEX_SRC for
 // why the cast is dull without it.
@@ -544,7 +567,7 @@ function socialLock (opts) {
     prefaceText: preface,
     noteText: macro(DIRECTIVE_SLOT.macro, pairId),
     // The blackmail note that created this lock. See directive() above.
-    directive: directive({ to: castRole, ctx: pairId }),
+    directive: directive({ to: lockHolderRoleExpr(idRole), ctx: pairId }),
     link: confront,
     prereq: {
       pairId: pairId,

@@ -234,6 +234,13 @@ const ROLE_BY_TYPE = {
   start: 'start',
   win: 'ending',
   death: 'death',
+  // `loss` is dagPrimitives' consolation sink: the player took the arm of the
+  // fork that did not have the key, reached the join, and cannot go on. It is
+  // terminal and it is not a win, which is exactly the `death` role — the name
+  // is about how the story ends, not about the character's pulse. Mapping it to
+  // `ending` instead would make story-solver.js report an unwinnable map as
+  // winnable, because it counts any reachable non-death ending as a victory.
+  loss: 'death',
   random: 'random',
   choice: 'choice',
   key: 'item',

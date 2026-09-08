@@ -82,8 +82,8 @@ const REGISTERS = [
   { id: 'ruin',        noun: 'ruin',              fear: 'losing the position' }
 ]
 
-// A fourth axis, not yet wired into clue generation, kept here because it is
-// the one that would let a key be used *wrongly* rather than merely
+// An axis not yet wired into clue generation, kept here because it is the one
+// that would let a key be used *wrongly* rather than merely
 // unsuccessfully: is this person the one who did the thing, the one it was done
 // to, or someone who merely saw it? Confronting a victim as though they were
 // the perpetrator is a mistake that should cost something. The Story IR has no
@@ -91,9 +91,36 @@ const REGISTERS = [
 // stays a vocabulary until it does. See papers/narrative-slots.md.
 const VALENCES = ['perpetrator', 'victim', 'witness']
 
-// A third axis, and the one that works in a setting with no people in it. It is
-// independent of the other two: a material is not a coded sin, and nothing in
-// the engine treats it as one.
+// The third axis: the one that carries an INDIRECT clue, and the most useful one in a social
+// setting. A bearing is what a person visibly is, as opposed to what they are
+// hiding (`transgression`) or what they fear (`register`). It is on the surface,
+// so the narrator can hand it to the player for free — and two people sharing
+// one is an echo the player may or may not notice.
+//
+// That echo is the whole point. "The butler's prideful air" and "the fallen
+// woman's prideful nature" are two ordinary descriptive sentences that, taken
+// together, are a clue; the narrator never says they are connected. Compare the
+// direct form — "rumours link the butler and the fallen woman" — which is one
+// sentence and requires no inference at all.
+//
+// Both are legitimate. The indirect route is a nicer layer when the clue set can
+// afford it, and `generateClueSet`'s `prefer` option is how you ask for it
+// without banning the direct form outright: it tries attribute clues first and
+// falls back to naming names when nothing else finishes the deduction.
+const BEARINGS = [
+  { id: 'prideful',    adj: 'prideful' },
+  { id: 'fastidious',  adj: 'fastidious' },
+  { id: 'devout',      adj: 'devout' },
+  { id: 'grasping',    adj: 'grasping' },
+  { id: 'timid',       adj: 'timid' },
+  { id: 'jovial',      adj: 'relentlessly jovial' },
+  { id: 'watchful',    adj: 'watchful' },
+  { id: 'aggrieved',   adj: 'aggrieved' }
+]
+
+// The fourth axis, and the one that works in a setting with no people in it. It
+// is independent of the others: a material is not a coded sin, and nothing in the
+// engine treats it as one.
 const MATERIALS = [
   { id: 'brass',  noun: 'yellow brass' },
   { id: 'iron',   noun: 'cold black iron' },
@@ -149,7 +176,12 @@ function sampleHallmarks (rnd, n, opts) {
       index: i,
       transgression: t.id,
       material: mats[i].id,
-      register: pick(rnd, REGISTERS).id
+      // register and bearing are drawn WITH replacement, so locks can coincide
+      // on them. That is what gives `attrEq` something to say: on an axis where
+      // every value is unique, "these two share it" is never true and "these two
+      // differ" is a tautology.
+      register: pick(rnd, REGISTERS).id,
+      bearing: pick(rnd, BEARINGS).id
     }
   })
 }
@@ -294,7 +326,7 @@ function candidateClues (n, hidden, lockHallmarks, opts) {
   }
   for (let k1 = 0; k1 < n; k1++) {
     for (let k2 = k1 + 1; k2 < n; k2++) {
-      ;(opts.attrs || ['register', 'material']).forEach(function (attr) {
+      ;(opts.attrs || ['bearing', 'register', 'material']).forEach(function (attr) {
         pool.push(attrEq(k1, k2, attr))
         pool.push(attrNe(k1, k2, attr))
       })
@@ -312,12 +344,33 @@ function candidateClues (n, hidden, lockHallmarks, opts) {
   return opts.noDirect ? pool.filter(function (c) { return c.op !== 'is' }) : pool
 }
 
+// The default preference order: try the clues that require inference before the
+// ones that hand over an answer. An `attrEq` clue is two descriptive sentences
+// the player has to connect; a bare `is` clue is the narrator telling them. The
+// greedy loop below walks this order, so indirect clues get first refusal and
+// direct ones are used only when nothing else finishes the deduction — which is
+// the right default, since a clue set that CAN be all-indirect should be, and
+// one that cannot should still exist rather than failing.
+const DEFAULT_PREFERENCE = ['attrEq', 'attrNe', 'either', 'ifThen', 'not', 'is']
+
 function generateClueSet (rnd, hidden, lockHallmarks, opts) {
   opts = opts || {}
   const n = hidden.length
   const all = enumerateMatchings(n)
+  const prefer = opts.prefer || DEFAULT_PREFERENCE
+  const rank = {}
+  prefer.forEach(function (op, i) { rank[op] = i })
+  // Shuffle first so ties within a preference class are seed-determined rather
+  // than pool-order artefacts, then sort stably by preference.
   const truths = shuffle(rnd, candidateClues(n, hidden, lockHallmarks, opts)
     .filter(function (c) { return holds(c, hidden, lockHallmarks) }))
+    .map(function (c, i) { return { c: c, i: i } })
+    .sort(function (a, b) {
+      const ra = rank[a.c.op] == null ? prefer.length : rank[a.c.op]
+      const rb = rank[b.c.op] == null ? prefer.length : rank[b.c.op]
+      return ra - rb || a.i - b.i
+    })
+    .map(function (x) { return x.c })
 
   const kept = []
   let surviving = all
@@ -442,7 +495,9 @@ module.exports = {
   TRANSGRESSIONS,
   REGISTERS,
   VALENCES,
+  BEARINGS,
   MATERIALS,
+  DEFAULT_PREFERENCE,
   sampleHallmarks,
   affinity,
   enumerateMatchings,

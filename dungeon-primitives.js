@@ -852,6 +852,303 @@ function dotDecorationStage (opts) {
 // node that expands once into start --path--> win. Use this as the
 // `init` stage (with `limit: 1`) of a grammar whose later stages apply
 // the primitives above.
+// Delete a direct a -> b edge once the graph offers another route from a to b
+// that does not use it.
+//
+// This exists because several primitives deliberately PRESERVE the edge they
+// match. `parallelPath` adds a second route a -> m -> b and keeps a -> b, so
+// the original stays walkable; `deadEnd` keeps a -> b so the branch is a
+// detour rather than a diversion. That is right almost everywhere, and wrong
+// in exactly one place: the initial start -> win edge. Left alone, it survives
+// every expansion, and the finished map — however elaborate — can be completed
+// in a single move. A solvability check catches it immediately (see
+// story-solver.js); without one it is invisible, because every individual rule
+// behaved correctly.
+//
+// The guard is a breadth-first search in the rule's `condition`, run over the
+// live host graph with the candidate edge excluded. Only when an alternative
+// route already exists is the direct edge dropped, so this can never disconnect
+// the goal. Run it as a late stage, after expansion has had its chance to build
+// that alternative.
+//
+// Cost note: the condition runs once per complete match, and there is at most
+// one start/win pair, so this is one BFS per iteration of its stage — cheap
+// relative to the subgraph search that found the match. See
+// papers/matching-engine.md section 5.
+// Push the goal further away: insert a room between some node and `win`.
+//
+// This exists because almost nothing else lengthens the CRITICAL PATH. Of the
+// expansion primitives, only `midpointRoom` extends the route the player must
+// actually walk; `deadEnd` and `parallelPath` both preserve the edge they match
+// and hang new structure off the side of it. So a grammar built from them grows
+// a large map around a short spine, and a solvability check reports the
+// embarrassing result: twenty-seven rooms, three locked doors, and a two-move
+// win. Everything the generator built was optional.
+//
+// `midpointRoom` cannot fix this at the goal, and refuses to try: its two-way
+// variant guards `b` against being `win`, because the backtrack it adds would
+// give `win` an outgoing edge and the goal would stop being a sink. This rule is
+// the one-way version of the same move, which keeps that invariant:
+//
+//     a --path--> win    =>    a --path--> m --path--> win
+//                              m --backtrack--> a
+//
+// The player can retreat from the approach room, but nothing leads out of the
+// goal. Firing this k times guarantees a shortest solution of at least k+1
+// moves, which makes it the one knob in the primitive set that binds
+// `budget.criticalPath` directly rather than statistically. Give it its own
+// stage with `limit` set from that budget.
+function approachRoom (opts) {
+  opts = opts || {}
+  const pathType = opts.pathType || EDGE_PATH
+  const backtrackType = opts.backtrackType || EDGE_BACKTRACK
+  const roomType = opts.roomType || NODE_ROOM
+  const winType = opts.winType || NODE_WIN
+  const withBacktrack = !opts.noBacktrack
+  const idAM = edgeIdExpr('approach_am')
+  const idMW = edgeIdExpr('approach_mw')
+  const roomNid = nodeIdExpr('approach')
+  return withOpts({
+    name: 'approach-room',
+    lhs: {
+      node: [{ id: 'a' }, { id: 'b', label: { type: winType } }],
+      // No `$not: {edgeId}` guard here, unlike midpointRoom and keyDoor. Those
+      // refuse paired edges because splitting one strands the backtrack whose
+      // prereq.traversed names it. That cannot happen on an edge into `win`:
+      // `win` is a sink, so no backtrack is ever paired with an edge entering
+      // it, and the matched edgeId is therefore referenced by nothing.
+      edge: [{ v: 'a', w: 'b', label: { type: pathType }, id: 'e' }]
+    },
+    rhs: {
+      node: [
+        { id: 'a' },
+        { id: 'b' },
+        { id: 'm', label: {
+            type: roomType,
+            nodeId: roomNid,
+            text: { $macro: ['describe_room', roomNid] }
+        } }
+      ],
+      edge: [
+        // The a->m segment takes a FRESH edgeId (so it can be paired with the
+        // backtrack below) but INHERITS any prereq from the matched edge — a
+        // gated approach to the goal must stay gated, or the new room becomes a
+        // way around the gate. $extend drops prereq entirely when there was
+        // none.
+        { v: 'a', w: 'm', label: {
+            $extend: [
+              { type: pathType, edgeId: idAM,
+                link: { $macro: ['button_passage', roomNid] } },
+              { prereq: { $eval: '$e.label.prereq' } }
+            ] } },
+        { v: 'm', w: 'b', label: {
+            type: pathType, edgeId: idMW,
+            link: { $macro: ['button_passage', idMW] } } },
+      ].concat(withBacktrack ? [
+        // Only the a-side backtrack: a `win -> m` edge would stop the goal
+        // being a sink. So the approach chain is retraceable up to the last
+        // room, and the final step into the goal is one-way, which is what a
+        // goal should be. Pass `{ noBacktrack: true }` in an acyclic grammar,
+        // where any back-edge at all breaks the topology promise.
+        { v: 'm', w: 'a', label: {
+            type: backtrackType,
+            prereq: { traversed: idAM },
+            dot: { label: backtrackType, style: 'dashed', color: 'gray' } } }
+      ] : [])
+    }
+  }, opts)
+}
+
+// A stage that lengthens the critical path to a target. Each firing inserts one
+// room immediately before the goal, so `limit` firings produce a spine of
+// `limit` rooms and a shortest solution of exactly `limit + 1` moves.
+//
+// Run it FIRST, right after init. At that point the only edge is start -> win,
+// so the first firing gives start -> m1 -> win, the second matches m1 -> win and
+// gives start -> m1 -> m2 -> win, and so on: a clean chain, built before
+// anything else has a chance to hang side structure off it. Running it later
+// still works but competes with a graph full of other match sites.
+function approachStage (opts) {
+  opts = opts || {}
+  return {
+    name: opts.name || 'approach',
+    limit: typeof opts.limit === 'number' ? opts.limit : 3,
+    rules: [approachRoom(opts)]
+  }
+}
+
+// Put a lock on the critical path, by locking the last step into the goal.
+//
+// `keyDoor` cannot do this, and refuses on purpose. Its LHS demands an
+// anonymous path edge whose target is not `win`: anonymous because splitting a
+// paired edge would strand the backtrack keyed on its edgeId, and not-`win`
+// because the `b -> d` return it adds would give the goal an outgoing edge and
+// stop it being a sink. Both guards are right in general and both rule out the
+// one edge that matters most.
+//
+// The consequence is measurable and embarrassing: run `maze-locked`, and
+// story-solver.js reports a thirty-room map with three locked doors and a
+// five-move win — the shortest route walks the approach spine and never meets a
+// lock. Every door is optional. A map like that is not a locked map; it is an
+// unlocked map with decorations.
+//
+// This rule is the goal-facing special case where both of keyDoor's guards can
+// be safely lifted:
+//
+//   a --path--> win   =>   a --path--> k          (the key branch)
+//                          k --backtrack--> a
+//                          a --path--> d          (approach the door)
+//                          d --backtrack--> a     (retreat from it)
+//                          d --path{prereq.pairId}--> win
+//
+//   * the edgeId guard is unnecessary, because `win` is a sink and so no
+//     backtrack is ever paired with an edge entering it;
+//   * the not-`win` guard is unnecessary because there is no `win -> d` return
+//     here — the goal keeps no outgoing edges, and the player who has gone
+//     through simply wins.
+//
+// Because every route to the goal ends on this edge, the key is now on the
+// critical path by construction, not by luck.
+function goalLock (opts) {
+  opts = opts || {}
+  const pathType = opts.pathType || EDGE_PATH
+  const backtrackType = opts.backtrackType || EDGE_BACKTRACK
+  const keyType = opts.keyType || NODE_KEY
+  const doorType = opts.doorType || NODE_DOOR
+  const winType = opts.winType || NODE_WIN
+  const narrate = !!opts.narrate
+  const withBacktrack = !opts.noBacktrack
+
+  const pairId = { $eval: '"goalpair_" + ($$iter + 1)' }
+  const iterArg = { $eval: '$$iter' }
+  function bundled (field, fallback) {
+    return narrate ? { $kdBundle: [iterArg, field] } : fallback
+  }
+  const idAK = edgeIdExpr('goal_ak')
+  const idAD = edgeIdExpr('goal_ad')
+  const idDW = edgeIdExpr('goal_dw')
+
+  const edges = [
+    { v: 'a', w: 'k', label: {
+        type: pathType, edgeId: idAK,
+        before: bundled('before', 'You see a passage.'),
+        link: bundled('link', 'Take the passage.'),
+        dot: { style: 'dotted' } } },
+    { v: 'a', w: 'd', label: {
+        type: pathType, edgeId: idAD,
+        link: bundled('link', 'Approach the door.') } },
+    { v: 'd', w: 'b', label: {
+        type: pathType,
+        edgeId: idDW,
+        link: bundled('unlock', 'Unlock the final door.'),
+        prereq: {
+          pairId: pairId,
+          link: bundled('unlock', 'Unlock the final door.'),
+          after: bundled('after', 'The key turns. Beyond is the end of it.')
+        },
+        dot: { label: { $eval: '"locked (goalpair_" + ($$iter + 1) + ")"' },
+               style: 'bold', color: 'red' } } }
+  ]
+  if (withBacktrack) {
+    edges.push({ v: 'k', w: 'a', label: {
+      type: backtrackType, prereq: { traversed: idAK },
+      dot: { label: backtrackType, style: 'dashed', color: 'gray' } } })
+    edges.push({ v: 'd', w: 'a', label: {
+      type: backtrackType, prereq: { traversed: idAD },
+      dot: { label: backtrackType, style: 'dashed', color: 'gray' } } })
+  }
+
+  return withOpts({
+    name: 'goal-lock',
+    limit: typeof opts.limit === 'number' ? opts.limit : 1,
+    lhs: {
+      node: [{ id: 'a' }, { id: 'b', label: { type: winType } }],
+      edge: [{ v: 'a', w: 'b', label: { type: pathType } }]
+    },
+    rhs: {
+      node: [
+        { id: 'a' },
+        { id: 'b' },
+        { id: 'k', label: {
+            type: keyType, pairId: pairId, nodeId: nodeIdExpr('goalkey'),
+            text: bundled('keyText', 'There is a key here. You pick it up.'),
+            dot: { label: { $eval: '"key (goalpair_" + ($$iter + 1) + ")"' }, shape: 'diamond' } } },
+        { id: 'd', label: {
+            type: doorType, pairId: pairId, nodeId: nodeIdExpr('goaldoor'),
+            text: bundled('shutText', 'The last door. It is closed and locked.'),
+            dot: { label: { $eval: '"door (goalpair_" + ($$iter + 1) + ")"' }, shape: 'house' } } }
+      ],
+      edge: edges
+    }
+  }, opts)
+}
+
+// A one-shot stage placing a single lock across the final approach to the goal.
+// Run it after the approach spine exists and after expansion, but before
+// refinement rewrites `path` edges into passage / monster / puzzle.
+function goalLockStage (opts) {
+  opts = opts || {}
+  return {
+    name: opts.name || 'goal-lock',
+    limit: typeof opts.limit === 'number' ? opts.limit : 1,
+    rules: [goalLock(opts)]
+  }
+}
+
+function pruneShortcut (opts) {
+  opts = opts || {}
+  // `fromType: null` means "any source node". That is how this rule doubles as
+  // a goal fan-in pruner: run it with no source constraint and it funnels every
+  // redundant route into the goal down to one, which is what lets goalLock
+  // guarantee a lock on the critical path with a single firing.
+  const fromType = ('fromType' in opts) ? opts.fromType : NODE_START
+  const toType = opts.toType || NODE_WIN
+  const edgeType = opts.edgeType || EDGE_PATH
+  // BFS from s to t, refusing the direct s -> t hop. Written as an immediately
+  // invoked expression because `condition` is compiled as a single expression
+  // (see Matcher#getEvalFunc).
+  const altRouteExists =
+    '(function (g, s, t) {' +
+    '  var seen = {}, q = [s]; seen[s] = 1;' +
+    '  while (q.length) {' +
+    '    var c = q.shift(), succ = g.successors(c) || [];' +
+    '    for (var i = 0; i < succ.length; i++) {' +
+    '      var n = succ[i];' +
+    '      if (c === s && n === t) continue;' +
+    '      if (n === t) return true;' +
+    '      if (!seen[n]) { seen[n] = 1; q.push(n) }' +
+    '    }' +
+    '  }' +
+    '  return false' +
+    '})($$graph, $a.id, $b.id)'
+  return withOpts({
+    name: 'prune-shortcut',
+    lhs: {
+      node: [fromType ? { id: 'a', label: { type: fromType } } : { id: 'a' },
+             { id: 'b', label: { type: toType } }],
+      edge: [{ v: 'a', w: 'b', label: { type: edgeType } }]
+    },
+    condition: altRouteExists,
+    // Both endpoints survive with their labels; the matched edge is not
+    // re-created, and applyRuleAtSite removes every LHS edge before adding the
+    // RHS ones — so omitting it here is how an edge gets deleted.
+    rhs: { node: [{ id: 'a' }, { id: 'b' }] }
+  }, opts)
+}
+
+// A ready-made late stage wrapping pruneShortcut. Drop it in after expansion
+// and before refinement: after, so an alternative route exists to find; before,
+// so the edge is still typed `path` rather than having been refined into a
+// passage / monster / puzzle.
+function pruneShortcutStage (opts) {
+  opts = opts || {}
+  return {
+    name: opts.name || 'prune-shortcuts',
+    limit: typeof opts.limit === 'number' ? opts.limit : 4,
+    rules: [pruneShortcut(opts)]
+  }
+}
+
 function initStartGoalStage (opts) {
   opts = opts || {}
   const startType = opts.startType || NODE_START
@@ -898,6 +1195,12 @@ module.exports = {
   defaultRules,
   initStartGoalStage,
   dotDecorationStage,
+  pruneShortcut,
+  pruneShortcutStage,
+  approachRoom,
+  approachStage,
+  goalLock,
+  goalLockStage,
   // type constants
   EDGE_PATH,
   EDGE_BACKTRACK,

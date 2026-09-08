@@ -44,6 +44,7 @@ const opt = getopt.create([
   ['f', 'format=NAME', 'output format: ' + FORMATS.join(', ') + ' (default "ir")'],
   ['o', 'out=PATH', 'output file, or directory for choicescript; "-" for stdout'],
   ['l', 'list', 'list the worked examples and exit'],
+  ['k', 'check', 'report solvability (winnable, dead links, shortest solution) and exit'],
   ['', 'theme=NAME', 'pin the theme (default: deterministic from seed)'],
   ['', 'list-themes', 'print available themes and exit'],
   ['', 'placeholder', 'narrative slots emit [theme:macro#ctx] placeholders'],
@@ -173,6 +174,20 @@ function buildIR () {
     process.exit(2)
   }
   return ir
+}
+
+// --check answers the question validateStoryIR cannot: not "is this document
+// well-formed" but "can a player finish it". The two are independent — a
+// perfectly valid IR describes a perfectly dead map when a lock guards its own
+// key. See story-solver.js.
+if (o.check) {
+  const solver = require('../story-solver')
+  const ir = buildIR()
+  const report = solver.analyzeStory(ir)
+  console.log(solver.formatReport(ir, report, solver.shortestSolution(ir)))
+  // Exit non-zero on an unwinnable story so this composes into a Makefile or CI
+  // step rather than only being readable by a person.
+  process.exit(report.winnable && !report.danglingRefs.length ? 0 : 3)
 }
 
 let payload, files = null

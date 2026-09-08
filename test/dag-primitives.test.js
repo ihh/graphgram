@@ -322,16 +322,21 @@ test('dag: both examples match the module interface in docs/spec/examples.md', (
     assert.ok(Array.isArray(ex.defaultSeeds) && ex.defaultSeeds.length > 0)
     assert.deepStrictEqual(ex.defaultSeeds, [42, 1729, 8675309])
     assert.deepStrictEqual(Object.keys(ex.budget).sort(),
-      ['keys', 'minigames', 'nestingDepth', 'npcs', 'rooms'])
+      ['criticalPath', 'keys', 'minigames', 'nestingDepth', 'npcs', 'rooms'])
     assert.strictEqual(typeof ex.grammar, 'function')
     // grammar() returns JSON, not a constructed Grammar: the caller owns
     // construction because it owns narrator registration.
     const json = ex.grammar({})
     assert.strictEqual(json.constructor, Object)
     assert.strictEqual(json.start, 'START')
-    assert.ok(Array.isArray(json.stages) && json.stages.length === 3)
+    assert.ok(Array.isArray(json.stages) && json.stages.length === 4)
+    // `approach` sits between init and expand: it spends the criticalPath
+    // budget building the spine before anything can hang side structure off
+    // it, so that the locks in `expand` land on the route the player must
+    // actually walk. Named lookup, not indexed, so inserting a stage does not
+    // silently repoint the assertions below at a different one.
     assert.deepStrictEqual(json.stages.map(function (s) { return s.name }),
-      ['init', 'expand', 'decorate'])
+      ['init', 'approach', 'expand', 'decorate'])
   })
   assert.strictEqual(dagPlain.id, 'dag-plain')
   assert.strictEqual(dagPlain.puzzles, false)
@@ -341,7 +346,9 @@ test('dag: both examples match the module interface in docs/spec/examples.md', (
 
 test('dag: dag-locked wires its keylock limit to budget.keys', () => {
   const json = dagLocked.grammar({ budget: { keys: 1 } })
-  const expand = json.stages[1]
+  // Find the stage by name rather than index: stages get inserted over time,
+  // and an index-based lookup silently starts testing a different stage.
+  const expand = json.stages.find(function (st) { return st.name === 'expand' })
   const kl = expand.rules.find(function (r) { return r.name === 'dag-key-lock' })
   assert.strictEqual(kl.limit, 1, 'the rule limit tracks the budget')
 })

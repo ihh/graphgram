@@ -17,7 +17,10 @@
 
 const dag = require('../dag-primitives')
 
-const BUDGET = { rooms: 14, keys: 2, nestingDepth: 2, npcs: 0, minigames: 0 }
+const dp = require('../dungeon-primitives')
+const BUDGET = { rooms: 18, keys: 2, nestingDepth: 2, npcs: 0, minigames: 0,
+  criticalPath: 2
+}
 
 // Worst-case rooms added per expand-stage firing: forkJoin contributes two,
 // dagMidpoint one, dagKeyLock one (its skip arm; the key, join and loss
@@ -28,14 +31,33 @@ const ROOMS_PER_FIRING = 2
 function grammar (opts) {
   opts = opts || {}
   const budget = Object.assign({}, BUDGET, opts.budget)
+  // How many rooms sit on the route the player must actually walk. This is the
+  // one budget field bound by a single rule rather than emerging statistically:
+  // approachStage fires exactly this many times, each inserting one room
+  // immediately before the goal, so the shortest solution is exactly
+  // criticalPath + 1 moves. Everything else the grammar builds is optional
+  // structure hanging off that spine.
+  // Clamp against the room budget. A caller who overrides `rooms` downward
+  // without also lowering `criticalPath` would otherwise get a spine longer
+  // than the whole map: approachStage would spend the entire allowance and
+  // expansion would still be handed a floor of one firing, putting the result
+  // over budget. The room budget is the harder promise, so it wins.
+  const criticalPath = Math.max(1, Math.min(
+    budget.criticalPath == null ? 2 : budget.criticalPath,
+    budget.rooms - 3))
   return {
     name: 'dag-locked',
     start: 'START',
     stages: [
       dag.dagInitStage(),
+
+      // Lengthen the critical path before anything hangs structure off it.
+      // `noBacktrack` because any back-edge at all would break the acyclicity
+      // this example exists to demonstrate.
+      dp.approachStage({ limit: criticalPath, noBacktrack: true }),
       {
         name: 'expand',
-        limit: Math.max(1, Math.floor(budget.rooms / ROOMS_PER_FIRING)),
+        limit: Math.max(1, Math.floor((budget.rooms - criticalPath) / ROOMS_PER_FIRING)),
         rules: [
           dag.dagMidpoint({ weight: 2 }),
           dag.forkJoin({ weight: 1 }),

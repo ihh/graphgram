@@ -44,13 +44,16 @@
 // each room's prose is a generated 'To say' phrase that branches on the
 // tally (0 -> first, 1 -> repeat, 2+ -> round-robin over variants).
 //
-// Conditions. Inform 7 has no parenthesised boolean expressions, so a
-// nested all/any cannot be compiled to one expression. Every gated link
-// instead gets its own 'To decide whether <portal> is clear' phrase whose
-// body evaluates the condition into local truth states, one 'let' per
-// subterm. 'not' never reaches that code: it is pushed down to the leaves
-// first (De Morgan plus operator flipping), because a leaf negation is
-// always expressible and a general one is not.
+// Conditions. Inform 7 has no parenthesised boolean expressions, so a nested
+// all/any cannot be compiled to one expression. Every link's condition is
+// therefore evaluated in one 'refresh the ways' phrase, which sets a plain
+// either/or property (passable / barred) on each portal; a nested condition
+// spends one local truth state per subterm on the way there. 'not' never
+// reaches that code: it is pushed down to the leaves first (De Morgan plus
+// operator flipping), because a leaf negation is always expressible and a
+// general one is not. Having passability be a property rather than a phrase
+// also side-steps Inform typing 'the noun' as a thing inside an action rule,
+// where reading a portal property off it would not compile.
 //
 // WHAT WE CANNOT CHECK HERE. There is no Inform 7 compiler in this repo, so
 // nothing below is proved to compile; the test suite checks structure
@@ -111,6 +114,9 @@ function letterSuffix (i) {
 
 // The IR permits a bare string wherever a text object is expected (spec §7),
 // so every read goes through here rather than touching `.first` directly.
+// Kept local rather than imported from story-ir.js: an exporter that cannot
+// be loaded because a sibling module is mid-write is worse than eight lines
+// of duplication.
 function normalizeText (t) {
   if (t == null) return { first: '', repeat: null, brief: null, variants: [] }
   if (typeof t === 'string') return { first: t, repeat: null, brief: null, variants: [] }
@@ -437,7 +443,8 @@ function exportInform7 (ir, opts) {
   }
 
   function emitEffects (effects, out, indent) {
-    ;(effects || []).forEach(function (e) {
+    const list = effects || []
+    list.forEach(function (e) {
       if (e.op === 'acquire') {
         const item = itemById[e.item]
         if (!item) return
@@ -957,4 +964,6 @@ function exportInform7 (ir, opts) {
   return out.join(NL).replace(/\n{3,}/g, NL + NL).replace(/\s+$/, '') + NL
 }
 
-module.exports = { exportInform7, escapeInformText, normalizeText }
+// escapeInformText is exported for the test suite: the escaping rules are the
+// part of this file most likely to be wrong and most worth testing directly.
+module.exports = { exportInform7, escapeInformText }

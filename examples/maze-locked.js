@@ -103,7 +103,9 @@ const dp = require('../dungeon-primitives')
 //   minigames    — the *shared* limit on the two refine rules that can mint a
 //                  monster or a puzzle edge (see `MINIGAME_RULE_TYPE`), and
 //                  also the potion limit: one potion per fight you might pick.
-const BUDGET = { rooms: 16, keys: 3, nestingDepth: 2, npcs: 0, minigames: 2 }
+const BUDGET = { rooms: 16, keys: 3, nestingDepth: 2, npcs: 0, minigames: 2,
+  criticalPath: 4
+}
 
 // graphgram counts rule applications per `rule.type` when a type is set, and
 // per rule otherwise. Giving the path->monster and path->puzzle refinements a
@@ -143,8 +145,35 @@ function grammar (opts) {
   //
   // The upper bound is the contract; the slack below it is exactly the number
   // of iterations that went on locks instead of floor space.
-  const expandLimit = budget.rooms - 2
+  // How many rooms sit on the route the player must actually walk. This is the
+  // one budget field bound by a single rule rather than emerging statistically:
+  // approachStage fires exactly this many times, each inserting one room
+  // immediately before the goal, so the shortest solution is exactly
+  // criticalPath + 1 moves. Everything else the grammar builds is optional
+  // structure hanging off that spine.
+  // Clamp against the room budget. A caller who overrides `rooms` downward
+  // without also lowering `criticalPath` would otherwise get a spine longer
+  // than the whole map: approachStage would spend the entire allowance and
+  // expansion would still be handed a floor of one firing, putting the result
+  // over budget. The room budget is the harder promise, so it wins.
+  const criticalPath = Math.max(1, Math.min(
+    budget.criticalPath == null ? 4 : budget.criticalPath,
+    budget.rooms - 3))
 
+  // The approach stage spends `criticalPath` of the room budget building the
+  // spine, so expansion gets what is left. Without this subtraction the two
+  // stages would each spend the full budget and the map would come in at
+  // roughly rooms + criticalPath — which is how the budget stopped binding the
+  // first time approachStage was added.
+  const expandLimit = Math.max(1, budget.rooms - 2 - criticalPath)
+
+  // goalLockStage spends one of the key budget on the door across the final
+  // approach, so keyDoor gets the rest. Writing this as an explicit subtraction
+  // rather than leaving both rules at `budget.keys` is the difference between a
+  // budget and a suggestion: with both at the full figure a three-key map ships
+  // four keys, which the test suite catches and a player would simply
+  // experience as the generator ignoring its own constraints.
+  const sideLocks = Math.max(0, budget.keys - 1)
   const refineRules = [dp.refineEdge(dp.EDGE_PATH, dp.EDGE_PASSAGE, { weight: 3 })]
   if (!debug.passageOnly) {
     refineRules.push(dp.refineEdge(dp.EDGE_PATH, dp.EDGE_MONSTER,
@@ -157,6 +186,14 @@ function grammar (opts) {
 
     // 1. Init.
     dp.initStartGoalStage(),
+
+    // 1b. Approach. Lengthen the critical path to budget before anything else
+    //     runs, so that the locks placed in stage 2 land on the route the
+    //     player must walk rather than on optional side structure. A generated
+    //     map with three locked doors and a two-move win is not a locked map;
+    //     it is an unlocked map with decorations. story-solver.js reports the
+    //     shortest solution, and test/maze-examples.test.js asserts it.
+    dp.approachStage({ limit: criticalPath }),
 
     // 2. Expand.
     //
@@ -188,7 +225,7 @@ function grammar (opts) {
         // narrate: true draws the key/door/lock prose from $kdBundle, so a
         // single cache entry per pair supplies the key text, the shut-door
         // text, the "unlock it" button and the after-you-unlock narration.
-        dp.keyDoor({ weight: 12, narrate: true, limit: budget.keys }),
+        dp.keyDoor({ weight: 12, narrate: true, limit: sideLocks }),
         dp.healthPotion({ weight: 1, limit: budget.minigames })
       ] },
 
@@ -196,6 +233,31 @@ function grammar (opts) {
     { name: 'close-cycles',
       limit: budget.keys,
       rules: [dp.cycleCloseShortcut({ weight: 1 })] },
+
+    // 3b. Seal the spine. `parallelPath` and `deadEnd` deliberately keep the
+    //     edge they match, which is right everywhere except on the original
+    //     start->win edge: left alone it survives every expansion and the
+    //     finished map is completable in one move. Prune it once an alternative
+    //     route exists — pruneShortcut's BFS guard verifies that, so the goal
+    //     can never be cut off.
+    dp.pruneShortcutStage(),
+
+    // 3c. Goal lock. Put one key-and-door across the final step into the goal,
+    //     so that at least one lock is on the critical path by construction
+    //     rather than by luck. keyDoor cannot do this — its LHS refuses both
+    //     paired edges and `win` as a target — and without it the shortest
+    //     solution walks the approach spine and never meets a door. See
+    //     dungeon-primitives.js:goalLock for why both guards can be lifted
+    //     safely at the goal specifically.
+    // 3b-ii. Funnel the goal. midpointRoom's one-way variant and parallelPath
+    //        can both add further edges into `win`, and a goal with four ways
+    //        in cannot be locked by one door. Run pruneShortcut with no source
+    //        constraint to collapse the fan-in to a single edge; its BFS guard
+    //        only drops an edge when another route already exists, so this can
+    //        never orphan the goal.
+    dp.pruneShortcutStage({ name: 'funnel-goal', fromType: null, limit: 8 }),
+
+    dp.goalLockStage({ narrate: true }),
 
     // 4. Refine.
     { name: 'refine', rules: refineRules }

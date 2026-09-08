@@ -31,7 +31,9 @@ const dp = require('../dungeon-primitives')
 //                  omitting the flavor stage, so `monster`/`puzzle` edges are
 //                  never created in the first place and nothing can expand
 //                  them later.
-const BUDGET = { rooms: 12, keys: 0, nestingDepth: 0, npcs: 0, minigames: 0 }
+const BUDGET = { rooms: 12, keys: 0, nestingDepth: 0, npcs: 0, minigames: 0,
+  criticalPath: 4
+}
 
 // Stamp a `link` (the button text the player actually clicks) onto any path
 // edge that does not already have one.
@@ -108,8 +110,27 @@ function grammar (opts) {
   // and parallelPath match *any* path edge, and a path edge always exists —
   // so the stage fires exactly `expandLimit` times and the final place count
   // is 2 + expandLimit. Hence:
-  const expandLimit = budget.rooms - 2
+  // How many rooms sit on the route the player must actually walk. This is the
+  // one budget field bound by a single rule rather than emerging statistically:
+  // approachStage fires exactly this many times, each inserting one room
+  // immediately before the goal, so the shortest solution is exactly
+  // criticalPath + 1 moves. Everything else the grammar builds is optional
+  // structure hanging off that spine.
+  // Clamp against the room budget. A caller who overrides `rooms` downward
+  // without also lowering `criticalPath` would otherwise get a spine longer
+  // than the whole map: approachStage would spend the entire allowance and
+  // expansion would still be handed a floor of one firing, putting the result
+  // over budget. The room budget is the harder promise, so it wins.
+  const criticalPath = Math.max(1, Math.min(
+    budget.criticalPath == null ? 4 : budget.criticalPath,
+    budget.rooms - 3))
 
+  // The approach stage spends `criticalPath` of the room budget building the
+  // spine, so expansion gets what is left. Without this subtraction the two
+  // stages would each spend the full budget and the map would come in at
+  // roughly rooms + criticalPath — which is how the budget stopped binding the
+  // first time approachStage was added.
+  const expandLimit = Math.max(1, budget.rooms - 2 - criticalPath)
   return {
     name: 'maze-plain',
     start: 'START',
@@ -117,6 +138,15 @@ function grammar (opts) {
 
       // 1. Init — the start->win spine that everything else is carved out of.
       dp.initStartGoalStage(),
+
+      // 1b. Approach — lengthen that spine to the critical-path budget BEFORE
+      //     anything hangs structure off it. Each firing inserts one room
+      //     immediately before the goal, so the shortest solution is exactly
+      //     budget.criticalPath moves. Without this stage the map grows wide
+      //     rather than deep: deadEnd and parallelPath both preserve the edge
+      //     they match, so only midpointRoom lengthens the route the player
+      //     must actually walk, and it does so only by luck.
+      dp.approachStage({ limit: criticalPath }),
 
       // 2. Expand — grow the map. midpointRoom is the workhorse and carries
       //    the heaviest weight because it is the only rule that lengthens the
@@ -137,6 +167,14 @@ function grammar (opts) {
       //    run before refine, because it matches on `path` and refine is what
       //    rewrites `path` away.
       narrateBarePassages(),
+
+      // 3b. Seal the spine. `parallelPath` and `deadEnd` deliberately keep
+      //     the edge they match, which is right everywhere except on the
+      //     original start->win edge: left alone it survives every expansion
+      //     and the finished map is completable in one move. Prune it once an
+      //     alternative route exists — which the BFS guard in pruneShortcut
+      //     verifies, so the goal can never be cut off.
+      dp.pruneShortcutStage(),
 
       // 4. Refine — flavor every remaining path edge as a plain passage. The
       //    single-target rule list is what enforces minigames: 0; adding
