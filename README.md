@@ -31,21 +31,31 @@ the only computationally interesting thing in the library.
 
 [`subgraph.js`](subgraph.js) is Ullmann (1976): a candidate-assignment table,
 an arc-consistency refinement iterated to a fixpoint, and a recursive search.
-Around it sit several deliberate triage hooks, so that the common case — a rule
-whose pattern nodes carry literal type labels — never enters the expensive part
-of the search:
+Around it sit several deliberate triage hooks. They were measured by patching
+each one off and checking the output graphs stayed byte-identical
+([the paper](papers/matching-engine.md) §4), and the honest summary is that two
+of them pay and two do not:
 
-- **label pre-filtering** seeds each pattern node's candidate set by running its
-  label predicate over the host graph *before* the search starts, rather than
-  starting with every host node and rejecting deep in the recursion;
+- **arc-consistency refinement**, iterated to a fixpoint — 1.8x on the bench
+  workload, 11x on a five-node pattern. Three times as many edge tests buy
+  nineteen times fewer recursion nodes;
+- **label pre-filtering**, which seeds each pattern node's candidate set by
+  running its label predicate over the host graph *before* the search starts —
+  7-17x, **but only for patterns that put labels on their nodes.** Most of this
+  repo's own primitives constrain the edge and leave the nodes bare, so the
+  bench does not see this hook at all. If you write rules, this is the lever;
 - **compiled predicate caches** on the `Matcher` (`regexCache`, `testFuncCache`,
-  `evalFuncCache`, `templatePathCache`) compile each `$test`, `$eval` and
-  `${...}` path once via `new Function` and reuse it across every candidate,
-  match, iteration and rule;
-- **rule-level triage** checks `limit` and `delay` *before* constructing a
-  search at all, so an exhausted rule costs nothing;
-- **specialised cloning** avoids `_.cloneDeep` on the candidate table, which is
-  copied at every level of the recursion.
+  `evalFuncCache`, `templatePathCache`), which compile each `$test`, `$eval` and
+  `${...}` path once via `new Function`;
+- **rule-level triage** (`limit`/`delay` checked before a search is constructed)
+  and **specialised cloning** of the candidate table — both obviously cheap,
+  both unmeasurable at any size anyone runs. Kept, but not load bearing.
+
+There is also a cautionary tale in the history: the refinement routine was for a
+while an exact no-op, because it called `predecessors` with a host id instead of
+a pattern id. Correctness was unaffected, so nothing failed — the code was
+simply 2.7x slower than it should have been, and 1.5x slower than having no
+refinement at all, since it still paid the loop overhead.
 
 All matches are enumerated, not just the first, because the sampler weights over
 match sites — a partial enumeration would silently bias which rules fire.

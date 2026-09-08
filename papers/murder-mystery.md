@@ -56,8 +56,8 @@ The limit is worth stating. The inference is real only while enumerating
 the mapping costs more than reasoning about it, and the canonical budget
 gives four secrets and five suspects — twenty pairs, every one attemptable
 for free, because a wrong confrontation is simply a link that is not
-offered. At that size a determined player brute-forces. Making that
-unattractive is a cost problem (§2), not a size problem.
+offered. At that size a player brute-forces. Making that unattractive is a
+cost problem (§2), not a size problem.
 
 ## 2. Social keys
 
@@ -69,7 +69,7 @@ one. Only one is a real difference here.
 this `pairId`" and by `prereqSatisfied` as `state.keys.has(prereq.pairId)`;
 state only ever grows. Nothing in graphgram ever consumed a key — the
 *dungeon* was the anomaly, modelling an object that stays in your pocket
-forever. The social reading needs no change.
+forever. The social reading needs no change to the engine.
 
 **A social key can be used wrongly.** This is the genuine gap. Wrong use has
 four parts, and the current model expresses two of them:
@@ -155,8 +155,8 @@ not reconstructible from the finished graph.
 Closing the gap is cheap and additive: `applyRuleAtSite` already holds
 `site.rule`, `isomorph.assign` (matched host ids) and its local `newId`
 (created host ids). One record per application, returned alongside
-`iterations`, makes `⊑` computable and changes no graph. The shape below is
-a proposal, not an API.
+`iterations`, makes `⊑` computable and changes no graph. Proposed, not an
+API:
 
 ```js
 // proposed, does not exist
@@ -174,7 +174,9 @@ form of the first two.
 **F1 — every lock's key is reachable without the lock.** Procedure: for
 each `interview` edge with `prereq.pairId = p`, delete it, call
 `reachableWith(graph, new Set())`, and assert the `secret` node carrying
-`pairId: p` is in the reached set. Not currently a test.
+`pairId: p` is in the reached set. `test/mystery.test.js` checks the weaker
+property that every `prereq.pairId` resolves to some secret; F1 itself is
+not a test.
 
 **F2 — every clue the solution depends on is discoverable.** Procedure:
 `lockAnalysis(graph)` iterates "reach with what you hold, collect every
@@ -184,13 +186,13 @@ and 4 on one — the budget asks for `nestingDepth: 3`, and the extra round is
 an accident of where the spare off-spine lock landed, not a bug.
 
 **F3 — a uniquely determined culprit.** Procedure: assert exactly one node
-with `murderer: true` and exactly one `accuse` edge with `correct: true`.
-Measured: holds on 28/28. But the criterion is too weak. `unmaskMurderer`
-selects the suspect with `chainDepth: 1`, the seed of the deduction chain
-and therefore the last person you can make talk. That is the genre's
-convention and also a meta-rule that solves every daily puzzle without
-reading a note. Uniqueness needs a companion: the culprit must not be fixed
-by a property of the *generator* that survives across days.
+with `murderer: true` and one `accuse` edge with `correct: true`. Measured:
+holds on 28/28, but the criterion is too weak. `unmaskMurderer` selects the
+suspect with `chainDepth: 1` — the seed of the deduction chain, and
+therefore the last person you can make talk. That is the genre's convention
+and also a meta-rule that solves every daily puzzle without reading a note.
+Uniqueness needs a companion: the culprit must not be fixed by a property of
+the *generator* that survives across days.
 
 **F4 — no required guess.** Procedure: assert the correct accusation is
 gated on evidence the player can hold, and that the evidence *identifies*.
@@ -206,7 +208,9 @@ identifying inference — false.
 What plausibly makes one of these hard: nesting depth `d`; suspect count
 `s`; accusation branching factor `b`; red herrings `h` — locks whose keys
 open nothing on the murderer's chain; and the shortest solving walk `L`
-against map size `|V|`. Measured over the same 28 days at the canonical
+against map size `|V|`. The figures below are measured on the *graph*, not
+the IR, so they are independent of the export bugs in §7, and over the same
+28 days at the canonical
 budget `{ rooms: 8, keys: 4, nestingDepth: 3, npcs: 5, minigames: 1 }`; `L`
 is an upper bound from a greedy solver (walk the shortest currently-open
 path to the nearest unheld secret, repeat, then go to the goal), not an
@@ -267,11 +271,11 @@ moves against that day's `L`. All of it is already in the play engine's
 dump-trace payload (README, "Playing a dungeon in the browser"), and none of
 it names a suspect, so the share string is spoiler-free by construction.
 
-The archive is free — yesterday's puzzle is `seedForDate('2026-09-07')` and
-needs no storage. The catch is the version: `docs/spec/examples.md` promises
-byte-identical output only *for a fixed library version*, so the archive is
-a function of (date, version) and must pin the version per date. Otherwise
-one change to `socialLock` silently rewrites every puzzle anyone has played.
+The archive is free — yesterday's puzzle is `seedForDate('2026-09-07')`, so
+it needs no storage. The catch is the version: `docs/spec/examples.md`
+promises byte-identical output only *for a fixed library version*, so the
+archive is a function of (date, version) and must pin the version per date.
+Otherwise one change to `socialLock` rewrites every puzzle anyone played.
 
 ## 7. What it would take to ship
 
@@ -287,9 +291,12 @@ block:
    `play/game.js:105` satisfies a `pairId` gate only from such a node.
    Mystery secrets are `type: 'secret'`. Measured: the exported mystery IR
    contains **0** `acquire` effects against 2 for `maze-locked` at the same
-   seed, so every `interview` condition is permanently false and the
-   exported story is unwinnable. `validateStoryIR` passes it, because its
-   rule 6 checks that a condition's var is *declared*, not that it is *set*.
+   seed, so every `interview` condition is permanently false.
+   `validateStoryIR` passes it, because its rule 6 checks that a condition's
+   var is *declared*, not that it is *set*. `story-solver.js`'s
+   `analyzeStory` catches it: on the seed-42 mystery IR it reports 4 dead
+   `interview` links, 4 dead `directive` links and 2 unreachable secret
+   passages, against 0 dead links for `maze-locked`.
 2. **The evidence gate does not survive export.** `story-ir.js` contains no
    handling of `prereq.evidence`; the correct accusation link exports with
    `condition: null`. Measured on seed 42.
@@ -299,8 +306,10 @@ block:
    with `role: "normal"` rather than `"item"`.
 4. **The derivation is not recorded** (§3), so the endgame can show the
    notes but not the plan.
-5. **Fairness is not checked** (§4): F1–F4 are four short procedures over a
-   generated graph, and none is a test.
+5. **Fairness is only partly checked** (§4). `test/mystery.test.js` covers
+   the structural invariants — lock/secret pairing, one correct accusation,
+   budgeted nesting depth, no route to the goal around the accusation — but
+   F1 and F4 are not among them.
 6. **Cast coherence.** The cast index counts suspects already in the graph,
    and `applyRuleAtSite` adds each RHS node before evaluating the next
    label, so `secretLbl.about` is one step ahead. Measured: `secret.about`

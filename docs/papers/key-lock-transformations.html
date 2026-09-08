@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Key and Lock as Graph Transformation · graphgram</title>
+<meta name="description" content="graphgram — a graph grammar library for procedural narrative">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+<header class="site-nav">
+  <nav>
+      <a href="../index.html" class="brand">graphgram</a>
+      <a href="../guide.html">Guide</a>
+      <a href="../advanced.html">Advanced</a>
+      <a href="../examples.html">Examples</a>
+      <a href="../play/index.html">Play</a>
+      <a href="../papers/index.html">Papers</a>
+      <a href="../spec/story-ir.html">Spec</a>
+      <a href="../jsdoc/index.html">API</a>
+      <a href="https://github.com/ihh/graphgram" rel="noopener">GitHub</a>
+  </nav>
+</header>
+<main class="prose">
+<h1 id="key-and-lock-as-graph-transformation">Key and Lock as Graph Transformation</h1>
+<p><em>&quot;Key-and-lock puzzle&quot; names a semantic relation — an edge whose
+traversability is conditioned on the player&#39;s history, and a node whose
+visitation discharges that condition — not a shape. This repository realises
+that one relation with five different rewrites, and they are not
+interchangeable: they differ in whether a wrong choice is recoverable, in
+whether they preserve acyclicity, in whether they nest inside their own
+output, and in what they cost in nodes, edges and diameter. This paper
+defines the relation, catalogues the realisations with measurements, states
+the solvability invariant a generator must maintain, shows which
+construction maintains it by construction and which deliberately does not,
+and says what <code>bin/qc-graph.js</code> does and does not verify.</em></p>
+<h2 id="1-the-semantic-core">1. The semantic core</h2>
+<p>Let <code>G = (V, E)</code> be the host graph. A <em>trajectory</em> <code>τ</code> is a walk from the
+start node; write <code>visited(τ) ⊆ V</code> for the nodes it has entered and
+<code>traversed(τ) ⊆ E</code> for the edges it has taken. A <strong>gate</strong> is a predicate
+<code>p(τ)</code> attached to an edge, and an edge carrying a gate is walkable from its
+source only in states where <code>p</code> holds. This repo writes gates as a <code>prereq</code>
+object on the edge label, and the play engine evaluates them
+(<code>play/game.js</code>, <code>edgeAccessible</code>):</p>
+<pre><code class="language-js">if (prereq.pairId) { /* … true iff a `key` node with this pairId is in visited(τ) … */ }
+if (prereq.traversed) return state.traversed.has(prereq.traversed)
+if (prereq.visited)   return state.visited.has(prereq.visited)
+</code></pre>
+<p>A <strong>key-lock</strong> is then a pair <code>(e, k)</code> where <code>e</code> is a gated edge and <code>k</code> a
+node such that entering <code>k</code> makes <code>e</code>&#39;s gate true and no other node does.
+Everything else — where <code>k</code> sits, whether you can walk back to it, what the
+door is made of, whether the key is an object or a fact — is variation.</p>
+<p>The repo already ships three gate flavors, which is the first evidence for
+the thesis. They differ in what counts as the key:</p>
+<table>
+<thead>
+<tr>
+<th><code>prereq</code> shape</th>
+<th>key is</th>
+<th>monotone in</th>
+<th>used by</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>{ pairId: X }</code></td>
+<td>a <code>key</code>-typed node with <code>pairId: X</code></td>
+<td><code>visited(τ)</code></td>
+<td>locked door edges</td>
+</tr>
+<tr>
+<td><code>{ traversed: X }</code></td>
+<td>the forward edge with <code>edgeId: X</code></td>
+<td><code>traversed(τ)</code></td>
+<td>backtracks</td>
+</tr>
+<tr>
+<td><code>{ visited: X }</code></td>
+<td>any node with <code>nodeId: X</code></td>
+<td><code>visited(τ)</code></td>
+<td><code>return</code> edges</td>
+</tr>
+</tbody></table>
+<p>All three are monotone: once true, true forever. That is what makes the
+analysis in §4 a fixpoint rather than a search over states, and it is a
+constraint rather than an accident — the Story IR&#39;s condition language
+(<code>docs/spec/story-ir.md</code> §8) sets boolean variables and never clears them,
+so a non-monotone gate would not survive export.</p>
+<p>The three flavors are in practice a disjoint union, not a conjunction:
+<code>story-ir.js</code> (line 545 onward) and <code>play/game.js</code> both read <code>prereq</code> with
+an if / else-if chain and honour only the first flavor present, while
+<code>prereqSatisfied</code> in <code>mystery-primitives.js</code> conjoins all of them. No
+factory emits a two-flavor gate today, so the divergence is latent.</p>
+<h2 id="2-a-catalogue-of-realisations">2. A catalogue of realisations</h2>
+<p>Notation: <code>LHS =&gt; RHS</code> in the arrow form the primitives files themselves
+use, with edge labels in braces. Every rewrite below consumes its matched
+edge unless the rule preserves it by LHS id (the <code>id: &#39;e&#39;</code> trick, which
+<code>deadEnd</code> and <code>parallelPath</code> use to keep a matched edge&#39;s label intact).</p>
+<p>Measurements are on one machine (Apple M1 Max, Node v22.14.0). Size and
+diameter figures come from applying each factory once, at eight seeds, to a
+bare directed chain of seven nodes (<code>start → r1 → … → win</code>, six anonymous
+<code>path</code> edges, undirected diameter 6). Diameter is undirected throughout:
+how far apart two rooms are on the map is not a question about arrow
+direction.</p>
+<h3 id="a-the-side-branch-lock-keydoor-dungeon-primitives-js">(a) The side-branch lock — <code>keyDoor</code> (<code>dungeon-primitives.js</code>)</h3>
+<pre><code>a --path--&gt; b   =&gt;
+  a --path{edgeId:AK}--&gt; k                        k --backtrack{traversed:AK}--&gt; a
+  a --path{edgeId:AD}--&gt; d                        d --backtrack{traversed:AD}--&gt; a
+  d --path{edgeId:DB, prereq:{pairId:P}}--&gt; b     b --backtrack{traversed:DB}--&gt; d
+</code></pre>
+<pre><code>        k (key, pairId=P)
+       ↑ ↓
+  a ───┴──→ d ══lock(P)══→ b
+       ↑ ↓        ↑ ↓
+      (backtracks everywhere)
+</code></pre>
+<p>The key hangs off the same node the door does. Every forward edge is paired
+with a backtrack gated on <code>prereq.traversed</code> of its partner, so a player who
+reaches the door without the key walks back and fetches it: the lock costs
+moves and nothing else, and the dominant strategy is to sweep the map before
+committing. Measured: +2 nodes, +5 edges, diameter +1 at all eight seeds.</p>
+<h3 id="b-the-fork-join-lock-dagkeylock-dag-primitives-js">(b) The fork-join lock — <code>dagKeyLock</code> (<code>dag-primitives.js</code>)</h3>
+<pre><code>a --path--&gt; b   =&gt;
+  a --path--&gt; k    k --path--&gt; j
+  a --path--&gt; s    s --path--&gt; j
+  j --path{prereq:{pairId:P}}--&gt; b
+  j --consolation--&gt; f          (a `loss` terminal)
+</code></pre>
+<pre><code>        ┌→ k (key) ─┐
+   a ───┤           ├→ j ══lock(P)══→ b
+        └→ s (room) ┘    └─consolation→ f
+</code></pre>
+<p>No edge points backwards, so the choice at <code>a</code> is made before its
+consequence at <code>j</code> is visible and cannot be revisited. The skip arm <code>s</code> is a
+real room with its own description; nothing marks it wrong until <code>j</code>.
+Measured: +4 nodes, +5 edges, diameter +2 at all eight seeds — the most
+expensive realisation here on every axis, buying the one thing (a) cannot
+offer: a commitment.</p>
+<h3 id="c-the-remote-key-lock">(c) The remote-key lock</h3>
+<p>Not a factory. The <code>prereq.pairId</code> gate is global, so nothing in the
+mechanism requires proximity; any construction that places <code>k</code> far from the
+gated edge realises the same relation. What proximity buys is findability.
+At distance <em>d</em> the player must carry the door in memory for <em>d</em> moves and
+the map must keep the connection legible — a demand on the narrative layer
+(see <a href="narrative-slots.html">narrative-slots</a>), not the graph layer. The repo
+generates only distance-2 pairs: over 40 seeds of
+<code>grammars/dunjs-dungeon.js</code> the undirected key→door distance was exactly 2
+in all 43 key-door pairs produced, with no other value in the histogram.</p>
+<h3 id="d-the-cycle-closing-lock-cyclecloseshortcut-dungeon-primitives-js">(d) The cycle-closing lock — <code>cycleCloseShortcut</code> (<code>dungeon-primitives.js</code>)</h3>
+<pre><code>a --path--&gt; m --path--&gt; b,  a --path--&gt; k{type:key}   =&gt;
+  (all three preserved)  +  b --return{prereq:{visited: nodeId(a)}}--&gt; a
+</code></pre>
+<p>Here the &quot;key&quot; is having been somewhere: the gate is <code>prereq.visited</code> on
+<code>a</code>&#39;s own <code>nodeId</code>, and the effect is to turn a tree into a graph. This is
+the Dormans cyclic-generation move the README cites (Rock Paper Shotgun,
+<a href="https://www.rockpapershotgun.com/how-unexplored-generates-great-roguelike-dungeons">How <em>Unexplored</em> generates great roguelike
+dungeons</a>):
+not unwinding a corridor you came down, discovering a loop. It is the only
+realisation that adds no nodes and the only one that <em>reduces</em> diameter —
+measured on a 6-node seed graph with one key, +0 nodes, +1 edge, undirected
+diameter 4 → 3. It requires a key at <code>a</code> structurally, for motivation, even
+though the gate does not reference it, and <code>a</code> must not be the start node or
+the gate is true from move zero.</p>
+<h3 id="e-the-social-lock-sociallock-mystery-primitives-js">(e) The social lock — <code>socialLock</code> (<code>mystery-primitives.js</code>)</h3>
+<pre><code>a --path--&gt; b   =&gt;
+  a --path{edgeId:ASK}--&gt; s{type:suspect}    s --backtrack{traversed:ASK}--&gt; a
+  s --interview{prereq:{pairId:P}}--&gt; b      b --backtrack{traversed:TELL}--&gt; s
+  a --leverage--&gt; k{type:secret}             k --return{prereq:{visited:nodeId(a)}}--&gt; a
+</code></pre>
+<p>Structurally this is (a) with the door and the key relabelled: the person is
+the door, the secret is the key, the gated edge is the interview where they
+finally talk. The differences are ontological and matter downstream — a
+secret becomes an <code>items</code> entry in the Story IR, because a fact carried
+unspoken is, to an exporter, an item — but the graph relation is identical.
+One structural departure is deliberate: the <code>a → secret</code> edge carries <strong>no</strong>
+<code>edgeId</code>, which is what makes the nesting variant of §3 possible. Measured:
++2 nodes, +5 edges — the same cost as (a) — and diameter +1 or +2 across
+eight seeds, depending on whether the secret lands on the chain&#39;s end.</p>
+<h3 id="summary">Summary</h3>
+<table>
+<thead>
+<tr>
+<th>realisation</th>
+<th>recoverable?</th>
+<th>acyclic?</th>
+<th>self-nests?</th>
+<th>Δnodes</th>
+<th>Δedges</th>
+<th>Δdiameter</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>(a) <code>keyDoor</code></td>
+<td>yes</td>
+<td>no (adds backtracks)</td>
+<td>no — see §3</td>
+<td>+2</td>
+<td>+5</td>
+<td>+1</td>
+</tr>
+<tr>
+<td>(b) <code>dagKeyLock</code></td>
+<td>no, by design</td>
+<td>yes</td>
+<td>yes</td>
+<td>+4</td>
+<td>+5</td>
+<td>+2</td>
+</tr>
+<tr>
+<td>(c) remote key</td>
+<td>depends on host</td>
+<td>either</td>
+<td>n/a</td>
+<td>as host</td>
+<td>as host</td>
+<td>≥ that of (a)</td>
+</tr>
+<tr>
+<td>(d) <code>cycleCloseShortcut</code></td>
+<td>yes (it <em>is</em> the recovery)</td>
+<td>no</td>
+<td>no (guarded)</td>
+<td>0</td>
+<td>+1</td>
+<td>−1</td>
+</tr>
+<tr>
+<td>(e) <code>socialLock</code></td>
+<td>yes</td>
+<td>no</td>
+<td>yes, via <code>{nest:true}</code></td>
+<td>+2</td>
+<td>+5</td>
+<td>+1 or +2</td>
+</tr>
+</tbody></table>
+<p>&quot;Recoverable&quot; means: from every state reachable after any choice, a winning
+state is still reachable. (a), (d) and (e) are, because every forward edge
+they create is paired with a backtrack. (b) is not, and that is its content.</p>
+<h2 id="3-composition-and-nesting">3. Composition and nesting</h2>
+<p>A lock rule is <strong>self-nestable</strong> if a later application can fire on
+structure created by an earlier one, producing a lock behind a lock. Whether
+it can is decided entirely by the LHS guard, and the repo&#39;s two guards are
+worth reading against each other. <code>keyDoor</code>&#39;s LHS matches:</p>
+<pre><code class="language-js">edge: [{ v: &#39;a&#39;, w: &#39;b&#39;,
+         label: { $and: [{ type: pathType }, { $not: { edgeId: &#39;(.+)&#39; } }] } }]
+</code></pre>
+<p>The <code>$not: { edgeId: &quot;(.+)&quot; }</code> clause refuses any edge that already carries
+an <code>edgeId</code>. The reason given in the source is not about nesting: keyDoor
+replaces <code>a→b</code> with the chain <code>a→d→b</code>, so splitting a paired edge would
+leave some backtrack&#39;s <code>prereq.traversed</code> pointing at a forward edge that no
+longer exists — a dangling gate and a stranded player. The second
+consequence follows from the same fact: every <code>path</code> edge keyDoor <em>creates</em>
+carries an <code>edgeId</code> (<code>AK</code>, <code>AD</code>, <code>DB</code>), so keyDoor produces no substrate for
+itself and is not self-nestable at all.</p>
+<p>This is measurable rather than argued. Running <code>keyDoor</code> alone with
+<code>limit: 20</code> on the seven-node chain, which contains exactly four
+keyDoor-eligible anonymous <code>path</code> edges (<code>a</code> not <code>start</code>, <code>b</code> not <code>win</code>),
+fires it exactly four times and stops, at every seed tried — 15 nodes out,
+7 + 4×2. Running <code>dagKeyLock</code> alone under the same limit fires 20 times and
+produces 87 nodes: <code>7 + 20×4</code>, limit-bound, not substrate-bound.</p>
+<p><code>dagKeyLock</code>&#39;s guard is the difference. It refuses only edges that already
+carry a gate:</p>
+<pre><code class="language-js">{ $and: [ { type: pathType }, { $not: { $test: &#39;(l)=&gt;l&amp;&amp;l.prereq&#39; } } ] }
+</code></pre>
+<p>Its four arm edges (<code>a→k</code>, <code>a→s</code>, <code>k→j</code>, <code>s→j</code>) are ordinary unlocked <code>path</code>
+edges, so a later firing lands inside an arm of an earlier one. Measured
+route nesting depth — the largest number of locked edges on any single route,
+computed as a longest-path DP over the topological order — grows with the
+firing count: limit 1, 2, 4, 8, 20 gives depth 1, 2, 4, 7, 15.</p>
+<p><code>socialLock</code> gets there a third way: its key edge <code>a → secret</code> deliberately
+carries no <code>edgeId</code> and a distinct type (<code>leverage</code>), and <code>{ nest: true }</code>
+matches exactly that edge, interposing a suspect in front of a secret you
+were about to collect — clearing a <code>frontier</code> flag on the displaced secret
+so the chain stays linear rather than bushy.</p>
+<p>The general condition, then:</p>
+<blockquote>
+<p>A lock rule R is self-nestable iff R&#39;s RHS contains at least one edge that
+R&#39;s own LHS would match. Everything else — depth limits, budgets, frontier
+flags — is policy layered on top of that structural fact.</p>
+</blockquote>
+<p>In the bidirectional dungeon, nesting is possible but rare, because it needs
+an intermediary that manufactures anonymous substrate behind a lock:
+<code>parallelPath</code> inherits the matched edge&#39;s <code>edgeId</code> <em>and</em> <code>prereq</code> onto its
+first new edge and leaves its second anonymous, so a parallel route around a
+locked door leaves an unpaired path edge behind that door. Measured over
+seeds 1–40 of <code>grammars/dunjs-dungeon.js</code>: 28 seeds produced at least one
+key, 43 keys in all, and exactly one seed (29) produced a key reachable only
+by first opening another lock. Rarity is a budgeting problem, not a
+structural one; see <a href="budgets.html">budgets</a>.</p>
+<h2 id="4-solvability">4. Solvability</h2>
+<p>The invariant a generator must maintain is:</p>
+<blockquote>
+<p>For every gated edge <code>e</code> with key <code>k</code>, there is a path from the start to
+<code>k</code> that does not traverse <code>e</code>.</p>
+</blockquote>
+<p><strong>The side-branch construction maintains it by construction.</strong> Induct on
+rule applications. The rewrite fires on <code>a→b</code> where <code>a</code> is reachable without
+<code>e</code>, since <code>e</code> does not yet exist. The RHS places <code>k</code> at the end of the
+fresh ungated edge <code>a→k</code>, so <code>k</code> is reachable from <code>a</code> without touching
+<code>d→b</code>. No later rule may split <code>a→k</code>: it carries an <code>edgeId</code>, and every
+splitting rule in <code>dungeon-primitives.js</code> refuses those. The only rule that
+touches it is <code>refineEdges</code>, which rewrites <code>type</code> and preserves the rest
+via <code>$assign</code>. The witnessing path survives. ∎</p>
+<p><strong>The fork-join construction does not maintain it, on purpose.</strong> The
+invariant quantifies over paths, and in a DAG a path is a commitment: the
+player who takes the skip arm <code>s</code> is in a state from which <code>k</code> is not
+reachable at all. The graph-level statement (&quot;a path exists&quot;) stays true;
+the trajectory-level one (&quot;this player can still get the key&quot;) does not.
+<code>dag-primitives.js</code> and <code>examples/dag-locked.js</code> both say this is the point:
+the run is short, the failure is legible in hindsight, and the consolation
+edge into a named <code>loss</code> node makes it an ending rather than a dead link.</p>
+<p><strong>How to check it.</strong> The check is a monotone fixpoint and it is already
+written. <code>lockAnalysis(graph, opts)</code> in <code>mystery-primitives.js</code> computes
+what is reachable holding the keys acquired so far, collects the keys in
+that region, and repeats; the round count is the dependency depth, and a key
+never collected is a key behind its own lock. It is keyed on <code>secretType</code>,
+so it runs on a physical dungeon as:</p>
+<pre><code class="language-js">const mp = require(&#39;./mystery-primitives&#39;)
+mp.lockAnalysis(graph, { secretType: &#39;key&#39; })
+// dunjs-dungeon seed 3  → { rounds: 1, chain: [[&#39;pair_3&#39;,&#39;pair_8&#39;]] }
+// dunjs-dungeon seed 29 → { rounds: 2, chain: [[&#39;pair_13&#39;], [&#39;pair_19&#39;]] }
+// dag-locked   seed 1729 → { rounds: 2, chain: [[&#39;pair_3&#39;], [&#39;pair_1&#39;]] }
+</code></pre>
+<p>Note what the last line means and does not mean. In a DAG, &quot;rounds: 2&quot; says
+a route exists on which both keys are collected in order; it says nothing
+about the routes on which they are not. Monotone closure answers <em>does some
+play-through succeed</em>, never <em>do all play-throughs survive</em>.</p>
+<p><code>bin/qc-graph.js</code> runs the same closure to answer a different question. It
+accumulates <code>visited</code> / <code>traversed</code> to fixpoint from the start node, then
+scans for <strong>stranding</strong>: a reachable, non-terminal node with no accessible
+outgoing edge. It does <em>not</em> check that every key is reachable (an
+unopenable lock strands nobody — the player simply never gets in), that
+<code>meta.topology</code> matches the graph, that gates are satisfiable on any single
+trajectory rather than in the optimistic union, or anything about nesting
+depth. It also has a false positive on the DAG example, whose terminal set
+<code>[&#39;win&#39;,&#39;death&#39;,&#39;random&#39;]</code> predates <code>dag-primitives.js</code>&#39;s fourth terminal
+type, <code>loss</code>:</p>
+<pre><code>$ node bin/qc-graph.js &lt;a dag-locked graph, seed 42&gt;
+STRANDED nodes (2):
+  host=9  nodeId=dag_loss_1 type=loss outCount=0
+  host=15 nodeId=dag_loss_2 type=loss outCount=0
+</code></pre>
+<p>Both nodes are correct: a <code>loss</code> node is an ending and is supposed to have
+no way out.</p>
+<h2 id="5-what-the-matcher-makes-cheap-or-expensive">5. What the matcher makes cheap or expensive</h2>
+<p>Details belong to <a href="matching-engine.html">matching-engine</a>. The fact that
+matters here: <code>subgraph.js</code> is Ullmann with a label pre-filter that seeds
+each pattern node&#39;s candidate set before search begins, so a rule&#39;s cost
+tracks the <em>selectivity of its node labels</em> and the <em>number of match sites
+it enumerates</em> (all sites are enumerated, because the sampler weights over
+them) — not the node count of its LHS.</p>
+<p>Measured on a 52-node, 105-edge bidirectional host containing 3 keys and 19
+anonymous <code>path</code> edges, timing grammar construction plus one host copy plus
+one rule application, 30 repetitions, against a 0.54 ms baseline that does
+the construction and copy and matches nothing:</p>
+<table>
+<thead>
+<tr>
+<th>rule</th>
+<th>LHS nodes</th>
+<th>match sites</th>
+<th>ms</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>cycleCloseShortcut</code></td>
+<td>4</td>
+<td>10</td>
+<td>2.4</td>
+</tr>
+<tr>
+<td><code>midpointRoom</code></td>
+<td>2</td>
+<td>15</td>
+<td>3.0</td>
+</tr>
+<tr>
+<td><code>keyDoor</code></td>
+<td>2</td>
+<td>15</td>
+<td>3.3</td>
+</tr>
+<tr>
+<td><code>deadEnd</code></td>
+<td>2</td>
+<td>67</td>
+<td>8.9</td>
+</tr>
+</tbody></table>
+<p>The four-node LHS is the cheapest rule here and a two-node LHS the dearest:
+<code>cycleCloseShortcut</code> demands a <code>key</code>-typed node and a <code>nodeId</code>-bearing
+non-start node, which the pre-filter turns into two tiny candidate sets,
+while <code>deadEnd</code> matches <em>any</em> <code>path</code> edge and pays for all 67. The practical
+rule for a lock LHS is therefore: constrain a node by <code>type</code>, not an edge by
+absence. <code>$not: { edgeId: &#39;(.+)&#39; }</code> and <code>$not: { $test: ... }</code> are
+correctness guards that happen to prune; they still visit every candidate
+edge.</p>
+<p>The shape that fights the formalism is the remote-key lock (c). &quot;Place the
+key at distance ≥ 3 from the door&quot; is not a subgraph isomorphism at all: it
+constrains a path of unbounded length, and the LHS language has no
+transitive closure. It needs either a two-stage grammar — mint an unplaced
+key, then bind it to a door under a <code>condition</code> string that walks the graph
+— or a post-pass outside the grammar.</p>
+<h2 id="open-problems">Open problems</h2>
+<ol>
+<li><strong>Teach <code>bin/qc-graph.js</code> the fourth terminal type.</strong> Its
+<code>terminalTypes</code> set is <code>[&#39;win&#39;,&#39;death&#39;,&#39;random&#39;]</code>, missing
+<code>dag-primitives.js</code>&#39;s <code>loss</code>, so the tool exits 1 on a correct
+<code>dag-locked</code> graph. The wider fix is to source the terminal set from the
+primitives modules rather than restating it.</li>
+<li><strong>Add a key-reachability check to <code>bin/qc-graph.js</code>.</strong> Stranding and
+unopenability are different failures and it detects only the first. The
+fixpoint is already in the file; missing is a final pass over
+<code>keyByPairId</code> asserting every pair was opened.</li>
+<li><strong>Decide whether <code>prereq</code> conjoins.</strong> <code>story-ir.js</code> and <code>play/game.js</code>
+take the first flavor present; <code>prereqSatisfied</code> in
+<code>mystery-primitives.js</code> conjoins all. Pick one and make the other
+conform, before some factory emits a two-flavor gate and the analysis and
+the runtime disagree.</li>
+<li><strong>A trajectory-level solvability checker for DAGs.</strong> Monotone closure
+cannot distinguish &quot;the player can win&quot; from &quot;the player can win if they
+guess right at every fork&quot;. For an acyclic graph the honest question —
+what fraction of maximal routes reach <code>win</code> — is a linear-time DP over
+the topological order, and would give <code>dag-locked</code> a difficulty number
+instead of an assertion.</li>
+<li><strong>A remote-key primitive.</strong> Two-stage: <code>unplacedKey</code> mints a key with a
+<code>pairId</code> and no home; <code>placeKey</code> binds it to a door under a <code>condition</code>
+requiring a minimum graph distance. Needs a distance oracle in the
+condition-evaluation context, which does not exist.</li>
+<li><strong>Measure whether nesting is worth budgeting for.</strong> Nested locks appeared
+in 1 of 40 dungeon seeds. Either raise the rate deliberately — a
+<code>keyDoor({ nest: true })</code> matching <code>parallelPath</code>&#39;s anonymous second
+edge, as <code>socialLock</code> does — or drop <code>nestingDepth</code> from the
+bidirectional budgets as aspirational.</li>
+</ol>
+<h2 id="see-also">See also</h2>
+<p>Sibling papers: <a href="narrative-slots.html">narrative-slots</a> for the text fields
+these rewrites stamp on their nodes and edges; <a href="budgets.html">budgets</a> for how
+<code>nestingDepth</code> becomes rule <code>limit</code>s; <a href="matching-engine.html">matching-engine</a>
+for the Ullmann search and its triage hooks; <a href="murder-mystery.html">murder-mystery</a>
+for the deduction chain that <code>socialLock({nest:true})</code> builds;
+<a href="logic-minigames.html">logic-minigames</a> for locks whose opening is a puzzle
+rather than a fetch.</p>
+<p>Source: <a href="https://github.com/ihh/graphgram/blob/master/dungeon-primitives.js"><code>dungeon-primitives.js</code></a> (<code>keyDoor</code>,
+<code>cycleCloseShortcut</code>, <code>parallelPath</code>),
+<a href="https://github.com/ihh/graphgram/blob/master/dag-primitives.js"><code>dag-primitives.js</code></a> (<code>dagKeyLock</code>,
+<code>unlockedPathPattern</code>), <a href="https://github.com/ihh/graphgram/blob/master/mystery-primitives.js"><code>mystery-primitives.js</code></a>
+(<code>socialLock</code>, <code>lockAnalysis</code>, <code>prereqSatisfied</code>),
+<a href="https://github.com/ihh/graphgram/blob/master/subgraph.js"><code>subgraph.js</code></a>, <a href="https://github.com/ihh/graphgram/blob/master/story-ir.js"><code>story-ir.js</code></a>,
+<a href="https://github.com/ihh/graphgram/blob/master/play/game.js"><code>play/game.js</code></a>, <a href="https://github.com/ihh/graphgram/blob/master/bin/qc-graph.js"><code>bin/qc-graph.js</code></a>,
+<a href="https://github.com/ihh/graphgram/blob/master/examples/dag-locked.js"><code>examples/dag-locked.js</code></a>.</p>
+
+</main>
+<footer class="site-foot">
+  <p>graphgram · <a href="https://github.com/ihh/graphgram">github.com/ihh/graphgram</a> · ISC</p>
+</footer>
+</body>
+</html>

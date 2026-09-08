@@ -6,14 +6,14 @@ window.GRAPH = {
   },
   "nodes": [
     {
-      "v": "36",
+      "v": "37",
       "value": {
         "type": "secret",
         "nodeId": "sec_spine_3",
         "pairId": "secret_spine_3",
         "evidence": 1,
-        "fact": "a second family across the water",
-        "about": "housekeeper",
+        "fact": "a signature they have learned to copy",
+        "about": "valet",
         "text": "[high_fantasy:mystery_secret_site#secret_spine_3]",
         "secretSiteText": "[high_fantasy:mystery_secret_site#secret_spine_3]",
         "secretText": "[high_fantasy:mystery_secret#secret_spine_3]",
@@ -30,28 +30,44 @@ window.GRAPH = {
       }
     },
     {
-      "v": "40",
+      "v": "44",
       "value": {
         "type": "secret",
-        "nodeId": "sec_cast_1",
-        "pairId": "secret_cast_1",
+        "nodeId": "sec_cast_2",
+        "pairId": "secret_cast_2",
         "evidence": 1,
-        "fact": "a brother who is not dead after all",
-        "about": "housekeeper",
-        "text": "[high_fantasy:mystery_secret_site#secret_cast_1]",
-        "secretSiteText": "[high_fantasy:mystery_secret_site#secret_cast_1]",
-        "secretText": "[high_fantasy:mystery_secret#secret_cast_1]",
-        "learnText": "[high_fantasy:mystery_learn_secret#secret_cast_1]",
-        "knowText": "[high_fantasy:mystery_know_secret#secret_cast_1]",
+        "fact": "a bottle kept behind the flour in the pantry",
+        "about": "cook",
+        "text": "[high_fantasy:mystery_secret_site#secret_cast_2]",
+        "secretSiteText": "[high_fantasy:mystery_secret_site#secret_cast_2]",
+        "secretText": "[high_fantasy:mystery_secret#secret_cast_2]",
+        "learnText": "[high_fantasy:mystery_learn_secret#secret_cast_2]",
+        "knowText": "[high_fantasy:mystery_know_secret#secret_cast_2]",
         "dot": {
-          "label": "secret (secret_cast_1)",
+          "label": "secret (secret_cast_2)",
           "shape": "diamond",
           "color": "darkgreen"
         }
       }
     },
     {
-      "v": "63",
+      "v": "61",
+      "value": {
+        "type": "verdict",
+        "nodeId": "verdict_verdict_1",
+        "correct": false,
+        "accuses": "sus_cast_1",
+        "castRole": "valet",
+        "text": "[high_fantasy:mystery_verdict_wrong#sus_cast_1]",
+        "dot": {
+          "label": "wrong",
+          "shape": "doublecircle",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "64",
       "value": {
         "type": "verdict",
         "nodeId": "verdict_verdict_2",
@@ -67,26 +83,10 @@ window.GRAPH = {
       }
     },
     {
-      "v": "66",
+      "v": "67",
       "value": {
         "type": "verdict",
         "nodeId": "verdict_verdict_3",
-        "correct": false,
-        "accuses": "sus_cast_2",
-        "castRole": "valet",
-        "text": "[high_fantasy:mystery_verdict_wrong#sus_cast_2]",
-        "dot": {
-          "label": "wrong",
-          "shape": "doublecircle",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "69",
-      "value": {
-        "type": "verdict",
-        "nodeId": "verdict_verdict_4",
         "correct": false,
         "accuses": "sus_spine_3",
         "castRole": "housekeeper",
@@ -99,14 +99,14 @@ window.GRAPH = {
       }
     },
     {
-      "v": "72",
+      "v": "73",
       "value": {
         "type": "verdict",
         "nodeId": "verdict_verdict_5",
         "correct": false,
-        "accuses": "sus_cast_1",
-        "castRole": "housekeeper",
-        "text": "[high_fantasy:mystery_verdict_wrong#sus_cast_1]",
+        "accuses": "sus_cast_2",
+        "castRole": "gardener",
+        "text": "[high_fantasy:mystery_verdict_wrong#sus_cast_2]",
         "dot": {
           "label": "wrong",
           "shape": "doublecircle",
@@ -115,14 +115,14 @@ window.GRAPH = {
       }
     },
     {
-      "v": "78",
+      "v": "76",
       "value": {
         "type": "secret",
         "nodeId": "sec_spine_2",
         "pairId": "secret_spine_2",
         "evidence": 1,
-        "fact": "a debt to a bookmaker in the next town",
-        "about": "governess",
+        "fact": "a night spent in the cells under another name",
+        "about": "housekeeper",
         "text": "[high_fantasy:mystery_secret_site#secret_spine_2]",
         "secretSiteText": "[high_fantasy:mystery_secret_site#secret_spine_2]",
         "secretText": "[high_fantasy:mystery_secret#secret_spine_2]",
@@ -139,14 +139,14 @@ window.GRAPH = {
       }
     },
     {
-      "v": "81",
+      "v": "85",
       "value": {
         "type": "secret",
         "nodeId": "sec_spine_1",
         "pairId": "secret_spine_1",
         "evidence": 1,
-        "fact": "a key cut at the ironmonger without asking",
-        "about": "footman",
+        "fact": "a page torn from the day-book and burnt",
+        "about": "governess",
         "text": "[high_fantasy:mystery_secret_site#secret_spine_1]",
         "secretSiteText": "[high_fantasy:mystery_secret_site#secret_spine_1]",
         "secretText": "[high_fantasy:mystery_secret#secret_spine_1]",
@@ -163,31 +163,7 @@ window.GRAPH = {
       }
     },
     {
-      "v": "84",
-      "value": {
-        "type": "suspect",
-        "nodeId": "sus_spine_1",
-        "suspectId": "sus_spine_1",
-        "castRole": "footman",
-        "hiding": "a key cut at the ironmonger without asking",
-        "text": "[high_fantasy:mystery_suspect_intro#sus_spine_1]",
-        "dot": {
-          "label": "suspect (secret_spine_1)",
-          "shape": "box",
-          "color": "purple"
-        },
-        "pairId": "secret_spine_1",
-        "evasionText": "[high_fantasy:mystery_evasion#secret_spine_1]",
-        "openText": "[high_fantasy:mystery_changed_manner#secret_spine_1]",
-        "chain": "spine",
-        "chainDepth": 1,
-        "murderer": true,
-        "accused": true,
-        "filed": true
-      }
-    },
-    {
-      "v": "90",
+      "v": "91",
       "value": {
         "type": "distractor",
         "nodeId": "distractor1_2",
@@ -199,7 +175,7 @@ window.GRAPH = {
       }
     },
     {
-      "v": "91",
+      "v": "92",
       "value": {
         "type": "distractor",
         "nodeId": "distractor2_2",
@@ -211,7 +187,7 @@ window.GRAPH = {
       }
     },
     {
-      "v": "92",
+      "v": "93",
       "value": {
         "type": "distractor",
         "nodeId": "distractor3_2",
@@ -223,18 +199,7 @@ window.GRAPH = {
       }
     },
     {
-      "v": "105",
-      "value": {
-        "type": "scene",
-        "nodeId": "room_4",
-        "text": "[high_fantasy:describe_room#room_4]",
-        "dot": {
-          "label": "scene"
-        }
-      }
-    },
-    {
-      "v": "106",
+      "v": "104",
       "value": {
         "type": "win",
         "nodeId": "win",
@@ -245,25 +210,7 @@ window.GRAPH = {
       }
     },
     {
-      "v": "108",
-      "value": {
-        "type": "suspect",
-        "nodeId": "sus_cast_2",
-        "suspectId": "sus_cast_2",
-        "castRole": "valet",
-        "hiding": "a child nobody in the house knows about",
-        "text": "[high_fantasy:mystery_suspect_intro#sus_cast_2]",
-        "dot": {
-          "label": "suspect",
-          "shape": "box",
-          "color": "purple"
-        },
-        "testimonyText": "[high_fantasy:mystery_testimony#sus_cast_2]",
-        "accused": true
-      }
-    },
-    {
-      "v": "111",
+      "v": "106",
       "value": {
         "type": "puzzle_intro",
         "nodeId": "puzzle_2",
@@ -276,90 +223,13 @@ window.GRAPH = {
       }
     },
     {
-      "v": "116",
-      "value": {
-        "type": "suspect",
-        "nodeId": "sus_spine_2",
-        "suspectId": "sus_spine_2",
-        "castRole": "governess",
-        "hiding": "a debt to a bookmaker in the next town",
-        "text": "[high_fantasy:mystery_suspect_intro#sus_spine_2]",
-        "dot": {
-          "label": "suspect (secret_spine_2)",
-          "shape": "box",
-          "color": "purple"
-        },
-        "pairId": "secret_spine_2",
-        "evasionText": "[high_fantasy:mystery_evasion#secret_spine_2]",
-        "openText": "[high_fantasy:mystery_changed_manner#secret_spine_2]",
-        "chain": "spine",
-        "chainDepth": 2,
-        "accused": true,
-        "filed": true
-      }
-    },
-    {
-      "v": "117",
-      "value": {
-        "type": "start",
-        "nodeId": "start",
-        "text": "[high_fantasy:theme_intro#start]",
-        "dot": {
-          "label": "start"
-        }
-      }
-    },
-    {
-      "v": "123",
-      "value": {
-        "type": "suspect",
-        "nodeId": "sus_cast_1",
-        "suspectId": "sus_cast_1",
-        "castRole": "housekeeper",
-        "hiding": "a brother who is not dead after all",
-        "text": "[high_fantasy:mystery_suspect_intro#sus_cast_1]",
-        "dot": {
-          "label": "suspect (secret_cast_1)",
-          "shape": "box",
-          "color": "purple"
-        },
-        "pairId": "secret_cast_1",
-        "evasionText": "[high_fantasy:mystery_evasion#secret_cast_1]",
-        "openText": "[high_fantasy:mystery_changed_manner#secret_cast_1]",
-        "accused": true,
-        "filed": true
-      }
-    },
-    {
-      "v": "126",
-      "value": {
-        "type": "scene",
-        "nodeId": "room_2",
-        "text": "[high_fantasy:describe_room#room_2]",
-        "dot": {
-          "label": "scene"
-        }
-      }
-    },
-    {
-      "v": "128",
-      "value": {
-        "type": "scene",
-        "nodeId": "room_5",
-        "text": "[high_fantasy:describe_room#room_5]",
-        "dot": {
-          "label": "scene"
-        }
-      }
-    },
-    {
-      "v": "129",
+      "v": "111",
       "value": {
         "type": "suspect",
         "nodeId": "sus_spine_3",
         "suspectId": "sus_spine_3",
         "castRole": "housekeeper",
-        "hiding": "a second family across the water",
+        "hiding": "a night spent in the cells under another name",
         "text": "[high_fantasy:mystery_suspect_intro#sus_spine_3]",
         "dot": {
           "label": "suspect (secret_spine_3)",
@@ -376,29 +246,58 @@ window.GRAPH = {
       }
     },
     {
-      "v": "130",
+      "v": "114",
+      "value": {
+        "type": "suspect",
+        "nodeId": "sus_cast_1",
+        "suspectId": "sus_cast_1",
+        "castRole": "valet",
+        "hiding": "a signature they have learned to copy",
+        "text": "[high_fantasy:mystery_suspect_intro#sus_cast_1]",
+        "dot": {
+          "label": "suspect",
+          "shape": "box",
+          "color": "purple"
+        },
+        "testimonyText": "[high_fantasy:mystery_testimony#sus_cast_1]",
+        "accused": true
+      }
+    },
+    {
+      "v": "115",
       "value": {
         "type": "scene",
-        "nodeId": "room_7",
-        "text": "[high_fantasy:describe_room#room_7]",
+        "nodeId": "room_2",
+        "text": "[high_fantasy:describe_room#room_2]",
         "dot": {
           "label": "scene"
         }
       }
     },
     {
-      "v": "131",
+      "v": "118",
       "value": {
         "type": "scene",
-        "nodeId": "room_6",
-        "text": "[high_fantasy:describe_room#room_6]",
+        "nodeId": "deadend_3",
+        "text": "[high_fantasy:describe_dead_end#deadend_3]",
         "dot": {
           "label": "scene"
         }
       }
     },
     {
-      "v": "132",
+      "v": "119",
+      "value": {
+        "type": "scene",
+        "nodeId": "room_4",
+        "text": "[high_fantasy:describe_room#room_4]",
+        "dot": {
+          "label": "scene"
+        }
+      }
+    },
+    {
+      "v": "124",
       "value": {
         "type": "accusation",
         "nodeId": "accusation",
@@ -412,7 +311,7 @@ window.GRAPH = {
       }
     },
     {
-      "v": "133",
+      "v": "125",
       "value": {
         "type": "evidence",
         "nodeId": "dossier",
@@ -421,6 +320,83 @@ window.GRAPH = {
           "label": "dossier",
           "shape": "note",
           "color": "blue"
+        }
+      }
+    },
+    {
+      "v": "126",
+      "value": {
+        "type": "scene",
+        "nodeId": "room_7",
+        "text": "[high_fantasy:describe_room#room_7]",
+        "dot": {
+          "label": "scene"
+        }
+      }
+    },
+    {
+      "v": "127",
+      "value": {
+        "type": "suspect",
+        "nodeId": "sus_cast_2",
+        "suspectId": "sus_cast_2",
+        "castRole": "gardener",
+        "hiding": "a forged reference from a house that never employed them",
+        "text": "[high_fantasy:mystery_suspect_intro#sus_cast_2]",
+        "dot": {
+          "label": "suspect (secret_cast_2)",
+          "shape": "box",
+          "color": "purple"
+        },
+        "pairId": "secret_cast_2",
+        "evasionText": "[high_fantasy:mystery_evasion#secret_cast_2]",
+        "openText": "[high_fantasy:mystery_changed_manner#secret_cast_2]",
+        "accused": true,
+        "filed": true
+      }
+    },
+    {
+      "v": "129",
+      "value": {
+        "type": "suspect",
+        "nodeId": "sus_spine_2",
+        "suspectId": "sus_spine_2",
+        "castRole": "governess",
+        "hiding": "a page torn from the day-book and burnt",
+        "text": "[high_fantasy:mystery_suspect_intro#sus_spine_2]",
+        "dot": {
+          "label": "suspect (secret_spine_2)",
+          "shape": "box",
+          "color": "purple"
+        },
+        "pairId": "secret_spine_2",
+        "evasionText": "[high_fantasy:mystery_evasion#secret_spine_2]",
+        "openText": "[high_fantasy:mystery_changed_manner#secret_spine_2]",
+        "chain": "spine",
+        "chainDepth": 2,
+        "accused": true,
+        "filed": true
+      }
+    },
+    {
+      "v": "130",
+      "value": {
+        "type": "scene",
+        "nodeId": "room_6",
+        "text": "[high_fantasy:describe_room#room_6]",
+        "dot": {
+          "label": "scene"
+        }
+      }
+    },
+    {
+      "v": "132",
+      "value": {
+        "type": "scene",
+        "nodeId": "room_5",
+        "text": "[high_fantasy:describe_room#room_5]",
+        "dot": {
+          "label": "scene"
         }
       }
     },
@@ -438,19 +414,44 @@ window.GRAPH = {
     {
       "v": "135",
       "value": {
-        "type": "scene",
-        "nodeId": "deadend_3",
-        "text": "[high_fantasy:describe_dead_end#deadend_3]",
+        "type": "start",
+        "nodeId": "start",
+        "text": "[high_fantasy:theme_intro#start]",
+        "castSalt": 16,
         "dot": {
-          "label": "scene"
+          "label": "start"
         }
+      }
+    },
+    {
+      "v": "136",
+      "value": {
+        "type": "suspect",
+        "nodeId": "sus_spine_1",
+        "suspectId": "sus_spine_1",
+        "castRole": "footman",
+        "hiding": "a letter they were paid not to post",
+        "text": "[high_fantasy:mystery_suspect_intro#sus_spine_1]",
+        "dot": {
+          "label": "suspect (secret_spine_1)",
+          "shape": "box",
+          "color": "purple"
+        },
+        "pairId": "secret_spine_1",
+        "evasionText": "[high_fantasy:mystery_evasion#secret_spine_1]",
+        "openText": "[high_fantasy:mystery_changed_manner#secret_spine_1]",
+        "chain": "spine",
+        "chainDepth": 1,
+        "murderer": true,
+        "accused": true,
+        "filed": true
       }
     }
   ],
   "edges": [
     {
-      "v": "111",
-      "w": "90",
+      "v": "106",
+      "w": "91",
       "value": {
         "type": "choice",
         "correct": false,
@@ -462,8 +463,8 @@ window.GRAPH = {
       }
     },
     {
-      "v": "111",
-      "w": "91",
+      "v": "106",
+      "w": "92",
       "value": {
         "type": "choice",
         "correct": false,
@@ -475,8 +476,8 @@ window.GRAPH = {
       }
     },
     {
-      "v": "111",
-      "w": "92",
+      "v": "106",
+      "w": "93",
       "value": {
         "type": "choice",
         "correct": false,
@@ -488,288 +489,8 @@ window.GRAPH = {
       }
     },
     {
-      "v": "116",
-      "w": "81",
-      "value": {
-        "type": "interview",
-        "edgeId": "e_tell_spine_2",
-        "pairId": "secret_spine_2",
-        "lockedText": "[high_fantasy:mystery_locked_question#secret_spine_2]",
-        "leverageText": "[high_fantasy:mystery_recognise_leverage#secret_spine_2]",
-        "confrontText": "[high_fantasy:mystery_confront#secret_spine_2]",
-        "prefaceText": "[high_fantasy:mystery_ask_now#secret_spine_2]",
-        "noteText": "[high_fantasy:mystery_directive_note#secret_spine_2]",
-        "directive": {
-          "to": "governess",
-          "act": "say nothing about the west stair",
-          "note": "[high_fantasy:mystery_directive_note#secret_spine_2]"
-        },
-        "link": "[high_fantasy:mystery_confront#secret_spine_2]",
-        "prereq": {
-          "pairId": "secret_spine_2",
-          "link": "[high_fantasy:mystery_confront#secret_spine_2]",
-          "recognition": "[high_fantasy:mystery_recognise_leverage#secret_spine_2]",
-          "after": "[high_fantasy:mystery_ask_now#secret_spine_2]"
-        },
-        "dot": {
-          "label": "interview (secret_spine_2)",
-          "style": "bold",
-          "color": "red"
-        }
-      }
-    },
-    {
-      "v": "81",
-      "w": "116",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_tell_spine_2"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "117",
-      "w": "105",
-      "value": {
-        "type": "path",
-        "link": "[high_fantasy:button_passage#room_4]",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "123",
-      "w": "84",
-      "value": {
-        "type": "interview",
-        "edgeId": "e_tell_cast_1",
-        "pairId": "secret_cast_1",
-        "lockedText": "[high_fantasy:mystery_locked_question#secret_cast_1]",
-        "leverageText": "[high_fantasy:mystery_recognise_leverage#secret_cast_1]",
-        "confrontText": "[high_fantasy:mystery_confront#secret_cast_1]",
-        "prefaceText": "[high_fantasy:mystery_ask_now#secret_cast_1]",
-        "noteText": "[high_fantasy:mystery_directive_note#secret_cast_1]",
-        "directive": {
-          "to": "housekeeper",
-          "act": "do not mention the letter",
-          "note": "[high_fantasy:mystery_directive_note#secret_cast_1]"
-        },
-        "link": "[high_fantasy:mystery_confront#secret_cast_1]",
-        "prereq": {
-          "pairId": "secret_cast_1",
-          "link": "[high_fantasy:mystery_confront#secret_cast_1]",
-          "recognition": "[high_fantasy:mystery_recognise_leverage#secret_cast_1]",
-          "after": "[high_fantasy:mystery_ask_now#secret_cast_1]"
-        },
-        "dot": {
-          "label": "interview (secret_cast_1)",
-          "style": "bold",
-          "color": "red"
-        }
-      }
-    },
-    {
-      "v": "84",
-      "w": "123",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_tell_cast_1"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "117",
-      "w": "126",
-      "value": {
-        "type": "path",
-        "link": "[high_fantasy:button_passage#room_2]",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "128",
-      "w": "36",
-      "value": {
-        "type": "leverage",
-        "link": "[high_fantasy:button_passage#sec_spine_3]",
-        "dot": {
-          "label": "leverage",
-          "style": "dotted",
-          "color": "darkgreen"
-        }
-      }
-    },
-    {
-      "v": "128",
-      "w": "40",
-      "value": {
-        "type": "leverage",
-        "link": "[high_fantasy:button_passage#sec_cast_1]",
-        "dot": {
-          "label": "leverage",
-          "style": "dotted",
-          "color": "darkgreen"
-        }
-      }
-    },
-    {
-      "v": "128",
-      "w": "116",
-      "value": {
-        "type": "path",
-        "edgeId": "e_ask_spine_2",
-        "link": "[high_fantasy:button_interview#sus_spine_2]",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "128",
-      "w": "123",
-      "value": {
-        "type": "path",
-        "edgeId": "e_am_7",
-        "link": "[high_fantasy:button_interview#sus_cast_1]",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "36",
-      "w": "128",
-      "value": {
-        "type": "return",
-        "prereq": {
-          "visited": "room_5"
-        },
-        "dot": {
-          "label": "return",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "40",
-      "w": "128",
-      "value": {
-        "type": "return",
-        "prereq": {
-          "visited": "room_5"
-        },
-        "dot": {
-          "label": "return",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "78",
-      "w": "128",
-      "value": {
-        "type": "return",
-        "prereq": {
-          "visited": "room_5"
-        },
-        "dot": {
-          "label": "return",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "81",
-      "w": "128",
-      "value": {
-        "type": "return",
-        "prereq": {
-          "visited": "room_5"
-        },
-        "dot": {
-          "label": "return",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "84",
-      "w": "128",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_am_7"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "116",
-      "w": "128",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_ask_spine_2"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "117",
-      "w": "128",
-      "value": {
-        "type": "path",
-        "link": "[high_fantasy:button_passage#room_5]",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "123",
-      "w": "128",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_am_7"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "129",
-      "w": "78",
+      "v": "111",
+      "w": "76",
       "value": {
         "type": "interview",
         "edgeId": "e_tell_spine_3",
@@ -781,7 +502,7 @@ window.GRAPH = {
         "noteText": "[high_fantasy:mystery_directive_note#secret_spine_3]",
         "directive": {
           "to": "housekeeper",
-          "act": "put the day-book back where it was",
+          "act": "leave the garden door unlocked",
           "note": "[high_fantasy:mystery_directive_note#secret_spine_3]"
         },
         "link": "[high_fantasy:mystery_confront#secret_spine_3]",
@@ -799,23 +520,8 @@ window.GRAPH = {
       }
     },
     {
-      "v": "129",
-      "w": "128",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_ask_spine_3"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "78",
-      "w": "129",
+      "v": "76",
+      "w": "111",
       "value": {
         "type": "backtrack",
         "prereq": {
@@ -829,155 +535,23 @@ window.GRAPH = {
       }
     },
     {
-      "v": "128",
-      "w": "129",
+      "v": "124",
+      "w": "61",
       "value": {
-        "type": "path",
-        "edgeId": "e_ask_spine_3",
-        "link": "[high_fantasy:button_interview#sus_spine_3]",
+        "type": "accuse",
+        "correct": false,
+        "accuses": "sus_cast_1",
+        "castRole": "valet",
+        "link": "[high_fantasy:button_accuse#sus_cast_1]",
         "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "130",
-      "w": "84",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_tell_spine_1"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
+          "label": "accuse",
           "color": "gray"
         }
       }
     },
     {
-      "v": "130",
-      "w": "128",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_am_7"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "84",
-      "w": "130",
-      "value": {
-        "type": "interview",
-        "edgeId": "e_tell_spine_1",
-        "pairId": "secret_spine_1",
-        "lockedText": "[high_fantasy:mystery_locked_question#secret_spine_1]",
-        "leverageText": "[high_fantasy:mystery_recognise_leverage#secret_spine_1]",
-        "confrontText": "[high_fantasy:mystery_confront#secret_spine_1]",
-        "prefaceText": "[high_fantasy:mystery_ask_now#secret_spine_1]",
-        "noteText": "[high_fantasy:mystery_directive_note#secret_spine_1]",
-        "directive": {
-          "to": "footman",
-          "act": "swear the car never left the yard",
-          "note": "[high_fantasy:mystery_directive_note#secret_spine_1]"
-        },
-        "link": "[high_fantasy:mystery_confront#secret_spine_1]",
-        "prereq": {
-          "pairId": "secret_spine_1",
-          "link": "[high_fantasy:mystery_confront#secret_spine_1]",
-          "recognition": "[high_fantasy:mystery_recognise_leverage#secret_spine_1]",
-          "after": "[high_fantasy:mystery_ask_now#secret_spine_1]"
-        },
-        "dot": {
-          "label": "interview (secret_spine_1)",
-          "style": "bold",
-          "color": "red"
-        }
-      }
-    },
-    {
-      "v": "131",
-      "w": "111",
-      "value": {
-        "type": "path",
-        "link": "[high_fantasy:button_passage#puzzle_2]",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "131",
-      "w": "130",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_mb_7"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "90",
-      "w": "131",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "91",
-      "w": "131",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "92",
-      "w": "131",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "130",
-      "w": "131",
-      "value": {
-        "type": "path",
-        "edgeId": "e_mb_7",
-        "link": "[high_fantasy:button_passage#e_mb_7]",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "132",
-      "w": "63",
+      "v": "124",
+      "w": "64",
       "value": {
         "type": "accuse",
         "correct": false,
@@ -991,23 +565,8 @@ window.GRAPH = {
       }
     },
     {
-      "v": "132",
-      "w": "66",
-      "value": {
-        "type": "accuse",
-        "correct": false,
-        "accuses": "sus_cast_2",
-        "castRole": "valet",
-        "link": "[high_fantasy:button_accuse#sus_cast_2]",
-        "dot": {
-          "label": "accuse",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "132",
-      "w": "69",
+      "v": "124",
+      "w": "67",
       "value": {
         "type": "accuse",
         "correct": false,
@@ -1021,14 +580,14 @@ window.GRAPH = {
       }
     },
     {
-      "v": "132",
-      "w": "72",
+      "v": "124",
+      "w": "73",
       "value": {
         "type": "accuse",
         "correct": false,
-        "accuses": "sus_cast_1",
-        "castRole": "housekeeper",
-        "link": "[high_fantasy:button_accuse#sus_cast_1]",
+        "accuses": "sus_cast_2",
+        "castRole": "gardener",
+        "link": "[high_fantasy:button_accuse#sus_cast_2]",
         "dot": {
           "label": "accuse",
           "color": "gray"
@@ -1036,23 +595,8 @@ window.GRAPH = {
       }
     },
     {
-      "v": "132",
-      "w": "105",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_fun_den_3"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "132",
-      "w": "106",
+      "v": "124",
+      "w": "104",
       "value": {
         "type": "accuse",
         "correct": true,
@@ -1071,8 +615,23 @@ window.GRAPH = {
       }
     },
     {
-      "v": "132",
-      "w": "117",
+      "v": "124",
+      "w": "115",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_fun_den_3"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "124",
+      "w": "119",
       "value": {
         "type": "backtrack",
         "prereq": {
@@ -1086,23 +645,8 @@ window.GRAPH = {
       }
     },
     {
-      "v": "132",
-      "w": "126",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_fun_den_2"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "105",
-      "w": "132",
+      "v": "115",
+      "w": "124",
       "value": {
         "type": "path",
         "edgeId": "e_fun_den_3",
@@ -1113,8 +657,8 @@ window.GRAPH = {
       }
     },
     {
-      "v": "117",
-      "w": "132",
+      "v": "119",
+      "w": "124",
       "value": {
         "type": "path",
         "edgeId": "e_acc_den_1",
@@ -1125,91 +669,13 @@ window.GRAPH = {
       }
     },
     {
-      "v": "126",
-      "w": "132",
-      "value": {
-        "type": "path",
-        "edgeId": "e_fun_den_2",
-        "link": "[high_fantasy:button_passage#accusation]",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "133",
-      "w": "84",
-      "value": {
-        "type": "directive",
-        "directive": {
-          "to": "footman",
-          "act": "swear the car never left the yard",
-          "note": "[high_fantasy:mystery_directive_note#secret_spine_1]"
-        },
-        "noteText": "[high_fantasy:mystery_directive_note#secret_spine_1]",
-        "link": "[high_fantasy:button_read_note#secret_spine_1]",
-        "prereq": {
-          "pairId": "secret_spine_1"
-        },
-        "dot": {
-          "label": "note",
-          "style": "dotted",
-          "color": "blue"
-        }
-      }
-    },
-    {
-      "v": "133",
-      "w": "116",
-      "value": {
-        "type": "directive",
-        "directive": {
-          "to": "governess",
-          "act": "say nothing about the west stair",
-          "note": "[high_fantasy:mystery_directive_note#secret_spine_2]"
-        },
-        "noteText": "[high_fantasy:mystery_directive_note#secret_spine_2]",
-        "link": "[high_fantasy:button_read_note#secret_spine_2]",
-        "prereq": {
-          "pairId": "secret_spine_2"
-        },
-        "dot": {
-          "label": "note",
-          "style": "dotted",
-          "color": "blue"
-        }
-      }
-    },
-    {
-      "v": "133",
-      "w": "123",
+      "v": "125",
+      "w": "111",
       "value": {
         "type": "directive",
         "directive": {
           "to": "housekeeper",
-          "act": "do not mention the letter",
-          "note": "[high_fantasy:mystery_directive_note#secret_cast_1]"
-        },
-        "noteText": "[high_fantasy:mystery_directive_note#secret_cast_1]",
-        "link": "[high_fantasy:button_read_note#secret_cast_1]",
-        "prereq": {
-          "pairId": "secret_cast_1"
-        },
-        "dot": {
-          "label": "note",
-          "style": "dotted",
-          "color": "blue"
-        }
-      }
-    },
-    {
-      "v": "133",
-      "w": "129",
-      "value": {
-        "type": "directive",
-        "directive": {
-          "to": "housekeeper",
-          "act": "put the day-book back where it was",
+          "act": "leave the garden door unlocked",
           "note": "[high_fantasy:mystery_directive_note#secret_spine_3]"
         },
         "noteText": "[high_fantasy:mystery_directive_note#secret_spine_3]",
@@ -1225,8 +691,8 @@ window.GRAPH = {
       }
     },
     {
-      "v": "133",
-      "w": "132",
+      "v": "125",
+      "w": "124",
       "value": {
         "type": "backtrack",
         "prereq": {
@@ -1240,8 +706,8 @@ window.GRAPH = {
       }
     },
     {
-      "v": "132",
-      "w": "133",
+      "v": "124",
+      "w": "125",
       "value": {
         "type": "path",
         "edgeId": "e_ev_den_1",
@@ -1252,51 +718,40 @@ window.GRAPH = {
       }
     },
     {
-      "v": "134",
-      "w": "108",
+      "v": "126",
+      "w": "44",
       "value": {
-        "type": "path",
-        "edgeId": "e_ask_cast_2",
-        "link": "[high_fantasy:button_interview#sus_cast_2]",
+        "type": "leverage",
+        "link": "[high_fantasy:button_passage#sec_cast_2]",
         "dot": {
-          "label": "path"
+          "label": "leverage",
+          "style": "dotted",
+          "color": "darkgreen"
         }
       }
     },
     {
-      "v": "134",
-      "w": "132",
+      "v": "44",
+      "w": "126",
       "value": {
-        "type": "path",
-        "edgeId": "e_fun_den_4",
-        "link": "[high_fantasy:button_passage#accusation]",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "108",
-      "w": "134",
-      "value": {
-        "type": "testimony",
+        "type": "return",
         "prereq": {
-          "traversed": "e_ask_cast_2"
+          "visited": "room_7"
         },
-        "text": "[high_fantasy:mystery_testimony#sus_cast_2]",
         "dot": {
-          "label": "testimony",
+          "label": "return",
           "style": "dashed",
           "color": "gray"
         }
       }
     },
     {
-      "v": "111",
-      "w": "134",
+      "v": "106",
+      "w": "126",
       "value": {
         "type": "choice",
         "correct": true,
+        "edgeId": "e_am_7",
         "dot": {
           "label": "correct",
           "color": "darkgreen"
@@ -1304,34 +759,12 @@ window.GRAPH = {
       }
     },
     {
-      "v": "117",
-      "w": "134",
-      "value": {
-        "type": "path",
-        "link": "[high_fantasy:button_passage#room_1]",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "128",
-      "w": "134",
-      "value": {
-        "type": "path",
-        "link": "[high_fantasy:button_passage#e_pp_mb_5]",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "132",
-      "w": "134",
+      "v": "127",
+      "w": "126",
       "value": {
         "type": "backtrack",
         "prereq": {
-          "traversed": "e_fun_den_4"
+          "traversed": "e_mb_7"
         },
         "dot": {
           "label": "backtrack",
@@ -1341,7 +774,285 @@ window.GRAPH = {
       }
     },
     {
-      "v": "135",
+      "v": "125",
+      "w": "127",
+      "value": {
+        "type": "directive",
+        "directive": {
+          "to": "gardener",
+          "act": "forget the sound on the landing",
+          "note": "[high_fantasy:mystery_directive_note#secret_cast_2]"
+        },
+        "noteText": "[high_fantasy:mystery_directive_note#secret_cast_2]",
+        "link": "[high_fantasy:button_read_note#secret_cast_2]",
+        "prereq": {
+          "pairId": "secret_cast_2"
+        },
+        "dot": {
+          "label": "note",
+          "style": "dotted",
+          "color": "blue"
+        }
+      }
+    },
+    {
+      "v": "126",
+      "w": "127",
+      "value": {
+        "type": "path",
+        "edgeId": "e_mb_7",
+        "link": "[high_fantasy:button_interview#sus_cast_2]",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "129",
+      "w": "85",
+      "value": {
+        "type": "interview",
+        "edgeId": "e_tell_spine_2",
+        "pairId": "secret_spine_2",
+        "lockedText": "[high_fantasy:mystery_locked_question#secret_spine_2]",
+        "leverageText": "[high_fantasy:mystery_recognise_leverage#secret_spine_2]",
+        "confrontText": "[high_fantasy:mystery_confront#secret_spine_2]",
+        "prefaceText": "[high_fantasy:mystery_ask_now#secret_spine_2]",
+        "noteText": "[high_fantasy:mystery_directive_note#secret_spine_2]",
+        "directive": {
+          "to": "governess",
+          "act": "let the dogs out at half past",
+          "note": "[high_fantasy:mystery_directive_note#secret_spine_2]"
+        },
+        "link": "[high_fantasy:mystery_confront#secret_spine_2]",
+        "prereq": {
+          "pairId": "secret_spine_2",
+          "link": "[high_fantasy:mystery_confront#secret_spine_2]",
+          "recognition": "[high_fantasy:mystery_recognise_leverage#secret_spine_2]",
+          "after": "[high_fantasy:mystery_ask_now#secret_spine_2]"
+        },
+        "dot": {
+          "label": "interview (secret_spine_2)",
+          "style": "bold",
+          "color": "red"
+        }
+      }
+    },
+    {
+      "v": "85",
+      "w": "129",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_tell_spine_2"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "125",
+      "w": "129",
+      "value": {
+        "type": "directive",
+        "directive": {
+          "to": "governess",
+          "act": "let the dogs out at half past",
+          "note": "[high_fantasy:mystery_directive_note#secret_spine_2]"
+        },
+        "noteText": "[high_fantasy:mystery_directive_note#secret_spine_2]",
+        "link": "[high_fantasy:button_read_note#secret_spine_2]",
+        "prereq": {
+          "pairId": "secret_spine_2"
+        },
+        "dot": {
+          "label": "note",
+          "style": "dotted",
+          "color": "blue"
+        }
+      }
+    },
+    {
+      "v": "130",
+      "w": "126",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_mb_7"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "130",
+      "w": "127",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_tell_cast_2"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "127",
+      "w": "130",
+      "value": {
+        "type": "interview",
+        "edgeId": "e_tell_cast_2",
+        "pairId": "secret_cast_2",
+        "lockedText": "[high_fantasy:mystery_locked_question#secret_cast_2]",
+        "leverageText": "[high_fantasy:mystery_recognise_leverage#secret_cast_2]",
+        "confrontText": "[high_fantasy:mystery_confront#secret_cast_2]",
+        "prefaceText": "[high_fantasy:mystery_ask_now#secret_cast_2]",
+        "noteText": "[high_fantasy:mystery_directive_note#secret_cast_2]",
+        "directive": {
+          "to": "gardener",
+          "act": "forget the sound on the landing",
+          "note": "[high_fantasy:mystery_directive_note#secret_cast_2]"
+        },
+        "link": "[high_fantasy:mystery_confront#secret_cast_2]",
+        "prereq": {
+          "pairId": "secret_cast_2",
+          "link": "[high_fantasy:mystery_confront#secret_cast_2]",
+          "recognition": "[high_fantasy:mystery_recognise_leverage#secret_cast_2]",
+          "after": "[high_fantasy:mystery_ask_now#secret_cast_2]"
+        },
+        "dot": {
+          "label": "interview (secret_cast_2)",
+          "style": "bold",
+          "color": "red"
+        }
+      }
+    },
+    {
+      "v": "132",
+      "w": "106",
+      "value": {
+        "type": "path",
+        "link": "[high_fantasy:button_passage#puzzle_2]",
+        "edgeId": "e_am_7",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "91",
+      "w": "132",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "back to puzzle",
+          "style": "dotted",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "92",
+      "w": "132",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "back to puzzle",
+          "style": "dotted",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "93",
+      "w": "132",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "back to puzzle",
+          "style": "dotted",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "126",
+      "w": "132",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_am_7"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "134",
+      "w": "114",
+      "value": {
+        "type": "path",
+        "edgeId": "e_ask_cast_1",
+        "link": "[high_fantasy:button_interview#sus_cast_1]",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "134",
+      "w": "118",
+      "value": {
+        "type": "path",
+        "edgeId": "e_ad_3",
+        "link": "[high_fantasy:button_passage#e_ad_3]",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "134",
+      "w": "124",
+      "value": {
+        "type": "path",
+        "edgeId": "e_fun_den_2",
+        "link": "[high_fantasy:button_passage#accusation]",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "114",
+      "w": "134",
+      "value": {
+        "type": "testimony",
+        "prereq": {
+          "traversed": "e_ask_cast_1"
+        },
+        "text": "[high_fantasy:mystery_testimony#sus_cast_1]",
+        "dot": {
+          "label": "testimony",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "118",
       "w": "134",
       "value": {
         "type": "backtrack",
@@ -1356,12 +1067,304 @@ window.GRAPH = {
       }
     },
     {
-      "v": "134",
-      "w": "135",
+      "v": "124",
+      "w": "134",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_fun_den_2"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "130",
+      "w": "134",
       "value": {
         "type": "path",
-        "edgeId": "e_ad_3",
-        "link": "[high_fantasy:button_passage#e_ad_3]",
+        "link": "[high_fantasy:button_passage#e_pp_mb_6]",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "132",
+      "w": "134",
+      "value": {
+        "type": "path",
+        "link": "[high_fantasy:button_passage#e_pp_mb_5]",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "135",
+      "w": "37",
+      "value": {
+        "type": "leverage",
+        "link": "[high_fantasy:button_passage#sec_spine_3]",
+        "dot": {
+          "label": "leverage",
+          "style": "dotted",
+          "color": "darkgreen"
+        }
+      }
+    },
+    {
+      "v": "135",
+      "w": "111",
+      "value": {
+        "type": "path",
+        "edgeId": "e_ask_spine_3",
+        "link": "[high_fantasy:button_interview#sus_spine_3]",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "135",
+      "w": "115",
+      "value": {
+        "type": "path",
+        "link": "[high_fantasy:button_passage#room_2]",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "135",
+      "w": "124",
+      "value": {
+        "type": "path",
+        "edgeId": "e_fun_den_4",
+        "link": "[high_fantasy:button_passage#accusation]",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "135",
+      "w": "129",
+      "value": {
+        "type": "path",
+        "edgeId": "e_ask_spine_2",
+        "link": "[high_fantasy:button_interview#sus_spine_2]",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "135",
+      "w": "132",
+      "value": {
+        "type": "path",
+        "link": "[high_fantasy:button_passage#room_5]",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "135",
+      "w": "134",
+      "value": {
+        "type": "path",
+        "link": "[high_fantasy:button_passage#room_1]",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "37",
+      "w": "135",
+      "value": {
+        "type": "return",
+        "prereq": {
+          "visited": "start"
+        },
+        "dot": {
+          "label": "return",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "76",
+      "w": "135",
+      "value": {
+        "type": "return",
+        "prereq": {
+          "visited": "start"
+        },
+        "dot": {
+          "label": "return",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "85",
+      "w": "135",
+      "value": {
+        "type": "return",
+        "prereq": {
+          "visited": "start"
+        },
+        "dot": {
+          "label": "return",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "111",
+      "w": "135",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_ask_spine_3"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "124",
+      "w": "135",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_fun_den_4"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "129",
+      "w": "135",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_ask_spine_2"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "136",
+      "w": "119",
+      "value": {
+        "type": "interview",
+        "edgeId": "e_tell_spine_1",
+        "pairId": "secret_spine_1",
+        "lockedText": "[high_fantasy:mystery_locked_question#secret_spine_1]",
+        "leverageText": "[high_fantasy:mystery_recognise_leverage#secret_spine_1]",
+        "confrontText": "[high_fantasy:mystery_confront#secret_spine_1]",
+        "prefaceText": "[high_fantasy:mystery_ask_now#secret_spine_1]",
+        "noteText": "[high_fantasy:mystery_directive_note#secret_spine_1]",
+        "directive": {
+          "to": "footman",
+          "act": "be seen in the pantry at nine",
+          "note": "[high_fantasy:mystery_directive_note#secret_spine_1]"
+        },
+        "link": "[high_fantasy:mystery_confront#secret_spine_1]",
+        "prereq": {
+          "pairId": "secret_spine_1",
+          "link": "[high_fantasy:mystery_confront#secret_spine_1]",
+          "recognition": "[high_fantasy:mystery_recognise_leverage#secret_spine_1]",
+          "after": "[high_fantasy:mystery_ask_now#secret_spine_1]"
+        },
+        "dot": {
+          "label": "interview (secret_spine_1)",
+          "style": "bold",
+          "color": "red"
+        }
+      }
+    },
+    {
+      "v": "136",
+      "w": "135",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_ask_spine_1"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "119",
+      "w": "136",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_tell_spine_1"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "125",
+      "w": "136",
+      "value": {
+        "type": "directive",
+        "directive": {
+          "to": "footman",
+          "act": "be seen in the pantry at nine",
+          "note": "[high_fantasy:mystery_directive_note#secret_spine_1]"
+        },
+        "noteText": "[high_fantasy:mystery_directive_note#secret_spine_1]",
+        "link": "[high_fantasy:button_read_note#secret_spine_1]",
+        "prereq": {
+          "pairId": "secret_spine_1"
+        },
+        "dot": {
+          "label": "note",
+          "style": "dotted",
+          "color": "blue"
+        }
+      }
+    },
+    {
+      "v": "135",
+      "w": "136",
+      "value": {
+        "type": "path",
+        "edgeId": "e_ask_spine_1",
+        "link": "[high_fantasy:button_interview#sus_spine_1]",
         "dot": {
           "label": "path"
         }

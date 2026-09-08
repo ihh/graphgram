@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Logic Minigames as Lock Skins · graphgram</title>
+<meta name="description" content="graphgram — a graph grammar library for procedural narrative">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+<header class="site-nav">
+  <nav>
+      <a href="../index.html" class="brand">graphgram</a>
+      <a href="../guide.html">Guide</a>
+      <a href="../advanced.html">Advanced</a>
+      <a href="../examples.html">Examples</a>
+      <a href="../play/index.html">Play</a>
+      <a href="../papers/index.html">Papers</a>
+      <a href="../spec/story-ir.html">Spec</a>
+      <a href="../jsdoc/index.html">API</a>
+      <a href="https://github.com/ihh/graphgram" rel="noopener">GitHub</a>
+  </nav>
+</header>
+<main class="prose">
+<h1 id="logic-minigames-as-lock-skins">Logic Minigames as Lock Skins</h1>
+<p><em>A lock needs a gate, and the cheapest gate is &quot;do you hold the key&quot;. This
+paper is about the next cheapest: a small self-contained puzzle whose exit
+edge is the locked edge. It audits the two skins the repo ships —
+<code>monsterBattle</code> and <code>puzzleChoice</code> — and measures why a stochastic gate is
+the wrong shape for a daily puzzle (best play still dies 19.9% of the
+time). It then develops the bipartite-matching family: the combinatorics of
+3-to-3, a five-form clue language with computed elimination figures, the
+observation that generating a minimal clue set is exactly minimum set
+cover, and a difficulty classifier that turns out to be propagator-relative
+— 24.3% of generated puzzles fall to unit propagation, 93.2% to arc
+consistency. It ends with a verified graphgram rule wiring a matching
+puzzle onto a <code>puzzle</code> edge, and with the reason the encoding stops at
+n = 3.</em></p>
+<h2 id="1-the-frame">1. The frame</h2>
+<p>A <strong>lock</strong> is a graph fact: an edge the engine refuses to offer until a
+predicate over the player&#39;s history holds. Here that predicate is
+<code>label.prereq</code>, checked by <code>edgeAccessible</code> (<code>play/game.js:92</code>), with
+exactly three forms — <code>{pairId}</code>, <code>{traversed}</code>, <code>{visited}</code>. A <strong>skin</strong> is
+something else: a subgraph, produced by one rule application, interposed on
+the locked edge, whose interior the player must navigate correctly to reach
+the exit. A rule rewriting <code>a --t--&gt; b</code> is a skin when its RHS has a
+distinguished exit edge into <code>b</code> whose tail is reachable from <code>a</code> only
+through nodes the rule created.</p>
+<p>Two skins exist today, both matching an edge type produced by
+<code>refineEdges</code>, both following the same inheritance discipline: the first
+edge of the expansion takes the matched edge&#39;s <code>edgeId</code> and <code>prereq</code>, so a
+gate on the corridor is not bypassed by dressing the corridor up.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><code>monsterBattle</code> (<code>dungeon-primitives.js:577</code>)</th>
+<th><code>puzzleChoice</code> (<code>dungeon-primitives.js:700</code>)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>matches</td>
+<td><code>a --monster--&gt; b</code></td>
+<td><code>a --puzzle--&gt; b</code></td>
+</tr>
+<tr>
+<td>interior</td>
+<td>2 choice nodes, 2 random nodes, 1 death sink</td>
+<td>1 intro node, N distractor nodes</td>
+</tr>
+<tr>
+<td>exit</td>
+<td>either <code>victory</code> consequence edge</td>
+<td>the single <code>correct: true</code> choice edge</td>
+</tr>
+<tr>
+<td>failure routes to</td>
+<td><code>death</code> (terminal) or back to a choice node</td>
+<td>back to <code>a</code>, costing moves</td>
+</tr>
+<tr>
+<td>stochastic</td>
+<td>yes — <code>rollAtRandom</code> (<code>play/game.js:527</code>)</td>
+<td>no</td>
+</tr>
+<tr>
+<td>escape</td>
+<td><code>retreat</code> edge to <code>a</code>, always accessible</td>
+<td>none; a distractor is the escape</td>
+</tr>
+</tbody></table>
+<p>The stochastic row is the whole design question: a skin gates a correct
+solver, and a stochastic gate can refuse one. Simulating <code>monsterBattle</code>
+under the engine&#39;s own semantics — HP starts at 1, <code>applyEdgeDamage</code>
+(<code>play/game.js:545</code>) subtracts, <code>playerHP &lt;= 0</code> routes to death,
+<code>monsterHP &lt;= 0</code> forces the victory route — over 200 000 trials for each of
+the four deterministic policies (two states, two actions):</p>
+<table>
+<thead>
+<tr>
+<th>policy</th>
+<th>P(win)</th>
+<th>P(death)</th>
+<th>mean rolls</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>always attack</td>
+<td>0.801</td>
+<td>0.199</td>
+<td>1.98</td>
+</tr>
+<tr>
+<td>attack at normal, defend at advantage</td>
+<td>0.772</td>
+<td>0.228</td>
+<td>2.29</td>
+</tr>
+<tr>
+<td>defend at normal, attack at advantage</td>
+<td>0.630</td>
+<td>0.370</td>
+<td>3.68</td>
+</tr>
+<tr>
+<td>always defend</td>
+<td>0.502</td>
+<td>0.498</td>
+<td>5.00</td>
+</tr>
+</tbody></table>
+<p>Optimal play dies one time in five, and <code>retreat</code> does not help: leaving the
+battle group resets <code>monsterHP</code> to 1 on re-entry (<code>play/game.js:373</code>) while
+the player&#39;s HP carries over, so retreating restarts the same chain in a
+strictly worse state. That is acceptable for a dungeon crawl scored on
+moves, and not acceptable for a daily puzzle, where every player gets the
+same instance and the only question is whether they solved it. A daily
+gate must be deterministic in the solver&#39;s favour: correct reasoning always
+opens it, and nothing else does.</p>
+<h2 id="2-bipartite-matching-at-n-3">2. Bipartite matching at n = 3</h2>
+<p>Let <code>S</code> and <code>T</code> be disjoint with <code>|S| = |T| = n</code>, and <code>W</code> the set of
+bijections <code>M: S → T</code>. The player sees <code>S</code>, <code>T</code> and some clues, and must
+name the hidden <code>M</code>. <code>|W| = n!</code>; at <code>n = 3</code>, <code>|W| = 6</code>. Write <code>p(s,t)</code> for
+the atom <code>M(s) = t</code>. A <strong>clue</strong> is a proposition over <code>W</code>; its <strong>model
+set</strong> is <code>true(c) = {w ∈ W : c(w)}</code>, its <strong>false set</strong> the complement. A
+clue set <code>C</code> <strong>isolates</strong> <code>M</code> iff</p>
+<pre><code>⋂_{c ∈ C} true(c) = {M}
+</code></pre>
+<p>Read the other way round: every one of the <code>n!−1</code> wrong matchings is
+falsified by at least one clue in <code>C</code>. <strong>Isolating a matching is a
+set-cover problem</strong> over the ground set <code>W \ {M}</code>, one covering set per
+clue. Everything in §4 follows from that.</p>
+<p>The immediate consequence is the right lower bound. If the largest false
+set among clues true of <code>M</code> has size <code>f</code>,</p>
+<pre><code>|C| ≥ ⌈ (n! − 1) / f ⌉
+</code></pre>
+<p>At <code>n = 3</code> with positives available <code>f = 4</code>, so <code>|C| ≥ 2</code>, achieved by two
+positives (they fix two rows; the third follows). The information-theoretic
+version agrees — prior entropy <code>log₂ 6 = 2.585</code> bits, no clue below worth
+more than <code>log₂(6/2) = 1.585</code> — but only by coincidence. The naive &quot;sum of
+per-clue self-information ≥ 2.585 bits&quot; argument gives 5 for negatives
+where the true minimum is 3: clues are not independent, and a negative
+conditioned on earlier negatives can carry a full bit. Use the covering
+bound, and note it is necessary, not sufficient: at <code>n = 4</code> it says 2 and
+the exhaustive answer is 3.</p>
+<h2 id="3-a-clue-language">3. A clue language</h2>
+<p>Five forms, each with a fixed propositional shape. <code>κ: T → K</code> is a
+<strong>kind</strong> map, not injective; at <code>n = 3</code> take <code>κ(t₀) = κ(t₁) ≠ κ(t₂)</code>.</p>
+<table>
+<thead>
+<tr>
+<th>form</th>
+<th>proposition</th>
+<th>reading</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>POS</td>
+<td><code>p(s,t)</code></td>
+<td>A is matched to X</td>
+</tr>
+<tr>
+<td>NEG</td>
+<td><code>¬p(s,t)</code></td>
+<td>B is not matched to Y</td>
+</tr>
+<tr>
+<td>OR</td>
+<td><code>p(s,t) ∨ p(s&#39;,t&#39;)</code></td>
+<td>either A-X or B-Y</td>
+</tr>
+<tr>
+<td>IF</td>
+<td><code>p(s,t) → p(s&#39;,t&#39;)</code></td>
+<td>if A-X then C-Z</td>
+</tr>
+<tr>
+<td>REL</td>
+<td><code>κ(M(s)) ≠ κ(M(s&#39;))</code>, or <code>=</code></td>
+<td>A and B are not (are) matched to the same kind</td>
+</tr>
+</tbody></table>
+<p>The truth table over the six matchings, written <code>M(A)M(B)M(C)</code> with
+<code>T = {x,y,z}</code> and <code>κ(x) = κ(y) ≠ κ(z)</code>:</p>
+<table>
+<thead>
+<tr>
+<th>clue</th>
+<th>xyz</th>
+<th>xzy</th>
+<th>yxz</th>
+<th>yzx</th>
+<th>zxy</th>
+<th>zyx</th>
+<th>|true|</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>p(A,x)</code></td>
+<td>T</td>
+<td>T</td>
+<td>F</td>
+<td>F</td>
+<td>F</td>
+<td>F</td>
+<td>2</td>
+</tr>
+<tr>
+<td><code>¬p(B,y)</code></td>
+<td>F</td>
+<td>T</td>
+<td>T</td>
+<td>T</td>
+<td>T</td>
+<td>F</td>
+<td>4</td>
+</tr>
+<tr>
+<td><code>p(A,x) ∨ p(B,z)</code></td>
+<td>T</td>
+<td>T</td>
+<td>F</td>
+<td>T</td>
+<td>F</td>
+<td>F</td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>p(A,x) → p(C,y)</code></td>
+<td>F</td>
+<td>T</td>
+<td>T</td>
+<td>T</td>
+<td>T</td>
+<td>T</td>
+<td>5</td>
+</tr>
+<tr>
+<td><code>κ(M(A)) ≠ κ(M(B))</code></td>
+<td>F</td>
+<td>T</td>
+<td>F</td>
+<td>T</td>
+<td>T</td>
+<td>T</td>
+<td>4</td>
+</tr>
+</tbody></table>
+<p>All five hold only at <code>xzy</code> — but they are not a minimal set: deleting
+<code>¬p(B,y)</code> still leaves <code>xzy</code> alone, because the surviving four already
+falsify all five rivals. That is what §4&#39;s second pass is for.</p>
+<p>Enumerating every instance of every form at <code>n = 3</code> (132 clues) and
+counting:</p>
+<table>
+<thead>
+<tr>
+<th>form</th>
+<th>instances</th>
+<th>|true| distribution</th>
+<th>mean worlds eliminated</th>
+<th>mean given true of <code>M</code></th>
+<th>min isolating set, this form alone</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>POS</td>
+<td>9</td>
+<td>2 (all)</td>
+<td>4.000</td>
+<td>4.000</td>
+<td>2</td>
+</tr>
+<tr>
+<td>NEG</td>
+<td>9</td>
+<td>4 (all)</td>
+<td>2.000</td>
+<td>2.000</td>
+<td>3</td>
+</tr>
+<tr>
+<td>OR</td>
+<td>36</td>
+<td>3 (×18), 4 (×18)</td>
+<td>2.500</td>
+<td>2.429</td>
+<td>2</td>
+</tr>
+<tr>
+<td>IF</td>
+<td>72</td>
+<td>4 (×36), 5 (×36)</td>
+<td>1.500</td>
+<td>1.444</td>
+<td>3</td>
+</tr>
+<tr>
+<td>REL (≠)</td>
+<td>3</td>
+<td>4 (all)</td>
+<td>2.000</td>
+<td>2.000</td>
+<td>never</td>
+</tr>
+<tr>
+<td>REL (=)</td>
+<td>3</td>
+<td>2 (all)</td>
+<td>4.000</td>
+<td>4.000</td>
+<td>never</td>
+</tr>
+</tbody></table>
+<p>Three readings. A disjunction of two <em>disjoint</em> atoms eliminates 3, one
+sharing a row or column eliminates 2 — <code>p(A,x) ∨ p(A,z)</code> is just &quot;A was
+indoors&quot;. A conditional is the weakest form, weakest of all when its atoms
+are disjoint (<code>|true| = 5</code>), which is why §4 keeps producing three- and
+four-clue sets built mostly from <code>IF</code>. And relational clues <strong>cannot
+isolate at any count</strong>: every relational clue true of <code>M</code> — one polarity
+per pair, so three of them at <code>n = 3</code> — leaves two worlds standing, <code>M</code> and
+the swap of the two same-kind targets, because <code>κ</code> is not injective and a
+language of <code>κ</code>-facts cannot separate what <code>κ</code> identifies. A skin built
+only from &quot;indoors or outdoors&quot; clues is unsolvable by construction.</p>
+<p>The two mean-elimination columns differ because conditioning on &quot;true of
+<code>M</code>&quot; size-biases the sample toward clues with larger model sets. At <code>n = 3</code>
+the bias is small (2.500 → 2.429 for OR); it grows with <code>n</code>.</p>
+<h2 id="4-generating-a-puzzle">4. Generating a puzzle</h2>
+<p>The generator must produce a clue set that (a) isolates and (b) is
+irredundant: dropping any clue admits more than one matching. Given §2,
+this is greedy set cover followed by a redundancy sweep.</p>
+<pre><code>1. M      ← W[⌊rng() · n!⌋]                     hidden matching, from the seed
+2. P      ← { c ∈ pool : c(M) }                 keep only clues that are TRUE of M
+3. shuffle P with the same seeded stream
+4. surviving ← W;  C ← ∅
+   for c in P while |surviving| &gt; 1:
+       if |surviving ∩ true(c)| &lt; |surviving|:  C ← C ∪ {c};  surviving ← surviving ∩ true(c)
+5. if |surviving| ≠ 1: fail
+6. for c in reverse(C):                         irredundance sweep
+       if ⋂_{c&#39; ∈ C \ {c}} true(c&#39;) is a singleton: C ← C \ {c}
+</code></pre>
+<p>Step 2 makes the puzzle <em>fair</em>: every clue is a true statement about the
+world, so no correct chain of reasoning is ever contradicted. Step 4 is
+greedy cover with an any-gain rather than max-gain test; step 6 is the
+post-pass greedy needs.</p>
+<p>The result is minimal, not minimum. At <code>n = 3</code> over the full language the
+minimum is always 2, but greedy over a shuffled pool gave a mean of 2.72
+clues across 2000 seeds (2 clues: 739, 3: 1083, 4: 176, 5: 2). That is a
+feature: a puzzle that is always &quot;A is in the cellar; B is in the
+boathouse&quot; is not a puzzle, and optimising cardinality optimises the wrong
+thing.</p>
+<p>Two worked examples, cast as suspects and alibis:</p>
+<pre><code>seed 20260908                                    surviving matchings
+  1. If Mrs Ardley was in the cellar, then        6 → 5
+     the boy Finch was in the boathouse.  [IF]
+  2. Mrs Ardley was in the cellar.        [POS]   5 → 1
+  solution: Ardley→cellar, Coyne→conservatory, Finch→boathouse
+  drop 1 → 2 matchings;  drop 2 → 5 matchings     (both load bearing)
+
+seed 11
+  1. If the boy Finch was in the conservatory,    6 → 5
+     then Mrs Ardley was in the boathouse.  [IF]
+  2. If the boy Finch was in the boathouse,       5 → 3
+     then Dr Coyne was in the boathouse.    [IF]
+  3. Either Mrs Ardley was in the cellar, or      3 → 1
+     Dr Coyne was in the cellar.            [OR]
+  solution: Ardley→boathouse, Coyne→cellar, Finch→conservatory
+  drop 1 → 2;  drop 2 → 3;  drop 3 → 3            (all load bearing)
+</code></pre>
+<p><strong>Complexity.</strong> Steps 2–6 cost <code>O(|pool| · n!)</code>; the pool grows as <code>Θ(n⁴)</code>
+(the <code>IF</code> family alone is <code>n²(n²−1)</code>) and <code>n!</code> does what it does. Measured
+over 200 puzzles per <code>n</code>, all families:</p>
+<table>
+<thead>
+<tr>
+<th>n</th>
+<th>matchings</th>
+<th>clue pool</th>
+<th>ms/puzzle</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>3</td>
+<td>6</td>
+<td>132</td>
+<td>0.03</td>
+</tr>
+<tr>
+<td>4</td>
+<td>24</td>
+<td>404</td>
+<td>0.07</td>
+</tr>
+<tr>
+<td>5</td>
+<td>120</td>
+<td>970</td>
+<td>0.17</td>
+</tr>
+<tr>
+<td>6</td>
+<td>720</td>
+<td>1 992</td>
+<td>0.91</td>
+</tr>
+<tr>
+<td>7</td>
+<td>5 040</td>
+<td>3 668</td>
+<td>7.35</td>
+</tr>
+<tr>
+<td>8</td>
+<td>40 320</td>
+<td>6 232</td>
+<td>108</td>
+</tr>
+</tbody></table>
+<p>Brute force is fine through <code>n = 7</code> and hurts at <code>n = 8</code>; <code>n = 9</code> would be
+around 2 s per puzzle (conjecture by extrapolation, not measured). Beyond
+that the explicit world set has to go, survivor counting becomes a
+constraint solve, step 6&#39;s test becomes &quot;does a second solution exist&quot;, and
+set cover&#39;s NP-hardness stops being a footnote. None of it matters here:
+§6 shows the graph encoding caps <code>n</code> at 3 long before the generator does.</p>
+<h2 id="5-difficulty">5. Difficulty</h2>
+<p>Two puzzles with the same clue count can be very different to solve. The
+useful distinction is whether a solver that never guesses can finish. Model
+the player as a candidate grid <code>C[s][t]</code> with two propagators:</p>
+<ul>
+<li><strong>Unit propagation.</strong> A clue fires only when it is already decided:
+<code>POS</code> assigns, <code>NEG</code> strikes, <code>OR</code> asserts the other disjunct once one is
+impossible, <code>IF</code> contraposes once the consequent is impossible. Plus the
+all-different singles — a row with one candidate, a column with one
+candidate.</li>
+<li><strong>Arc consistency.</strong> For each clue over rows <code>s, s&#39;</code>, strike <code>t</code> from row
+<code>s</code> whenever no <code>t&#39; ≠ t</code> in row <code>s&#39;</code> makes the clue true. Plus the same
+all-different singles.</li>
+</ul>
+<p>A puzzle is <strong>direct</strong> if the propagator reaches the full solution and
+<strong>case-split</strong> otherwise. The classification is not a property of the
+puzzle alone — it is a property of the puzzle <em>and the declared
+propagator</em>, and the gap is large:</p>
+<table>
+<thead>
+<tr>
+<th>corpus</th>
+<th>unit propagation solves</th>
+<th>arc consistency solves</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>n=3, all families</td>
+<td>24.3%</td>
+<td>93.2%</td>
+</tr>
+<tr>
+<td>n=3, no positives (NEG+OR+IF)</td>
+<td>8.8%</td>
+<td>92.3%</td>
+</tr>
+<tr>
+<td>n=4, all families</td>
+<td>11.6%</td>
+<td>72.3%</td>
+</tr>
+<tr>
+<td>n=5, all families</td>
+<td>12.4%</td>
+<td>65.8%</td>
+</tr>
+</tbody></table>
+<p>(2000 puzzles each, 500 at <code>n = 5</code>.) The seed-11 puzzle above is
+case-split under unit propagation and direct under arc consistency. The
+knob is real but must be published: a daily puzzle claiming &quot;solvable by
+elimination&quot; has to name the rules it means, or the claim is
+unfalsifiable. Arc consistency plus all-different singles models a person
+with a pencil and a grid; unit propagation models one who has not noticed
+the grid. Pick one, declare it, generate to it by rejection — affordable at
+0.03 ms per candidate even at 5% acceptance.</p>
+<h2 id="6-wiring-it-to-the-graph">6. Wiring it to the graph</h2>
+<p>A matching skin is a drop-in alternative to <code>puzzleChoice</code> on the same
+<code>puzzle</code> edge. The LHS matches <code>a --puzzle--&gt; b</code>, binding the edge as <code>e</code>.
+The RHS creates a board node, one clue node per clue hanging off it with a
+paired backtrack (the <code>deadEnd</code> idiom), one <code>correct: true</code> choice edge to
+<code>b</code>, and <code>n! − 1</code> wrong-answer nodes routing back to <code>a</code>. The <code>correct</code>
+edge inherits the matched edge&#39;s <code>edgeId</code>, so an external backtrack gated
+on <code>prereq.traversed</code> stays reachable; <code>a → board</code> inherits <code>edgeId</code> <em>and</em>
+<code>prereq</code>, so a <code>pairId</code> lock refined into this puzzle is not bypassed. Both
+use <code>$extend</code>, which drops undefined values, so an anonymous ungated
+<code>puzzle</code> edge keeps the local <code>e_mb_&lt;iter&gt;</code> id.</p>
+<p>One constraint dictates the shape. The <code>$eval</code> context holds only <code>$$iter</code>,
+<code>$$graph</code> and the matched elements (<code>Context.updateIteration</code>,
+<code>index.js:567</code>; <code>Matcher.getEvalFunc</code>, <code>index.js:798</code>): a label expression
+cannot reach a module-level helper. So the puzzle cannot be generated
+during <code>evolve</code>. It is generated at factory-call time from the daily seed,
+baked into the RHS as literals, and the rule takes <code>limit: 1</code>.
+(<code>mystery-primitives.js:185</code> evades the same restriction by inlining a
+whole lookup into the <code>$eval</code> source; a matching generator is too big for
+that trick.)</p>
+<pre><code class="language-js">// Expand a `puzzle` edge into a bipartite-matching board. Unlike
+// puzzleChoice, whose distractors are unlabelled wrong turns, every wrong
+// answer here is a specific claim about the world, and the clue nodes are
+// the evidence for rejecting it. The puzzle itself is *not* generated
+// here: the eval context cannot reach a module-level helper, so the caller
+// passes a solved instance and this factory bakes it in. One instance per
+// rule, hence limit: 1.
+function matchingLock (opts) {
+  opts = opts || {}
+  const puzzleType = opts.puzzleType || dp.EDGE_PUZZLE
+  const pathType = opts.pathType || dp.EDGE_PATH
+  const choiceType = opts.choiceType || dp.EDGE_CHOICE
+  const backtrackType = opts.backtrackType || dp.EDGE_BACKTRACK
+  const boardType = opts.boardType || &#39;matching_board&#39;
+  const clueType = opts.clueType || &#39;clue&#39;
+  const wrongType = opts.wrongType || dp.NODE_DISTRACTOR
+  const puzzle = opts.puzzle          // { left, right, solution, clues }
+  const key = puzzle.solution.join(&#39;,&#39;)
+  const boardNid = { $eval: &#39;&quot;board_&quot; + ($$iter + 1)&#39; }
+
+  const nodes = [
+    { id: &#39;a&#39; }, { id: &#39;b&#39; },
+    { id: &#39;board&#39;, label: {
+        type: boardType, nodeId: boardNid,
+        left: puzzle.left, right: puzzle.right, solution: puzzle.solution,
+        text: { $macro: [&#39;describe_matching_board&#39;, boardNid] },
+        dot: { label: &#39;matching board&#39;, shape: &#39;diamond&#39;, color: &#39;gold&#39; } } }
+  ]
+  const edges = [
+    // Inherit edgeId and prereq from the matched edge, exactly as
+    // puzzleChoice and monsterBattle do: a gate on the corridor must not be
+    // bypassable by having dressed the corridor as a puzzle. $extend drops
+    // missing fields, so an anonymous puzzle edge keeps the local id.
+    { v: &#39;a&#39;, w: &#39;board&#39;, label: {
+        $extend: [
+          { type: pathType, edgeId: { $eval: &#39;&quot;e_mb_&quot; + ($$iter + 1)&#39; },
+            link: { $macro: [&#39;button_passage&#39;, boardNid] } },
+          { edgeId: { $eval: &#39;$e.label.edgeId&#39; },
+            prereq: { $eval: &#39;$e.label.prereq&#39; } }
+        ] } }
+  ]
+  // Clues as side-branch nodes with paired backtracks, so that reading a
+  // clue is a move and can carry its own narrative slot. `text` is a literal
+  // string, NOT a $macro: a paraphrased clue is a different proposition, and
+  // the narrator is not allowed to change the puzzle.
+  puzzle.clues.forEach(function (clue, i) {
+    const cid = &#39;c&#39; + i
+    const clueNid = { $eval: &#39;&quot;clue&#39; + i + &#39;_&quot; + ($$iter + 1)&#39; }
+    const idIn = { $eval: &#39;&quot;e_clue&#39; + i + &#39;_&quot; + ($$iter + 1)&#39; }
+    nodes.push({ id: cid, label: {
+      type: clueType, nodeId: clueNid, proposition: clue.form, text: clue.text,
+      dot: { label: &#39;clue &#39; + (i + 1), shape: &#39;note&#39; } } })
+    edges.push({ v: &#39;board&#39;, w: cid, label: {
+      type: pathType, edgeId: idIn,
+      link: { $macro: [&#39;button_passage&#39;, clueNid] } } })
+    edges.push({ v: cid, w: &#39;board&#39;, label: {
+      type: backtrackType, prereq: { traversed: idIn },
+      dot: { label: &#39;backtrack&#39;, style: &#39;dashed&#39;, color: &#39;gray&#39; } } })
+  })
+  // One answer edge per candidate matching. The correct one IS the locked
+  // edge; the rest route back to `a`, which costs two moves and a re-read.
+  permutations(puzzle.left.length).forEach(function (p, k) {
+    if (p.join(&#39;,&#39;) === key) {
+      edges.push({ v: &#39;board&#39;, w: &#39;b&#39;, label: {
+        type: choiceType, correct: true, answer: p,
+        edgeId: { $eval: &#39;$e.label.edgeId&#39; },
+        dot: { label: &#39;correct&#39;, color: &#39;darkgreen&#39; } } })
+      return
+    }
+    const wid = &#39;w&#39; + k
+    nodes.push({ id: wid, label: {
+      type: wrongType, nodeId: { $eval: &#39;&quot;wrong&#39; + k + &#39;_&quot; + ($$iter + 1)&#39; },
+      answer: p, dot: { label: &#39;wrong&#39;, shape: &#39;octagon&#39;, color: &#39;gray&#39; } } })
+    edges.push({ v: &#39;board&#39;, w: wid, label: {
+      type: choiceType, correct: false, answer: p,
+      dot: { label: &#39;wrong answer&#39;, color: &#39;gray&#39; } } })
+    edges.push({ v: wid, w: &#39;a&#39;, label: {
+      type: pathType,
+      dot: { label: &#39;back to the board&#39;, style: &#39;dotted&#39;, color: &#39;gray&#39; } } })
+  })
+  return withOpts({
+    name: &#39;matching-lock&#39;,
+    limit: 1,
+    lhs: { node: [{ id: &#39;a&#39; }, { id: &#39;b&#39; }],
+           edge: [{ v: &#39;a&#39;, w: &#39;b&#39;, label: { type: puzzleType }, id: &#39;e&#39; }] },
+    rhs: { node: nodes, edge: edges }
+  }, opts)
+}
+</code></pre>
+<p>Run against a two-node seed graph whose edge is
+<code>{ type: &#39;puzzle&#39;, edgeId: &#39;e_ab_1&#39;, prereq: { pairId: &#39;pair_1&#39; } }</code>, this
+emits 10 nodes and 16 edges: <code>a → board</code> carries
+<code>{type:&quot;path&quot;, edgeId:&quot;e_ab_1&quot;, prereq:{&quot;pairId&quot;:&quot;pair_1&quot;}}</code>, the correct
+answer carries <code>{type:&quot;choice&quot;, edgeId:&quot;e_ab_1&quot;, correct:true}</code>, and the
+five wrong answers carry <code>correct: false</code>. Strip <code>edgeId</code> and <code>prereq</code> from
+the matched edge and the same rule emits <code>edgeId: &quot;e_mb_1&quot;</code> and no
+<code>prereq</code>, confirming <code>$extend</code>&#39;s drop semantics.</p>
+<p>Slots the skin needs, in the vocabulary of
+<a href="narrative-slots.html">narrative-slots</a>: a board description, one text per
+clue, one affordance per answer edge, a &quot;that is not right&quot; line on the
+wrong route, and the existing <code>lock.unlock</code> on the correct edge. Clue text
+is why the sample passes literals rather than <code>{$macro: [...]}</code>: a
+paraphrase can change truth conditions — &quot;either A or B&quot; is not &quot;A, or
+possibly B&quot; — and the narrator cannot know that. It is the one slot here
+that must be rendered from the logical form by a human-checked template,
+never generated. (<code>describe_matching_board</code> is absent from <code>themes.js</code>&#39;s
+<code>MACROS</code>, so <code>macroPrompt</code> falls back to a generic description: survivable
+for the board, not for the clues.)</p>
+<p><strong>Why n = 3.</strong> The answer set is enumerated as edges, one per candidate
+matching, because a graphgram edge is stateless: there is no way to encode
+a partially-filled grid in a graph whose only state is which nodes have
+been visited. The skin therefore costs <code>n! − 1</code> wrong-answer nodes and
+<code>2(n! − 1) + 1</code> answer edges — 5 nodes and 11 edges at <code>n = 3</code>, 23 and 47
+at <code>n = 4</code>, 119 and 239 at <code>n = 5</code>. Twenty-four links on one screen is not
+a puzzle, it is a list. <code>n = 3</code> is not a tuning choice, it is where this
+encoding runs out.</p>
+<h2 id="7-when-a-skin-is-load-bearing">7. When a skin is load bearing</h2>
+<p>A skin is a gate on an edge, and solving it proves nothing about the map.
+The consequence is sharp: a skin is load bearing exactly when the edge it
+dresses is one the player could not otherwise take. <code>puzzleChoice</code> on a
+plain <code>passage</code> edge is decoration — the player picks answers until one
+works. <code>matchingLock</code> on an edge that already carries <code>prereq.pairId</code> is
+double-gated, and the puzzle is the second, weaker gate. <code>matchingLock</code> on
+an edge whose only gate is the puzzle is load bearing, and then brute force
+matters: six answers, each wrong one costing three moves (answer, return to
+<code>a</code>, re-enter the board), so a player who refuses to reason pays at most
+fifteen. If the score is moves that is a real penalty; if the score is
+binary the skin is not a gate at all.
+(<code>edgeAccessible</code> honours <code>oneTime</code> on an edge with an <code>edgeId</code>, burning a
+wrong answer permanently — but with <code>n! − 1</code> wrong answers that
+<em>guarantees</em> brute force succeeds within <code>n!</code> tries, which is worse.)</p>
+<p>The failure mode this section exists to prevent is skinning everything.
+The README&#39;s six-stage dungeon, at its three canonical seeds:</p>
+<table>
+<thead>
+<tr>
+<th>seed</th>
+<th>nodes</th>
+<th>minigame nodes</th>
+<th>edges</th>
+<th>minigame edges</th>
+<th>key/door pairs</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>42</td>
+<td>131</td>
+<td>104 (79.4%)</td>
+<td>323</td>
+<td>248 (76.8%)</td>
+<td>0</td>
+</tr>
+<tr>
+<td>1729</td>
+<td>139</td>
+<td>112 (80.6%)</td>
+<td>335</td>
+<td>256 (76.4%)</td>
+<td>0</td>
+</tr>
+<tr>
+<td>8675309</td>
+<td>118</td>
+<td>90 (76.3%)</td>
+<td>246</td>
+<td>144 (58.5%)</td>
+<td>1</td>
+</tr>
+</tbody></table>
+<p>Four fifths of the graph is minigame interior. At two of the three
+canonical seeds the dungeon holds <strong>no key–door pair at all</strong>: every
+<code>puzzle</code> and <code>monster</code> edge was refined from an ordinary corridor, so
+nothing is actually locked and every gate sits on a corridor the player was
+going to walk anyway. The artifact is a sequence of quizzes with a
+map-shaped index, and the structural work — nesting depth, key placement,
+the reason one room is behind another — has been pushed under 20% of the
+graph.</p>
+<p>The remedy is a budget, not a prohibition: skin locked edges first, cap
+minigames well below the corridor count, and refuse to skin an edge that
+some other route already bypasses. See <a href="budgets.html">budgets</a> for the
+machinery and <a href="key-lock-transformations.html">key-lock-transformations</a> for
+what &quot;actually locked&quot; means as a graph property. A minigame is a good
+answer to &quot;how do I make this lock feel like something&quot; and a bad answer to
+&quot;how do I make this level interesting&quot; — and it is easy to reach for the
+second time having written it for the first.</p>
+<h2 id="open-problems">Open problems</h2>
+<ol>
+<li><strong>Conjunctive prereqs.</strong> <code>edgeAccessible</code> (<code>play/game.js:92</code>) tests one
+clause and returns on the first key present, so &quot;you have read all three
+clues&quot; is inexpressible; chaining the clue nodes in series is the only
+workaround. Extend <code>prereq</code> to <code>{all:[...]}</code> / <code>{any:[...]}</code> and make the
+Story IR condition compiler (§8 of the spec already has <code>all</code>/<code>any</code>)
+round-trip it.</li>
+<li><strong>A stateful board.</strong> Find an encoding of a partly-filled <code>n × n</code> grid
+that a graphgram graph can express, or prove none smaller than <code>Θ(n!)</code>
+exists under &quot;state = set of visited nodes&quot;. Either result decides
+whether <code>n = 4</code> is reachable.</li>
+<li><strong>Declare the propagator.</strong> Fix arc consistency plus all-different
+singles as the reference solver, implement it as a testable function,
+and generate by rejection against it, so <code>difficulty: &#39;direct&#39;</code> is a
+checkable property of a shipped instance rather than a claim.</li>
+<li><strong>Measure the greedy gap.</strong> How often does step 6 actually remove a
+clue, and does max-gain greedy produce better puzzles or merely shorter
+ones?</li>
+<li><strong>Clue-text templates.</strong> One human-checked rendering template per clue
+form per theme, plus a test that the rendered string&#39;s logical form
+round-trips back to <code>label.proposition</code>.</li>
+<li><strong>A skin budget.</strong> Implement the §7 rule and re-measure the §7 table to
+show the fraction actually moved.</li>
+<li><strong>Fair <code>monsterBattle</code>.</strong> Retune the consequence weights so some policy
+wins with probability 1, or add a deterministic escape that keeps the
+battle&#39;s texture, so a battle can gate a daily puzzle without the 19.9%
+refusal measured in §1.</li>
+</ol>
+<h2 id="see-also">See also</h2>
+<ul>
+<li><a href="murder-mystery.html">murder-mystery</a> — the daily puzzle this skin is for,
+and where suspects, alibis and clue text come from.</li>
+<li><a href="key-lock-transformations.html">key-lock-transformations</a> — what a lock is
+as a graph transformation, and what a skin is not.</li>
+<li><a href="narrative-slots.html">narrative-slots</a> — the slot inventory the skin
+extends, and why clue text is the slot that must not be generated.</li>
+<li><a href="budgets.html">budgets</a> — the caps §7 asks for.</li>
+<li><a href="matching-engine.html">matching-engine</a> — the subgraph isomorphism that
+fires the rule in §6. Note the name collision: that paper&#39;s &quot;matching&quot; is
+graph matching, this one&#39;s is bipartite matching.</li>
+<li><code>dungeon-primitives.js:577</code> (<code>monsterBattle</code>), <code>:700</code> (<code>puzzleChoice</code>),
+<code>:289</code> (<code>keyDoor</code>).</li>
+<li><code>play/game.js:92</code> (<code>edgeAccessible</code>), <code>:527</code> (<code>rollAtRandom</code>), <code>:545</code>
+(<code>applyEdgeDamage</code>).</li>
+<li><code>index.js:567</code> (<code>Context.updateIteration</code>), <code>:798</code>
+(<code>Matcher.getEvalFunc</code>) — the two lines that bound what a label
+expression can see.</li>
+</ul>
+
+</main>
+<footer class="site-foot">
+  <p>graphgram · <a href="https://github.com/ihh/graphgram">github.com/ihh/graphgram</a> · ISC</p>
+</footer>
+</body>
+</html>

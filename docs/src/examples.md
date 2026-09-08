@@ -104,11 +104,12 @@ something new; its header comment walks through all six stages.
 
 ### `mystery-daily` — the destination
 
-Suspects, secrets, and social locks. The keys are facts rather than brass:
-*confront the butler about his affair* is a key, and a suspect's silence is a
-door. What a lock yields need not be a room — more often it is the next
-person's willingness to receive you at all, which is what turns a set of
-suspects into a conspiracy with a shape.
+Suspects, secrets, and social locks. The keys are facts rather than brass, and
+the correspondence is exact: the butler's silence is the door, knowing about his
+affair is the key, confronting him with it is the act of unlocking, and his
+conceding that the pantry is worth a look is the door swinging open. What lies
+beyond need not be a room at all — it can be another secret, which is how a set
+of suspects becomes a conspiracy with a shape.
 
 The seed derives from the date, so everyone gets the same puzzle on the same
 day. [The design paper](papers/murder-mystery.html) is the long version.

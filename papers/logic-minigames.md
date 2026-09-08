@@ -59,9 +59,9 @@ battle group resets `monsterHP` to 1 on re-entry (`play/game.js:373`) while
 the player's HP carries over, so retreating restarts the same chain in a
 strictly worse state. That is acceptable for a dungeon crawl scored on
 moves, and not acceptable for a daily puzzle, where every player gets the
-same instance and the only question is whether they solved it. A daily gate must be deterministic in
-the solver's favour: correct reasoning always opens it, and nothing else
-does.
+same instance and the only question is whether they solved it. A daily
+gate must be deterministic in the solver's favour: correct reasoning always
+opens it, and nothing else does.
 
 ## 2. Bipartite matching at n = 3
 
@@ -413,9 +413,10 @@ plain `passage` edge is decoration — the player picks answers until one
 works. `matchingLock` on an edge that already carries `prereq.pairId` is
 double-gated, and the puzzle is the second, weaker gate. `matchingLock` on
 an edge whose only gate is the puzzle is load bearing, and then brute force
-matters: six answers, wrong ones costing two moves, so a player who refuses
-to reason pays at most ten moves. If the score is moves that is a real
-penalty; if the score is binary the skin is not a gate at all.
+matters: six answers, each wrong one costing three moves (answer, return to
+`a`, re-enter the board), so a player who refuses to reason pays at most
+fifteen. If the score is moves that is a real penalty; if the score is
+binary the skin is not a gate at all.
 (`edgeAccessible` honours `oneTime` on an edge with an `edgeId`, burning a
 wrong answer permanently — but with `n! − 1` wrong answers that
 *guarantees* brute force succeeds within `n!` tries, which is worse.)

@@ -11,3 +11,6 @@ pdf/
 
 # Local LLM prompt cache
 .graphgram-cache/
+
+# Stray scratch files from tooling runs
+.bgt*.js

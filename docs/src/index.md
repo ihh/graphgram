@@ -84,8 +84,18 @@ Everything above is scaffolding towards one thing: a generatively-constructed,
 optionally human-curated **daily murder mystery** that presents as a logic
 puzzle and is, underneath, a nest of key-and-lock puzzles on a generated map.
 
-The keys are facts rather than brass. *Confront the butler about his affair* is
-a key; a suspect's silence is a door. Each application of an elaboration rule
+The keys are facts rather than brass, and the mapping is exact. The butler's
+silence is the **door** — it is what stands between you and the pantry, and it
+speaks: *the butler says there is no reason to look in the pantry.* Knowing
+about the butler's affair is the **key**, and you find it somewhere else
+entirely, from someone linked to him by employment or by rumour, after solving
+their puzzle. *Confront the butler about his affair* is the act of **using** the
+key. The butler conceding that the pantry is worth a look is the **door
+opening**.
+
+And the pantry need not be a room. What lies behind a door can as easily be
+another secret — the butler, once broken, coughing up what he knows about his
+employer. Each application of an elaboration rule
 that creates a lock has a diegetic reading — an anonymous directive from the
 murderer to an unwitting accomplice — so that the grammar's derivation history
 *is* the murderer's plan, and a player who reconstructs it has solved the case.

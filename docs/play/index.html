@@ -216,7 +216,7 @@
     stories.forEach(function (s) {
       var opt = document.createElement('option')
       opt.value = s.id + '.' + s.seed
-      opt.textContent = s.id + ' · seed ' + s.seed
+      opt.textContent = s.id + ' · seed ' + s.seed + (s.prose === 'generated' ? ' ✍' : '')
       if (s === chosen) opt.selected = true
       sel.appendChild(opt)
     })
@@ -227,7 +227,8 @@
     document.getElementById('story-meta').textContent =
       chosen.title + ' — ' + chosen.topology +
       (chosen.puzzles ? ', puzzles' : ', no puzzles') +
-      ' — ' + chosen.nodes + ' nodes, ' + chosen.edges + ' edges'
+      ' — ' + chosen.nodes + ' nodes, ' + chosen.edges + ' edges' +
+      (chosen.prose === 'generated' ? ' — written' : ' — placeholder text')
 
     function load (src, next) {
       var el = document.createElement('script')

@@ -18,7 +18,9 @@ const crypto = require('crypto')
 const { execFileSync } = require('child_process')
 const tmp = require('tmp')
 
-const DEFAULT_MODEL = 'claude-sonnet-4-6'
+// "Sonnet" without a version means the current generation. Claude Sonnet 5 is
+// both newer and cheaper per token than the 4.6 this originally pinned.
+const DEFAULT_MODEL = 'claude-sonnet-5'
 const DEFAULT_MAX_TOKENS = 256
 const DEFAULT_CACHE_DIR = '.graphgram-cache'
 
@@ -29,8 +31,9 @@ const DEFAULT_SYSTEM_PREAMBLE =
 
 // Pricing per million tokens, for on-screen cost estimation only.
 const PRICING = {
+  'claude-sonnet-5':     { in: 2.00, out: 10.00, cacheRead: 0.20, cacheWrite: 2.50 },
   'claude-sonnet-4-6':   { in: 3.00, out: 15.00, cacheRead: 0.30, cacheWrite: 3.75 },
-  'claude-opus-4-7':     { in: 15.00, out: 75.00, cacheRead: 1.50, cacheWrite: 18.75 },
+  'claude-opus-5':       { in: 5.00, out: 25.00, cacheRead: 0.50, cacheWrite: 6.25 },
   'claude-haiku-4-5':    { in: 1.00, out: 5.00, cacheRead: 0.10, cacheWrite: 1.25 }
 }
 
@@ -124,6 +127,17 @@ function makeSonnetRunner (opts) {
       const resp = JSON.parse(out)
       if (resp.type === 'error' || resp.error)
         throw new Error((resp.error && resp.error.message) || JSON.stringify(resp))
+      // A policy decline returns HTTP 200 with stop_reason 'refusal' and little
+      // or no content, so it has to be checked before reading the content array
+      // — otherwise a refused slot silently becomes an empty string in the
+      // finished story, and nothing upstream can tell that apart from a slot
+      // the grammar never filled.
+      if (resp.stop_reason === 'refusal') {
+        const d = resp.stop_details || {}
+        throw new Error('model declined this prompt' +
+          (d.category ? ' (' + d.category + ')' : '') +
+          (d.explanation ? ': ' + d.explanation : ''))
+      }
       const text = (resp.content || []).map(function (c) { return c.text || '' }).join('').trim()
       const usage = resp.usage || {}
       return {

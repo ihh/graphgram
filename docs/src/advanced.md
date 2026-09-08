@@ -62,9 +62,13 @@ bug was invisible except as slowness.
 
 ## 3. The triage hooks
 
-Five deliberate optimisations, in rough order of how much they buy.
+Five deliberate optimisations. Two of them are measured wins, two do not show up
+at all at the sizes anyone runs, and the numbers below are from
+[the matching engine paper](papers/matching-engine.html) §4, which patched each
+hook off in turn and checked that every variant still produced byte-identical
+graphs. Take the ordering as measured, not as folklore.
 
-### 3.1 Label pre-filtering
+### 3.1 Label pre-filtering — 7-17x, but only if your pattern has node labels
 
 `possibleAssignments` is seeded by running the LHS node-label predicate over
 every host node *before the search starts*:
@@ -81,11 +85,34 @@ this.subnodes.forEach(function (sid) {
 ```
 
 Before this, every pattern node's candidate set began as the entire host graph
-and all rejection happened deep in the recursion. This is the single biggest
-lever you have as a rule author, and it is the reason for the practical advice
-in §5: **put a literal `type` on every LHS node.**
+and all rejection happened deep in the recursion.
 
-### 3.2 Compiled predicate caches
+Measured on a fixed 66-node host: a two-node pattern with `{type: 'room'}` on
+its nodes takes 1.25ms with the pre-filter and 8.89ms without; a four-node
+labelled chain, 0.55ms against 9.22ms. On the *unlabelled* versions of the same
+patterns the difference vanishes, because there is nothing to pre-filter on.
+
+That is the whole story, and it has a sting in it: `test/bench.js` shows **no**
+benefit from this hook, because the dungeon primitives barely use node labels.
+`deadEnd`, `parallelPath` and every `refineEdge` rule declare their LHS nodes as
+bare `{ id: 'a' }, { id: 'b' }` and put the entire constraint on the edge label,
+which the pre-filter never sees. The optimisation is real and large; this
+repository's own rules mostly decline it. Hence the first line of §5.
+
+### 3.2 Arc-consistency refinement — 1.8x, and the bug that made it 2.7x worse
+
+`updatePossibleAssignments` (§2) is the other measured win: 1.8x on the bench
+workload, 11x on a five-node pattern. The counts show what it trades — 3.0x more
+edge tests buy 18.7x fewer recursion nodes.
+
+The historical `predecessors(j)` bug is instructive precisely because it was
+invisible: it made the routine an exact no-op (the instrumented counts are
+identical to disabling refinement outright) while still paying its overhead, so
+the code was **2.7x slower than baseline and 1.5x slower than having no
+refinement at all**. Correctness was unaffected throughout. A performance hook
+that silently stops working is worse than one that was never written.
+
+### 3.3 Compiled predicate caches
 
 `Matcher` keeps four `Map`s keyed by source string: `regexCache`,
 `testFuncCache`, `evalFuncCache`, `templatePathCache`. A `$test` predicate or a
@@ -93,23 +120,33 @@ in §5: **put a literal `type` on every LHS node.**
 `eval` — and reused across every candidate, every match, every iteration, and
 across rules that happen to share the same source text.
 
-### 3.3 Rule-level triage before any search
+### 3.4 Rule-level triage before any search
 
 In `Context#sampleRuleSite`, the `limit`/`countType` check and the `delay` check
 run *before* `new SubgraphSearch(...)`. A rule that has exhausted its limit costs
 nothing at all. This is why a `limit` on an expensive rule is cheap insurance,
 and why `delay` is a legitimate performance tool and not just a design one.
 
-### 3.4 Specialised cloning
+### 3.5 Specialised cloning — a null result
 
 `clonePA` hand-rolls the clone of the `possibleAssignments` table — a plain
 object of `{ patternId: { hostId: true } }` — instead of `_.cloneDeep`. The
-table is cloned at every level of the recursion, so a generic deep clone shows
-up prominently in a profile. Similarly, the mapping is *shallow*-cloned at the
-accept point, which is safe because the objects it references (regex match
-arrays, label objects) are read-only downstream.
+table is cloned at every level of the recursion, so the reasoning was that a
+generic deep clone would show up prominently in a profile.
 
-### 3.5 Post-filters that do not save search
+It does not. Swapping `_.cloneDeep` back in changes the bench by 0.1%, and at
+five times the size by 2% — both inside noise. Refinement keeps the recursion
+shallow enough that only ~43,000 clones happen per run, and lodash is fast
+enough on a two-level object of booleans that 43,000 of them do not register.
+Keep the specialised version, since it costs nothing to keep, but do not believe
+it is load bearing. Same for the rule-level `limit`/`delay` triage in §3.4:
+correct, obviously cheap, and unmeasurable.
+
+The mapping is also *shallow*-cloned at the accept point, which is safe because
+the objects it references (regex match arrays, label objects) are read-only
+downstream.
+
+### 3.6 Post-filters that do not save search
 
 `strict` (a pattern node must have exactly the same degree as its host match)
 and `induced` (no host edge between matched nodes unless the pattern has it) are
@@ -147,7 +184,7 @@ Practical rules for anyone writing a new primitive, each following from §2–3.
 
 | do | not | why |
 |---|---|---|
-| put a literal `type` on every LHS node | leave LHS nodes unlabelled | the pre-filter can only shrink candidate sets it can evaluate; an unlabelled node starts as the whole graph |
+| put a literal `type` on every LHS node | leave LHS nodes unlabelled | measured 7-17x. The pre-filter can only shrink candidate sets it can evaluate; an unlabelled node starts as the whole graph. Most of this repo's own primitives get this wrong |
 | keep LHS patterns to 2–3 nodes | write 5-node patterns | the search is exponential in pattern size |
 | use `$and`/`$not` in the LHS | use `condition` for the same test | LHS labels prune during the search; `condition` runs once per *complete* match |
 | use `condition` for facts about the *graph* | try to express them as labels | `'$$graph.hasEdge($b.id, $a.id)'` is not a label property; this is what `condition` is for |

@@ -71,8 +71,12 @@ refinement became a no-op. Correctness was unaffected — the recursive search
 still rejected bad assignments, just much later and much more often — so the
 bug was invisible except as slowness.</p>
 <h2 id="3-the-triage-hooks">3. The triage hooks</h2>
-<p>Five deliberate optimisations, in rough order of how much they buy.</p>
-<h3 id="3-1-label-pre-filtering">3.1 Label pre-filtering</h3>
+<p>Five deliberate optimisations. Two of them are measured wins, two do not show up
+at all at the sizes anyone runs, and the numbers below are from
+<a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/matching-engine.html">the matching engine paper</a> §4, which patched each
+hook off in turn and checked that every variant still produced byte-identical
+graphs. Take the ordering as measured, not as folklore.</p>
+<h3 id="3-1-label-pre-filtering-7-17x-but-only-if-your-pattern-has-node-labels">3.1 Label pre-filtering — 7-17x, but only if your pattern has node labels</h3>
 <p><code>possibleAssignments</code> is seeded by running the LHS node-label predicate over
 every host node <em>before the search starts</em>:</p>
 <pre><code class="language-js">this.subnodes.forEach(function (sid) {
@@ -85,28 +89,54 @@ every host node <em>before the search starts</em>:</p>
 })
 </code></pre>
 <p>Before this, every pattern node&#39;s candidate set began as the entire host graph
-and all rejection happened deep in the recursion. This is the single biggest
-lever you have as a rule author, and it is the reason for the practical advice
-in §5: <strong>put a literal <code>type</code> on every LHS node.</strong></p>
-<h3 id="3-2-compiled-predicate-caches">3.2 Compiled predicate caches</h3>
+and all rejection happened deep in the recursion.</p>
+<p>Measured on a fixed 66-node host: a two-node pattern with <code>{type: &#39;room&#39;}</code> on
+its nodes takes 1.25ms with the pre-filter and 8.89ms without; a four-node
+labelled chain, 0.55ms against 9.22ms. On the <em>unlabelled</em> versions of the same
+patterns the difference vanishes, because there is nothing to pre-filter on.</p>
+<p>That is the whole story, and it has a sting in it: <code>test/bench.js</code> shows <strong>no</strong>
+benefit from this hook, because the dungeon primitives barely use node labels.
+<code>deadEnd</code>, <code>parallelPath</code> and every <code>refineEdge</code> rule declare their LHS nodes as
+bare <code>{ id: &#39;a&#39; }, { id: &#39;b&#39; }</code> and put the entire constraint on the edge label,
+which the pre-filter never sees. The optimisation is real and large; this
+repository&#39;s own rules mostly decline it. Hence the first line of §5.</p>
+<h3 id="3-2-arc-consistency-refinement-1-8x-and-the-bug-that-made-it-2-7x-worse">3.2 Arc-consistency refinement — 1.8x, and the bug that made it 2.7x worse</h3>
+<p><code>updatePossibleAssignments</code> (§2) is the other measured win: 1.8x on the bench
+workload, 11x on a five-node pattern. The counts show what it trades — 3.0x more
+edge tests buy 18.7x fewer recursion nodes.</p>
+<p>The historical <code>predecessors(j)</code> bug is instructive precisely because it was
+invisible: it made the routine an exact no-op (the instrumented counts are
+identical to disabling refinement outright) while still paying its overhead, so
+the code was <strong>2.7x slower than baseline and 1.5x slower than having no
+refinement at all</strong>. Correctness was unaffected throughout. A performance hook
+that silently stops working is worse than one that was never written.</p>
+<h3 id="3-3-compiled-predicate-caches">3.3 Compiled predicate caches</h3>
 <p><code>Matcher</code> keeps four <code>Map</code>s keyed by source string: <code>regexCache</code>,
 <code>testFuncCache</code>, <code>evalFuncCache</code>, <code>templatePathCache</code>. A <code>$test</code> predicate or a
 <code>condition</code> expression is compiled once — via <code>new Function</code>, not repeated
 <code>eval</code> — and reused across every candidate, every match, every iteration, and
 across rules that happen to share the same source text.</p>
-<h3 id="3-3-rule-level-triage-before-any-search">3.3 Rule-level triage before any search</h3>
+<h3 id="3-4-rule-level-triage-before-any-search">3.4 Rule-level triage before any search</h3>
 <p>In <code>Context#sampleRuleSite</code>, the <code>limit</code>/<code>countType</code> check and the <code>delay</code> check
 run <em>before</em> <code>new SubgraphSearch(...)</code>. A rule that has exhausted its limit costs
 nothing at all. This is why a <code>limit</code> on an expensive rule is cheap insurance,
 and why <code>delay</code> is a legitimate performance tool and not just a design one.</p>
-<h3 id="3-4-specialised-cloning">3.4 Specialised cloning</h3>
+<h3 id="3-5-specialised-cloning-a-null-result">3.5 Specialised cloning — a null result</h3>
 <p><code>clonePA</code> hand-rolls the clone of the <code>possibleAssignments</code> table — a plain
 object of <code>{ patternId: { hostId: true } }</code> — instead of <code>_.cloneDeep</code>. The
-table is cloned at every level of the recursion, so a generic deep clone shows
-up prominently in a profile. Similarly, the mapping is <em>shallow</em>-cloned at the
-accept point, which is safe because the objects it references (regex match
-arrays, label objects) are read-only downstream.</p>
-<h3 id="3-5-post-filters-that-do-not-save-search">3.5 Post-filters that do not save search</h3>
+table is cloned at every level of the recursion, so the reasoning was that a
+generic deep clone would show up prominently in a profile.</p>
+<p>It does not. Swapping <code>_.cloneDeep</code> back in changes the bench by 0.1%, and at
+five times the size by 2% — both inside noise. Refinement keeps the recursion
+shallow enough that only ~43,000 clones happen per run, and lodash is fast
+enough on a two-level object of booleans that 43,000 of them do not register.
+Keep the specialised version, since it costs nothing to keep, but do not believe
+it is load bearing. Same for the rule-level <code>limit</code>/<code>delay</code> triage in §3.4:
+correct, obviously cheap, and unmeasurable.</p>
+<p>The mapping is also <em>shallow</em>-cloned at the accept point, which is safe because
+the objects it references (regex match arrays, label objects) are read-only
+downstream.</p>
+<h3 id="3-6-post-filters-that-do-not-save-search">3.6 Post-filters that do not save search</h3>
 <p><code>strict</code> (a pattern node must have exactly the same degree as its host match)
 and <code>induced</code> (no host edge between matched nodes unless the pattern has it) are
 applied <em>after</em> the search returns. They reject matches, so they save rewrite
@@ -142,7 +172,7 @@ as <code>{ $llm: &quot;...&quot; }</code>. It is command-line only, for the obvi
 <tbody><tr>
 <td>put a literal <code>type</code> on every LHS node</td>
 <td>leave LHS nodes unlabelled</td>
-<td>the pre-filter can only shrink candidate sets it can evaluate; an unlabelled node starts as the whole graph</td>
+<td>measured 7-17x. The pre-filter can only shrink candidate sets it can evaluate; an unlabelled node starts as the whole graph. Most of this repo&#39;s own primitives get this wrong</td>
 </tr>
 <tr>
 <td>keep LHS patterns to 2–3 nodes</td>

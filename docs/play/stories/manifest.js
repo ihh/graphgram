@@ -7,8 +7,9 @@ window.STORIES = [
     "title": "The One-Way Wood",
     "topology": "dag",
     "puzzles": false,
-    "nodes": 11,
-    "edges": 14
+    "nodes": 10,
+    "edges": 11,
+    "prose": "generated"
   },
   {
     "file": "dag-plain.1729.js",
@@ -17,8 +18,9 @@ window.STORIES = [
     "title": "The One-Way Wood",
     "topology": "dag",
     "puzzles": false,
-    "nodes": 8,
-    "edges": 8
+    "nodes": 9,
+    "edges": 9,
+    "prose": "placeholder"
   },
   {
     "file": "dag-plain.8675309.js",
@@ -27,8 +29,9 @@ window.STORIES = [
     "title": "The One-Way Wood",
     "topology": "dag",
     "puzzles": false,
-    "nodes": 10,
-    "edges": 12
+    "nodes": 8,
+    "edges": 7,
+    "prose": "placeholder"
   },
   {
     "file": "dag-locked.42.js",
@@ -37,8 +40,9 @@ window.STORIES = [
     "title": "The Sealed Gate",
     "topology": "dag",
     "puzzles": true,
-    "nodes": 17,
-    "edges": 20
+    "nodes": 18,
+    "edges": 19,
+    "prose": "generated"
   },
   {
     "file": "dag-locked.1729.js",
@@ -47,8 +51,9 @@ window.STORIES = [
     "title": "The Sealed Gate",
     "topology": "dag",
     "puzzles": true,
-    "nodes": 16,
-    "edges": 18
+    "nodes": 22,
+    "edges": 27,
+    "prose": "placeholder"
   },
   {
     "file": "dag-locked.8675309.js",
@@ -58,7 +63,8 @@ window.STORIES = [
     "topology": "dag",
     "puzzles": true,
     "nodes": 16,
-    "edges": 18
+    "edges": 17,
+    "prose": "placeholder"
   },
   {
     "file": "maze-plain.42.js",
@@ -68,7 +74,8 @@ window.STORIES = [
     "topology": "bidirectional",
     "puzzles": false,
     "nodes": 12,
-    "edges": 24
+    "edges": 22,
+    "prose": "generated"
   },
   {
     "file": "maze-plain.1729.js",
@@ -78,7 +85,8 @@ window.STORIES = [
     "topology": "bidirectional",
     "puzzles": false,
     "nodes": 12,
-    "edges": 23
+    "edges": 21,
+    "prose": "placeholder"
   },
   {
     "file": "maze-plain.8675309.js",
@@ -88,7 +96,8 @@ window.STORIES = [
     "topology": "bidirectional",
     "puzzles": false,
     "nodes": 12,
-    "edges": 24
+    "edges": 21,
+    "prose": "placeholder"
   },
   {
     "file": "maze-locked.42.js",
@@ -98,7 +107,8 @@ window.STORIES = [
     "topology": "bidirectional",
     "puzzles": true,
     "nodes": 28,
-    "edges": 66
+    "edges": 57,
+    "prose": "generated"
   },
   {
     "file": "maze-locked.1729.js",
@@ -107,8 +117,9 @@ window.STORIES = [
     "title": "The Cindermoor Vault",
     "topology": "bidirectional",
     "puzzles": true,
-    "nodes": 28,
-    "edges": 62
+    "nodes": 29,
+    "edges": 63,
+    "prose": "placeholder"
   },
   {
     "file": "maze-locked.8675309.js",
@@ -117,8 +128,9 @@ window.STORIES = [
     "title": "The Cindermoor Vault",
     "topology": "bidirectional",
     "puzzles": true,
-    "nodes": 26,
-    "edges": 54
+    "nodes": 27,
+    "edges": 54,
+    "prose": "placeholder"
   },
   {
     "file": "mystery-daily.1024651441.js",
@@ -128,7 +140,8 @@ window.STORIES = [
     "topology": "bidirectional",
     "puzzles": true,
     "nodes": 28,
-    "edges": 61
+    "edges": 61,
+    "prose": "generated"
   },
   {
     "file": "mystery-daily.42.js",
@@ -138,7 +151,8 @@ window.STORIES = [
     "topology": "bidirectional",
     "puzzles": true,
     "nodes": 28,
-    "edges": 57
+    "edges": 57,
+    "prose": "placeholder"
   },
   {
     "file": "mystery-daily.1729.js",
@@ -148,6 +162,7 @@ window.STORIES = [
     "topology": "bidirectional",
     "puzzles": true,
     "nodes": 28,
-    "edges": 60
+    "edges": 60,
+    "prose": "placeholder"
   }
 ];

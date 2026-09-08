@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Budgets, Nesting Depth, and Generative Control · graphgram</title>
+<meta name="description" content="graphgram — a graph grammar library for procedural narrative">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+<header class="site-nav">
+  <nav>
+      <a href="../index.html" class="brand">graphgram</a>
+      <a href="../guide.html">Guide</a>
+      <a href="../advanced.html">Advanced</a>
+      <a href="../examples.html">Examples</a>
+      <a href="../play/index.html">Play</a>
+      <a href="../papers/index.html">Papers</a>
+      <a href="../spec/story-ir.html">Spec</a>
+      <a href="../jsdoc/index.html">API</a>
+      <a href="https://github.com/ihh/graphgram" rel="noopener">GitHub</a>
+  </nav>
+</header>
+<main class="prose">
+<h1 id="budgets-nesting-depth-and-generative-control">Budgets, Nesting Depth, and Generative Control</h1>
+<p><em>A graph grammar with weighted rules and an iteration limit is easy to write and
+hard to aim. You want &quot;about twelve rooms, three keys, at most two levels of
+nesting&quot;; the engine offers &quot;apply 25 rules sampled by weight&quot;. This paper
+enumerates the control knobs <code>index.js</code> implements, shows by measurement why
+they do not compose into a predictable yield, defines the budget vocabulary the
+examples have settled on and says which fields are hard caps and which are
+wishes, gives a computable definition of nesting depth, and argues that
+rejection sampling is the honest way to hit a target shape.</em></p>
+<h2 id="1-the-knobs-that-exist-today">1. The knobs that exist today</h2>
+<p>Every knob is in <code>index.js</code>. There are seven, and their scopes differ.</p>
+<table>
+<thead>
+<tr>
+<th>knob</th>
+<th>read in</th>
+<th>scope</th>
+<th>meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>grammar <code>limit</code></td>
+<td><code>Grammar#evolve</code></td>
+<td>whole run</td>
+<td>total rule applications, across all stages</td>
+</tr>
+<tr>
+<td>stage <code>limit</code></td>
+<td><code>Grammar#evolve</code></td>
+<td>one stage</td>
+<td><code>min(remaining global limit, stage limit)</code>; <code>0</code> skips the stage</td>
+</tr>
+<tr>
+<td>rule <code>limit</code></td>
+<td><code>Context#sampleRuleSite</code></td>
+<td>one stage</td>
+<td>max firings of this rule&#39;s <code>countType</code></td>
+</tr>
+<tr>
+<td>rule <code>type</code></td>
+<td><code>Grammar#init</code></td>
+<td>one stage</td>
+<td>names the counter that <code>limit</code> counts</td>
+</tr>
+<tr>
+<td>rule <code>weight</code></td>
+<td><code>Context#evalWeight</code></td>
+<td>one match site</td>
+<td>number, or an expression evaluated per site</td>
+</tr>
+<tr>
+<td>rule <code>delay</code></td>
+<td><code>Context#sampleRuleSite</code></td>
+<td>one stage</td>
+<td>rule inert until <code>iter &gt;= delay</code></td>
+</tr>
+<tr>
+<td>rule <code>condition</code></td>
+<td><code>Context#evalCond</code></td>
+<td>one match site</td>
+<td>expression; a falsy result discards that site</td>
+</tr>
+</tbody></table>
+<p>Four facts about these are load-bearing and none are obvious from the schema.</p>
+<p><strong>Counters are named, not per-rule.</strong> <code>Grammar#init</code> sets</p>
+<pre><code class="language-js">rule.countType = rule.type || String(n)
+</code></pre>
+<p>so two rules that share a <code>type</code> share one budget. <code>examples/maze-locked.js</code>
+uses this deliberately: the <code>path→monster</code> and <code>path→puzzle</code> refinements both
+carry <code>type: &#39;minigame&#39;</code>, which makes one <code>limit</code> a cap on their sum rather
+than on each.</p>
+<p><strong>Rule counters reset between stages.</strong> Each stage is its own <code>Grammar</code> with
+its own <code>Context</code>, and <code>Context</code> initialises <code>this.ruleCount</code> from scratch. The
+same rule with <code>limit: 1</code> in two stages fires twice. Measured: a two-stage
+grammar with the identical <code>{lhs: &#39;A&#39;, rhs: [&#39;A&#39;,&#39;B&#39;], limit: 1}</code> in both
+stages runs 2 iterations.</p>
+<p><strong><code>limit: 0</code> does not disable a rule.</strong> The guard is
+<code>if (rule.limit &amp;&amp; context.ruleCount[rule.countType] &gt;= rule.limit) return</code>,
+and <code>0</code> is falsy. Measured: a grammar with one rule at <code>limit: 0</code> and a global
+limit of 20 runs 20 iterations. Use <code>condition: &#39;false&#39;</code>, or omit the rule.</p>
+<p><strong>Stage limits are clamped by, and decrement, the global limit.</strong> <code>evolve</code> takes
+<code>subLimit = min(limit, subgrammar.limit)</code>, then subtracts each stage&#39;s actual
+iteration count from <code>limit</code>. A global <code>limit: 3</code> over two stages of <code>limit: 10</code>
+yields 3 iterations, not 20 — verified.</p>
+<h3 id="the-sampler">The sampler</h3>
+<p><code>Context#sampleRuleSite</code> enumerates every isomorphism of every eligible rule&#39;s
+LHS into the host graph, evaluates <code>condition</code> and <code>weight</code> at each, and samples
+one site proportionally:</p>
+<pre><code class="language-js">var totalWeight = sites.reduce (function (total, s) { return total + s.weight }, 0)
+var w = this.rnd.rnd() * totalWeight, m = -1
+while (w &gt; 0 &amp;&amp; ++m &lt; sites.length - 1)
+  w -= sites[m].weight
+</code></pre>
+<p>Write <code>s_i(t)</code> for the number of surviving match sites of rule <em>i</em> at iteration
+<em>t</em>, and <code>w_i</code> for its weight. Then</p>
+<pre><code>P(rule i fires at step t)  =  w_i · s_i(t)  /  Σ_j w_j · s_j(t)
+</code></pre>
+<p>In English: a rule&#39;s chance of firing is its weight <em>times how many places it
+matches</em>, normalised. A weight is not a probability. It is a per-site
+multiplier, and the site count is a property of the graph — which the author is
+not looking at when choosing the weight, and which grows as the graph grows.</p>
+<h2 id="2-why-yield-is-hard-to-predict">2. Why yield is hard to predict</h2>
+<p>Take <code>grammars/dunjs-dungeon.js</code>, the dungeon in the README. Its expand stage
+has <code>limit: 25</code> and six rules with weights <code>2, 1, 1, 1, 1, 1</code>. Read naively,
+<code>keyDoor</code> should fire on about one step in seven — roughly 3.6 times in 25 —
+and comfortably exhaust its <code>limit: 3</code>.</p>
+<p>Instrumenting each rule&#39;s weight with a counting expression and averaging over
+50 seeds gives the site census (means, <code>n = 50</code>):</p>
+<table>
+<thead>
+<tr>
+<th align="right">iter</th>
+<th align="right">midpoint</th>
+<th align="right">midpoint-1way</th>
+<th align="right">dead-end</th>
+<th align="right">parallel</th>
+<th align="right">key-door</th>
+<th align="right">potion</th>
+<th align="right">total</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">0</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">1.00</td>
+<td align="right">1.00</td>
+<td align="right">0.00</td>
+<td align="right">1.00</td>
+<td align="right">3.00</td>
+</tr>
+<tr>
+<td align="right">4</td>
+<td align="right">1.24</td>
+<td align="right">0.00</td>
+<td align="right">6.42</td>
+<td align="right">6.42</td>
+<td align="right">0.68</td>
+<td align="right">2.78</td>
+<td align="right">17.54</td>
+</tr>
+<tr>
+<td align="right">8</td>
+<td align="right">1.96</td>
+<td align="right">0.00</td>
+<td align="right">11.80</td>
+<td align="right">11.80</td>
+<td align="right">1.46</td>
+<td align="right">3.14</td>
+<td align="right">30.16</td>
+</tr>
+<tr>
+<td align="right">12</td>
+<td align="right">2.62</td>
+<td align="right">0.00</td>
+<td align="right">17.32</td>
+<td align="right">17.32</td>
+<td align="right">2.14</td>
+<td align="right">3.04</td>
+<td align="right">42.44</td>
+</tr>
+<tr>
+<td align="right">16</td>
+<td align="right">4.00</td>
+<td align="right">0.00</td>
+<td align="right">23.06</td>
+<td align="right">23.06</td>
+<td align="right">3.30</td>
+<td align="right">4.00</td>
+<td align="right">57.42</td>
+</tr>
+<tr>
+<td align="right">20</td>
+<td align="right">5.20</td>
+<td align="right">0.00</td>
+<td align="right">28.90</td>
+<td align="right">28.90</td>
+<td align="right">4.44</td>
+<td align="right">4.18</td>
+<td align="right">71.62</td>
+</tr>
+<tr>
+<td align="right">24</td>
+<td align="right">6.82</td>
+<td align="right">0.00</td>
+<td align="right">34.94</td>
+<td align="right">34.94</td>
+<td align="right">5.88</td>
+<td align="right">4.38</td>
+<td align="right">86.96</td>
+</tr>
+</tbody></table>
+<p>Total sites grow linearly at 3.50 per iteration. They do not grow at the same
+rate for each rule, and that is the whole problem. <code>deadEnd</code> and <code>parallelPath</code>
+match <em>every</em> <code>path</code> edge, so their site counts track the edge count.
+<code>keyDoor</code> needs an <em>anonymous</em> <code>path</code> edge (no <code>edgeId</code>) whose source is not
+<code>start</code> and whose target is not <code>win</code>; only <code>parallelPath</code> mints those, and it
+destroys them again. <code>healthPotion</code> plateaus near 4. Feeding the census into
+the sampling rule above and summing over the 25 steps predicts:</p>
+<table>
+<thead>
+<tr>
+<th>rule</th>
+<th align="right">weight</th>
+<th align="right">predicted firings</th>
+<th align="right">measured mean</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>midpointRoom</code> + <code>parallelPath</code> (both mint a <code>room</code>)</td>
+<td align="right">2, 1</td>
+<td align="right">12.19</td>
+<td align="right">12.26</td>
+</tr>
+<tr>
+<td><code>deadEnd</code></td>
+<td align="right">1</td>
+<td align="right">9.15</td>
+<td align="right">9.42</td>
+</tr>
+<tr>
+<td><code>healthPotion</code></td>
+<td align="right">1</td>
+<td align="right">2.53</td>
+<td align="right">2.34</td>
+</tr>
+<tr>
+<td><code>keyDoor</code></td>
+<td align="right">1</td>
+<td align="right">1.12</td>
+<td align="right">0.98</td>
+</tr>
+<tr>
+<td><code>midpointRoom({oneWay: true})</code></td>
+<td align="right">1</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+</tr>
+</tbody></table>
+<p>The model is accurate to within 0.27 firings on every rule, so the mechanism is
+understood. It is a consistency check rather than a forecast — <code>s_i(t)</code> was
+measured on the same runs — but that is exactly the point: no closed form for
+<code>s_i(t)</code> is available from the grammar file, and without it the weights say
+nothing about yield. The consequences:</p>
+<ul>
+<li><strong><code>keyDoor</code> fires 1.12 times, not 3.6.</strong> Its <code>limit: 3</code> is reached in 2 runs
+out of 50; <strong>17 of 50 seeds contain no lock at all</strong>. Key counts over seeds
+1–50: <code>{0: 17, 1: 19, 2: 12, 3: 2}</code>. At the canonical seed 42 the README&#39;s
+showcase dungeon has zero keys.</li>
+<li><strong><code>midpointRoom({oneWay: true})</code> never fires.</strong> Its
+<code>condition: &#39;$$graph.hasEdge($b.id, $a.id)&#39;</code> requires a direct back-edge over
+an anonymous <code>path</code> edge, and no rule in this grammar produces that shape. It
+is dead weight in every dungeon the repo ships.</li>
+<li><strong>The total is controlled; the mix is not.</strong> Place-node counts over 50 seeds:
+mean 26.02, sd 0.87, range 24–27 — tight, because every expand firing but
+<code>keyDoor</code> mints exactly one place. But <code>room</code> alone ranges 7–18 (sd 2.69) and
+<code>dead_end</code> ranges 4–16.</li>
+</ul>
+<p><strong>Cost.</strong> Enumerating every site at every step, over a growing graph, is not
+free. Timing <code>examples/maze-plain.js</code> at rising expand limits (10 seeds each):
+21.2 ms at limit 10, 42.6 at 20, 260.6 at 40, 983.8 at 60, 2659.7 at 80. The
+last doubling costs 10.2×, an empirical exponent of 3.35. That it should be near
+3 — linear site growth × linear per-site cost × linear iteration count — is a
+conjecture; the numbers are not. See <a href="matching-engine.html">matching-engine</a>.</p>
+<p><strong>Protocol.</strong> All figures above: seeds 1..50 (1..10 for the timing run),
+narrator in <code>placeholder</code> mode with <code>theme: &#39;high_fantasy&#39;</code>, <code>debug</code> empty so
+<code>setpieces.rulesFor(undefined)</code> adds no rules. The census:</p>
+<pre><code class="language-js">const { Grammar, Matcher } = require(&#39;./index&#39;)
+const { registerNarrator } = require(&#39;./narrator&#39;)
+const dp = require(&#39;./dungeon-primitives&#39;)
+const mp = require(&#39;./mystery-primitives&#39;)
+
+// grammars/*.js are bare expressions, not modules, and their require() paths
+// are relative to bin/ — which is how bin/transform.js loads them.
+const req = require(&#39;module&#39;).createRequire(__dirname + &#39;/bin/transform.js&#39;)
+const src = require(&#39;fs&#39;).readFileSync(&#39;grammars/dunjs-dungeon.js&#39;).toString()
+
+const PLACE = { start: 1, win: 1, room: 1, dead_end: 1, potion: 1 }
+for (let seed = 1; seed &lt;= 50; ++seed) {
+  const matcher = new Matcher()
+  registerNarrator(matcher, { placeholder: true, theme: &#39;high_fantasy&#39; })
+  const json = new Function(&#39;require&#39;, &#39;return (&#39; + src + &#39;)&#39;)(req)
+  const g = new Grammar(json, { matcher }).evolve({ seed }).graph
+  const type = function (n) { return (g.node(n) || {}).type }
+  console.log(seed,
+    g.nodes().filter(function (n) { return PLACE[type(n)] }).length,
+    g.nodes().filter(function (n) { return type(n) === dp.NODE_KEY }).length,
+    mp.nestingDepth(g, { secretType: dp.NODE_KEY }))
+}
+</code></pre>
+<h2 id="3-a-budget-vocabulary">3. A budget vocabulary</h2>
+<p><code>meta.budget</code> in the <a href="../spec/story-ir.html">Story IR</a> §9 is five fields
+(an example module may declare extras for its own use). Each example declares
+one and <code>bin/story.js --list</code> prints it. What each counts, and how hard it is:</p>
+<table>
+<thead>
+<tr>
+<th>field</th>
+<th>counts</th>
+<th>mechanism</th>
+<th>hardness</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>rooms</code></td>
+<td><em>place</em> nodes: <code>start</code>, <code>win</code>, and every <code>room</code> / <code>dead_end</code> / <code>potion</code></td>
+<td>bounds a stage <code>limit</code>, given an accounting of how many places each rule mints</td>
+<td><strong>soft</strong>: an upper bound, exact only when every rule in the stage mints exactly one place</td>
+</tr>
+<tr>
+<td><code>keys</code></td>
+<td><code>key</code> nodes — equivalently lock/key pairs, since <code>keyDoor</code> mints them together</td>
+<td>the lock rule&#39;s <code>limit</code></td>
+<td><strong>hard cap; floor depends on the stage.</strong> Undershot when the rule competes for a scarce substrate (<code>dunjs-dungeon</code>: mean 0.98 of 3); exact when it owns a stage whose limit matches (<code>mystery-daily</code>: 4 of 4 on 50/50 seeds)</td>
+</tr>
+<tr>
+<td><code>nestingDepth</code></td>
+<td>rounds of the lock-dependency chain (§4)</td>
+<td>none in <code>dungeon-primitives.js</code>; a label-carried counter in <code>mystery-primitives.js</code></td>
+<td><strong>soft in both directions</strong></td>
+</tr>
+<tr>
+<td><code>npcs</code></td>
+<td>speaking characters — <code>suspect</code> nodes in the mystery track</td>
+<td>stage limits derived from <code>npcs</code> minus the lock count</td>
+<td><strong>exact</strong> in the mystery track (5 of 5 on 50/50 seeds); <code>0</code> is hard in the dungeon track only because no dungeon primitive can mint one</td>
+</tr>
+<tr>
+<td><code>minigames</code></td>
+<td>monster battles plus puzzle gates</td>
+<td>one <code>limit</code> on a shared <code>type</code> across the two refine rules</td>
+<td><strong>hard, and exactly hit</strong></td>
+</tr>
+</tbody></table>
+<p><code>rooms</code> is the name most likely to mislead: it counts place nodes, not nodes of
+<code>type: &#39;room&#39;</code>. In <code>dunjs-dungeon</code> those differ by a factor of two.</p>
+<p>The room budget is a <em>sum over stages</em>, and that is its failure mode. If one
+stage mints a place per firing and its limit is written <code>budget.rooms - 2</code> to
+account for <code>start</code> and <code>win</code>, adding any other place-minting stage silently
+invalidates that arithmetic: the constant is now wrong, and no test of the
+stage in isolation catches it. A room budget spread over <em>k</em> stages needs one
+place-accounting expression, computed once, that all <em>k</em> limits derive from.</p>
+<p><code>minigames</code> is the field to imitate. It is exact — 2 on 200 of 200 seeds of
+<code>maze-locked</code> — for three reasons: the refine stage runs to exhaustion rather
+than to an iteration budget, so the limit is always reached; the two rules that
+can mint a minigame share a <code>countType</code>, so the cap is on their sum; and a
+minigame is one rule firing, so counter and artefact are in bijection.</p>
+<p>Those three properties are the whole test. <code>mystery-daily</code>&#39;s <code>keys</code> and <code>npcs</code>
+have them too and are likewise exact. <code>dunjs-dungeon</code>&#39;s <code>keys</code> fails the first —
+<code>keyDoor</code> shares a stage with five rules that outgrow it — and falls short on 48
+of 50 seeds. Every field with all three is exact; every field missing one is a
+target.</p>
+<h2 id="4-nesting-depth">4. Nesting depth</h2>
+<p><strong>Definition.</strong> A <em>lock</em> is an edge carrying <code>prereq.pairId</code>. Its <em>key</em> is the
+node bearing that <code>pairId</code>. Then</p>
+<pre><code>depth(lock L)  =  1 + max{ depth(L&#39;) : L&#39; must be opened to reach key(L) }
+depth(L)       =  1                    when key(L) is reachable with no keys
+nestingDepth(G) = max over locks L in G of depth(L)
+</code></pre>
+<p>In English: a lock is one deeper than the deepest lock standing between the
+player and its own key. A dungeon whose keys all lie in the open has depth 1.</p>
+<p><strong>Algorithm.</strong> Evaluate the recursion as a monotone closure rather than by
+recursing on locks, because &quot;must be opened&quot; is a statement about <em>all</em> routes.
+Round 0: flood from <code>start</code> through every unlocked edge, collecting keys. Round
+<em>r</em>: flood again holding everything collected so far. The number of rounds that
+yield at least one new key is the depth. <code>mystery-primitives.js</code> exports exactly
+this, generic over the node type that carries a key (it counts key-yielding
+rounds, so it and the definition above coincide whenever every key has a lock,
+which holds for every grammar here):</p>
+<pre><code class="language-js">mp.lockAnalysis(graph, { secretType: dp.NODE_KEY })
+//   =&gt; { rounds, chain, keys, reached }
+mp.nestingDepth(graph, { secretType: dp.NODE_KEY })   // just `rounds`
+</code></pre>
+<p><code>reachableWith</code> inside it honours <code>prereq.visited</code> and <code>prereq.traversed</code> as
+well as <code>prereq.pairId</code>. That matters: a flood that treats a cycle-closing
+<code>return</code> edge as always open walks <em>into</em> a region the player has never visited.
+Ignoring gates can only reach more, so it can only under-report depth. On 200
+<code>maze-locked</code> graphs a gate-ignoring flood under-reported on 12 and was never
+high; the rate is grammar-dependent, the direction is not.</p>
+<p><strong>Worked example.</strong> Take</p>
+<pre><code>start --&gt; A --&gt; win
+A --&gt; K1                          K1 is a key for pair_1
+A --&gt; D1 --[needs pair_1]--&gt; B
+B --&gt; K2                          K2 is a key for pair_2
+B --&gt; D2 --[needs pair_2]--&gt; win
+</code></pre>
+<p>Round 0 reaches <code>start, A, win, K1, D1</code> and collects <code>pair_1</code>. Round 1, holding
+<code>pair_1</code>, reaches <code>B, K2, D2</code> and collects <code>pair_2</code>. Round 2 collects nothing:
+two key-yielding rounds. The lock on <code>D1→B</code> has depth 1 (its key was free); the
+lock on <code>D2→win</code> has depth 2 (its key was behind <code>D1</code>).</p>
+<p><code>lockAnalysis</code> returns those rounds as <code>chain</code>, more useful than the number. At
+<code>mystery-daily</code>&#39;s canonical seed:</p>
+<pre><code>rounds: 3   chain: [ [&quot;secret_cast_2&quot;,&quot;secret_spine_3&quot;], [&quot;secret_spine_2&quot;], [&quot;secret_spine_1&quot;] ]
+</code></pre>
+<p>— you can read the deduction off it.</p>
+<p><strong>Why depth is hard to aim.</strong> The rule that creates a lock does not know how
+deep it is. <code>keyDoor</code>&#39;s LHS looks at one <code>path</code> edge and its two endpoints; it
+has no idea whether that edge is already behind two doors. Depth is therefore
+an emergent property of <em>where</em> the sampler happened to place things, and
+<code>dunjs-dungeon</code> gets depth <code>{0: 17, 1: 32, 2: 1}</code> over 50 seeds — a nested lock
+about 2% of the time.</p>
+<p>Two mechanisms can fix this, and the repo has one of each.</p>
+<p><em>(a) A depth counter carried on labels and matched by the LHS.</em>
+<code>mystery-primitives.js</code>&#39;s <code>socialLock({ nest: true })</code> writes
+<code>chainDepth: {$eval: &#39;($b.label.chainDepth || 1) + 1&#39;}</code> onto the secret it
+creates and matches only the frontier of an existing chain, so the rule that
+makes a depth-<em>k+1</em> lock is structurally the one that consumes a depth-<em>k</em>
+frontier. Depth becomes a property the rule can read and the limit can count.</p>
+<p><em>(b) A staged grammar where stage k creates depth-k locks.</em> Equivalent in the
+limit and easier to read, but it costs one stage and one near-duplicate rule per
+level, and it cannot express &quot;depth <em>at most</em> k&quot; — a stage either runs or does
+not.</p>
+<p><strong>Recommendation: (a).</strong> It is one label field and one <code>$eval</code>, it composes with
+<code>limit</code> (<code>limit: spineLocks - 1</code> on the nesting variant caps the chain), and a
+grammar that never nests simply never matches the nest rule. The measured
+difference is large: over 100 seeds <code>mystery-daily</code> (mechanism (a),
+<code>nestingDepth: 3</code>) hits depth exactly 3 in <strong>86</strong> runs and overshoots to 4 in
+<strong>14</strong>, while <code>dunjs-dungeon</code> (no mechanism) reaches depth 2 in <strong>1 of 50</strong>.</p>
+<p>Note that (a) still overshoots. In <code>mystery-daily</code> the spine is built to depth
+<code>budget.nestingDepth</code>, and then the <em>leftover</em> key budget becomes a loose lock
+placed anywhere — which lands behind the spine 14% of the time and makes the
+chain one longer. Controlling where a lock goes is a different problem from
+controlling how deep the chain is, and mechanism (a) only solves the second.</p>
+<h2 id="5-rejection-sampling-is-the-honest-answer">5. Rejection sampling is the honest answer</h2>
+<p>For every budget field that is not exact, the cheapest reliable way to hit a
+target is to generate at seed <em>s</em>, measure, and on a miss try <em>s+1</em>.</p>
+<p>The economics are lopsided. Generating a <code>dunjs-dungeon</code> costs 2.40 s, dominated
+by the flavor stage. Measuring one costs <strong>0.094 ms</strong> for <code>mp.nestingDepth</code> and
+<strong>0.002 ms</strong> for a node-type census — together under 0.1% of generation. So the
+cost of rejection sampling is, to within noise, the generations you throw away
+and nothing else: at acceptance rate <em>p</em>, you pay 1/<em>p</em> generations.</p>
+<p>The rates are workable. For <code>mystery-daily</code>, accepting only <code>nestingDepth == 3</code>
+gives <em>p</em> = 0.86: 1.16 generations per accepted story. For a dungeon with no
+depth mechanism, a strict <code>keys == 3 &amp;&amp; nestingDepth == 2</code> costs tens of
+generations, seconds of work. What makes rates fall is rejecting on a
+<em>conjunction</em>: the fields are close to independent, so five 80% fields multiply
+to 33%.</p>
+<p>What it breaks is the seed. <code>--example E --seed S</code> is a
+<a href="../spec/examples.html">reproducibility contract</a>, and a tool that silently
+advances <em>S</em> until the budget is met breaks it quietly, which is the worst way.
+So: <strong>report the accepted seed</strong> — in <code>meta.seed</code> and in whatever the tool
+prints — and <strong>make the search explicit</strong>, a <code>--search</code> flag rather than a
+hidden default. <code>--seed S</code> without it must produce the graph at <em>S</em>, budget or
+no budget.</p>
+<h2 id="6-curation">6. Curation</h2>
+<p>A human-curated daily puzzle is rejection sampling with a person as the
+acceptance test. That changes what the generator owes: not one good map, but a
+legible batch, with the measurements already attached. A curator who has to open
+each candidate to find out what it is will not curate.</p>
+<p>A batch report over seeds <em>s</em>..<em>s+n</em> should carry, per candidate: the seed; each
+budget field as <em>measured</em> beside the <em>declared</em> value, misses marked; the
+shortest solution length next to the place count (a two-move win in a
+sixteen-room map is a rejection); the <code>lockAnalysis</code> chain printed as the chain,
+not as its length; a DOT thumbnail; and a provenance stamp of grammar path plus
+library version. Sort by distance from the declared budget, so the curator&#39;s
+first screen is the one worth reading.</p>
+<p>Such a report is cheap: the measurements are pure functions of the graph, so
+they run after generation without re-running the grammar, and they are the same
+functions the tests call. A curator&#39;s report and a regression assertion should
+never disagree about what &quot;three keys&quot; means.</p>
+<h2 id="open-problems">Open problems</h2>
+<ol>
+<li><strong>Place accounting as a first-class computation.</strong> Give each rule factory in
+<code>dungeon-primitives.js</code> a declared <code>places</code> yield (0 for <code>keyDoor</code>, 1 for the
+rest), and derive every stage limit from <code>budget.rooms</code> and the sum of those
+yields, so that adding a place-minting stage cannot silently break the room
+budget.</li>
+<li><strong>A depth guard for <code>keyDoor</code>.</strong> Port <code>socialLock</code>&#39;s <code>chainDepth</code> to
+<code>dungeon-primitives.js</code>: stamp a depth on the door node, have a nesting
+variant match a door and place its key behind it, and let <code>limit</code> cap the
+chain. Then measure whether <code>maze-locked</code> hits <code>nestingDepth: 2</code> at a rate
+comparable to <code>mystery-daily</code>&#39;s 86%.</li>
+<li><strong>Delete or fix <code>midpointRoom({oneWay: true})</code>.</strong> It fires zero times in
+every grammar the repo ships (measured over 50 seeds of <code>dunjs-dungeon</code>,
+0 match sites at all 25 expand iterations). Either mint the shape its
+<code>condition</code> requires, or drop the rule.</li>
+<li><strong>A <code>--search</code> mode for <code>bin/story.js</code>.</strong> Scan seeds from a given start
+until the declared budget is met, report the accepted seed, and cap the scan.
+The measurement functions already exist; this is plumbing.</li>
+<li><strong>Weight autocalibration.</strong> Given a target firing distribution for a stage,
+solve for weights by running the site census once and inverting
+<code>P_i = w_i s_i / Σ w_j s_j</code>. Since <code>s_i(t)</code> depends on the weights this is a
+fixpoint; whether it converges here is untested.</li>
+<li><strong>A batch report command.</strong> <code>bin/story.js --batch E --seeds 1..50</code> emitting
+the §6 table as HTML, wired into <code>make examples</code>, with a <code>meta.measured</code>
+block beside <code>meta.budget</code> so each story carries its own audit.</li>
+</ol>
+<h2 id="see-also">See also</h2>
+<ul>
+<li><a href="key-lock-transformations.html">key-lock-transformations</a> — what a lock <em>is</em>, as
+a graph rewrite, and why <code>keyDoor</code> refuses edges that already carry an
+<code>edgeId</code>.</li>
+<li><a href="matching-engine.html">matching-engine</a> — where the per-iteration cost goes, and
+why all sites are enumerated rather than the first.</li>
+<li><a href="murder-mystery.html">murder-mystery</a> — <code>socialLock({nest: true})</code>, the
+<code>chainDepth</code> mechanism, and the deduction spine.</li>
+<li><a href="narrative-slots.html">narrative-slots</a> — the text side of what a budget buys.</li>
+<li><a href="logic-minigames.html">logic-minigames</a> — what the <code>minigames</code> budget is
+spending.</li>
+<li>Source: <a href="https://github.com/ihh/graphgram/blob/master/index.js"><code>index.js</code></a> (<code>Grammar#evolve</code>, <code>Context#sampleRuleSite</code>,
+<code>Context#evalWeight</code>), <a href="https://github.com/ihh/graphgram/blob/master/dungeon-primitives.js"><code>dungeon-primitives.js</code></a>,
+<a href="https://github.com/ihh/graphgram/blob/master/mystery-primitives.js"><code>mystery-primitives.js</code></a> (<code>lockAnalysis</code>,
+<code>nestingDepth</code>, <code>reachableWith</code>), <a href="https://github.com/ihh/graphgram/blob/master/examples/"><code>examples/</code></a>,
+<a href="../spec/story-ir.html"><code>docs/spec/story-ir.md</code></a> §9.</li>
+</ul>
+
+</main>
+<footer class="site-foot">
+  <p>graphgram · <a href="https://github.com/ihh/graphgram">github.com/ihh/graphgram</a> · ISC</p>
+</footer>
+</body>
+</html>

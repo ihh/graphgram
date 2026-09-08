@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Subgraph Isomorphism and the Triage Hooks · graphgram</title>
+<meta name="description" content="graphgram — a graph grammar library for procedural narrative">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+<header class="site-nav">
+  <nav>
+      <a href="../index.html" class="brand">graphgram</a>
+      <a href="../guide.html">Guide</a>
+      <a href="../advanced.html">Advanced</a>
+      <a href="../examples.html">Examples</a>
+      <a href="../play/index.html">Play</a>
+      <a href="../papers/index.html">Papers</a>
+      <a href="../spec/story-ir.html">Spec</a>
+      <a href="../jsdoc/index.html">API</a>
+      <a href="https://github.com/ihh/graphgram" rel="noopener">GitHub</a>
+  </nav>
+</header>
+<main class="prose">
+<h1 id="subgraph-isomorphism-and-the-triage-hooks">Subgraph Isomorphism and the Triage Hooks</h1>
+<p><em>Every rule application begins by enumerating every occurrence of a pattern graph
+inside the host graph: subgraph isomorphism, NP-complete, and the only
+computationally interesting thing graphgram does. This paper describes the
+implementation actually in <code>subgraph.js</code> — a 1976 Ullmann search with a label
+pre-filter and an arc-consistency refinement, plus triage hooks in <code>index.js</code> —
+then measures each hook by source-patching it off. Two earn their place:
+refinement (1.8x on the bench workload, 10.6x on a five-node pattern) and the
+node-label pre-filter (7-17x, but only on patterns carrying node labels, which
+most of this repo&#39;s primitives do not). Two do not, at the sizes measured: the
+specialised clone and the <code>limit</code>/<code>delay</code> triage both fall inside noise. It ends
+with a cost model rule authors can act on, and what is not implemented.</em></p>
+<h2 id="1-the-problem">1. The problem</h2>
+<p>The host is a directed <code>graphlib.Graph</code> with arbitrary JSON labels. A rule&#39;s
+left-hand side is compiled once at <code>Grammar#init</code> into a second graph
+(<code>rule.lhsGraph</code>, <code>index.js:508</code>) whose labels are <em>queries</em> rather than values:
+the <code>Matcher</code> language of <code>$and</code>, <code>$or</code>, <code>$not</code>, <code>$test</code>, <code>$find</code>, <code>$equals</code>,
+and bare strings read as anchored regexes (<code>index.js:874</code>).</p>
+<p>Write <code>G = (V_G, E_G, λ_G)</code> for the host, <code>P = (V_P, E_P, λ_P)</code> for the pattern,
+and <code>λ_G(x) ⊨ λ_P(i)</code> for &quot;the host label at <code>x</code> satisfies the pattern query at
+<code>i</code>&quot; — that is, <code>Matcher#labelMatch</code> returning a truthy match record rather than
+<code>false</code>. The search enumerates all <code>φ</code> with:</p>
+<pre><code>φ : V_P ↪ V_G
+(M1)  φ is injective
+(M2)  ∀ i ∈ V_P.        λ_G(φ i) ⊨ λ_P(i)
+(M3)  ∀ (i,k) ∈ E_P.    (φ i, φ k) ∈ E_G  and  λ_G(φ i, φ k) ⊨ λ_P(i,k)
+</code></pre>
+<p>In English: an injection from pattern nodes to host nodes under which every
+pattern node&#39;s query is satisfied by its image, and every pattern edge maps to a
+host edge whose query is also satisfied.</p>
+<p>Nothing constrains host edges <em>between</em> images the pattern does not mention, so
+this is a <strong>monomorphism</strong> search, not an induced-subgraph or graph isomorphism
+search: <code>a --path--&gt; b</code> matches a pair of rooms also joined by three other edges.
+That permissiveness is the default because dungeon graphs are dense with
+backtrack edges, and an induced reading would make almost every primitive
+unfireable after a few rewrites. §3(f) covers the post-filters that narrow it.</p>
+<p>The search returns <strong>all</strong> matches, not the first, forced by the sampler.
+<code>Context#sampleRuleSite</code> (<code>index.js:576</code>) collects one <em>site</em> per (rule,
+isomorphism) pair, evaluates a weight per site, and samples proportionally:</p>
+<pre><code class="language-js">var totalWeight = sites.reduce (function (total, s) { return total + s.weight }, 0)
+var w = this.rnd.rnd() * totalWeight, m = -1
+while (w &gt; 0 &amp;&amp; ++m &lt; sites.length - 1)
+  w -= sites[m].weight
+</code></pre>
+<p>Truncating enumeration would replace that distribution with whatever the search
+order happens to be, and would do it <em>silently</em>: the generator would still emit
+valid graphs, no test would fail, and the rule weights of
+<a href="budgets.html">budgets</a> would quietly stop meaning what they say. Enumeration is a
+correctness requirement, not a convenience.</p>
+<h2 id="2-the-algorithm">2. The algorithm</h2>
+<p><code>SubgraphSearch</code> (<code>subgraph.js:21</code>) is Ullmann (1976): a table of candidate sets,
+an arc-consistency refinement of it, and a backtracking search alternating the
+two.</p>
+<p>The table <code>D</code> is <code>possibleAssignments</code>, shaped <code>{ subnodeId: { hostNodeId: true } }</code>.
+<code>mapping</code> is the partial map: <code>assign</code> (pattern id → host id), <code>label</code> (pattern
+id → host label), <code>match</code> (pattern id → the record <code>labelMatch</code> returned, holding
+regex capture groups). Only <code>assign</code> drives the search; the other two are
+threaded through so RHS expressions like <code>&#39;${a.match.nodeId[1]}&#39;</code>
+(<code>dungeon-primitives.js:513</code>) can read captures out of the LHS match.</p>
+<p><strong>Refinement</strong> (<code>subgraph.js:67</code>) is the interesting half:</p>
+<pre><code>repeat until no D changes:
+  for each i ∈ V_P, for each j ∈ D(i):
+    if ∃ k. (i,k) ∈ E_P  and  ∄ y ∈ D(k). (j,y) ∈ E_G ∧ λ_G(j,y) ⊨ λ_P(i,k)
+       then D(i) ← D(i) \ {j}
+    if ∃ k. (k,i) ∈ E_P  and  ∄ y ∈ D(k). (y,j) ∈ E_G ∧ λ_G(y,j) ⊨ λ_P(k,i)
+       then D(i) ← D(i) \ {j}
+</code></pre>
+<p>In English: host node <code>j</code> survives as a candidate for pattern node <code>i</code> only if
+every pattern-neighbour <code>x</code> of <code>i</code> — successor and predecessor alike — still has
+at least one candidate <code>y</code> that <code>j</code> could be joined to by a host edge with a
+matching label, in the right direction. A deletion can invalidate another node&#39;s
+support, so the sweep repeats to fixpoint. This is arc consistency over <code>E_P</code>,
+the only place structural information prunes before assignment.</p>
+<p><strong>Search</strong> (<code>subgraph.js:102</code>):</p>
+<pre><code>search(D):
+  refine D to fixpoint
+  n ← |mapping.assign|
+  if n &gt; 0 and some fully-assigned pattern edge has no matching host edge:
+      return []                                   # (M3), checked incrementally
+  if n = |V_P|: return [snapshot of mapping]      # accept
+  i ← subnodes[n]                                 # next pattern node, in LHS order
+  for each j ∈ D(i):
+      if j already used by mapping.assign: continue            # (M1)
+      m ← labelMatch(λ_G(j), λ_P(i))                           # (M2)
+      if m:
+          mapping.assign[i] ← j; mapping.label[i] ← λ_G(j); mapping.match[i] ← m
+          D&#39; ← clone(D); D&#39;(i) ← {j}
+          results ← results ++ search(D&#39;)
+          undo the three mapping writes
+          D(i) ← D(i) \ {j}                       # branch exhausted, so
+          refine D to fixpoint                    # refine again before the next j
+  return results
+</code></pre>
+<p>Three details matter. The next pattern node is <code>subnodes[n]</code>, LHS declaration
+order, with no dynamic reordering (§6). <code>mapping</code> is one mutable object on the
+search instance, written before recursing and restored after, so the accept point
+must snapshot it. And each branch clones <code>D</code>, which is why cloning is hot at all.</p>
+<h2 id="3-the-triage-hooks">3. The triage hooks</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Hook</th>
+<th>Where</th>
+<th>Before search?</th>
+<th>Measured (§4)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>a</td>
+<td>node-label pre-filter</td>
+<td><code>subgraph.js:32-49</code></td>
+<td>yes</td>
+<td>7-17x on labelled patterns; nothing on unlabelled</td>
+</tr>
+<tr>
+<td>b</td>
+<td><code>clonePA</code></td>
+<td><code>subgraph.js:9</code></td>
+<td>no</td>
+<td>1.9x per call, within noise end-to-end</td>
+</tr>
+<tr>
+<td>c</td>
+<td>shallow snapshot at accept</td>
+<td><code>subgraph.js:126</code></td>
+<td>no</td>
+<td>not isolated</td>
+</tr>
+<tr>
+<td>d</td>
+<td>compiled-predicate caches</td>
+<td><code>index.js:765-818</code></td>
+<td>no</td>
+<td>not isolated</td>
+</tr>
+<tr>
+<td>e</td>
+<td><code>limit</code> / <code>delay</code> triage</td>
+<td><code>index.js:582-585</code></td>
+<td>skips it entirely</td>
+<td>within noise here</td>
+</tr>
+<tr>
+<td>f</td>
+<td><code>strict</code> / <code>induced</code></td>
+<td><code>index.js:590-598</code></td>
+<td>no — post-filters</td>
+<td>reject after the cost is paid</td>
+</tr>
+</tbody></table>
+<p><strong>(a) The label pre-filter.</strong> The constructor seeds <code>D</code> by running each pattern
+node&#39;s query over every host node, rather than starting every pattern node with
+all of <code>V_G</code>:</p>
+<pre><code class="language-js">this.subnodes.forEach (function (sid) {
+  var pa = {}
+  var sLabel = subgraph.node(sid)
+  hostNodes.forEach (function (gid) {
+    if (typeof(sLabel) === &#39;undefined&#39; || search.nodeLabelMatch(graph.node(gid), sLabel))
+      pa[gid] = true
+  })
+  possibleAssignments[sid] = pa
+})
+</code></pre>
+<p>That is <code>|V_P| · |V_G|</code> label evaluations up front, buying a branching factor of
+type-compatible host nodes rather than <code>|V_G|</code>. Note what it misses: <strong>edge</strong>
+labels are never pre-filtered. <code>nodeLabelMatch</code> and <code>edgeLabelMatch</code> both default
+to the <code>labelMatch</code> <code>sampleRuleSite</code> passes in (<code>subgraph.js:28-30</code>,
+<code>index.js:587</code>), but only the node one runs here, so a pattern constrained solely
+by its edge label — most of <code>dungeon-primitives.js</code> — starts with full candidate
+sets and gets all its pruning from refinement.</p>
+<p><strong>(b) <code>clonePA</code>.</strong> <code>D</code> is <code>{id: {id: true}}</code> and nothing else, so a two-level
+<code>for...in</code> copy is correct and lodash&#39;s generic <code>cloneDeep</code> unnecessary. Isolated,
+it is 1.85-1.96x faster per call (§4.4).</p>
+<p><strong>(c) The shallow snapshot.</strong> The accept point returns <code>extend({}, mapping.assign)</code>
+and likewise for <code>label</code> and <code>match</code>. Safe, because those three outer objects are
+all the search mutates — it adds and deletes keys, never edits a value in place —
+and the values (host labels owned by the graph, fresh match records) are
+read-only downstream. A deep copy would duplicate every host label once per
+match: 30,983 times on the bench run.</p>
+<p><strong>(d) Compiled-predicate caches.</strong> Four <code>Map</code>s on the <code>Matcher</code>, keyed by source
+string (<code>index.js:765-768</code>): <code>regexCache</code> (<code>&#39;room&#39;</code> → <code>/^room$/</code>),
+<code>testFuncCache</code> (a <code>$test</code> source → the function it evaluates to),
+<code>evalFuncCache</code> (a <code>condition</code>, <code>weight</code> or <code>$eval</code> source → a
+<code>new Function(&#39;$ctx&#39;, &#39;with ($ctx) { return (&#39; + src + &#39;) }&#39;)</code>), and
+<code>templatePathCache</code> (a <code>${a.match[1]}</code> path → an accessor). Regexes and <code>$test</code>
+functions run once per candidate, so this is the difference between compiling a
+regex 2.5 million times and compiling it once; <code>$eval</code> was previously a
+<code>JSON.stringify</code> plus an <code>eval</code> per call. One <code>Matcher</code> is shared across every
+stage (<code>index.js:367</code>), so rules that spell a predicate alike share its compiled
+form.</p>
+<p><strong>(e) Rule-level triage.</strong> Before any search is constructed:</p>
+<pre><code class="language-js">if (rule.limit &amp;&amp; context.ruleCount[rule.countType] &gt;= rule.limit)
+  return
+if (rule.delay &amp;&amp; context.iter &lt; rule.delay)
+  return
+</code></pre>
+<p>An exhausted or ineligible rule costs two comparisons instead of a full
+enumeration. <code>countType</code> is <code>rule.type || String(n)</code>, so rules sharing a <code>type</code>
+share one budget — the mechanism <a href="budgets.html">budgets</a> builds on.</p>
+<p><strong>(f) <code>strict</code> and <code>induced</code> are post-filters, and that asymmetry matters.</strong>
+Both run in <code>sampleRuleSite</code> over isomorphisms already found. <code>strict</code> requires a
+pattern node&#39;s image to have the same degree in <code>G</code> as the node has in <code>P</code> (the
+array-of-strings LHS sugar sets it on the chain&#39;s first and last node,
+<code>index.js:390</code>); <code>induced</code> forbids a host edge between two images unless the
+pattern has that edge, converting §1&#39;s monomorphism search into an induced one.
+Neither prunes: they reject after the full cost of finding the match is paid,
+saving only the rewrite. A constraint expressible as a label query is strictly
+cheaper said that way.</p>
+<p><code>induced</code> additionally does not work today: <code>index.js:598</code> reads
+<code>!subgraph.hasEdge(si,sj)</code> with no <code>subgraph</code> in scope, so any grammar setting
+it throws <code>ReferenceError: subgraph is not defined</code> as soon as a matched pair
+has a host edge between them. No test covers it.</p>
+<p><strong>The refinement bug.</strong> The comment at <code>subgraph.js:62-66</code> records that an
+earlier version called <code>subgraph.predecessors(j)</code> — a <em>host</em> id — where it meant
+<code>subgraph.predecessors(i)</code>. Pattern ids here are <code>a</code>, <code>b</code>, <code>m</code>, <code>k</code>; host ids are
+decimal strings minted by <code>Context#addNode</code>. They never collide, so <code>graphlib</code>
+returned <code>undefined</code>, the <code>if (pred)</code> guard skipped the body, and refinement
+pruned nothing. It was invisible in correctness terms because refinement is
+<em>only</em> an optimisation: the accept path re-verifies (M3) against <code>mapping.assign</code>
+independently, so a refinement that prunes nothing yields the same matches in the
+same order, and every test still passed. §4.1 measures what it cost.</p>
+<h2 id="4-measurement">4. Measurement</h2>
+<p>Darwin arm64 (Apple silicon laptop), Node 22.14.0, no other load. Variants were
+made by source-patching <code>subgraph.js</code> or <code>index.js</code> in memory and pre-seeding
+<code>require.cache</code>; the repo files were not modified. Every variant reproduces
+byte-identical output graphs for all seeds (SHA-1 <code>82c7e4c1b598</code> at bench
+settings) — the check that these are performance hooks and nothing else.
+Repeated baseline runs vary by about ±5%, so differences under ~10% are not
+claims.</p>
+<p><strong><code>test/bench.js</code> as shipped</strong> — four expansion rules under a stage limit of 20,
+then edge refinement and dot decoration; 10 seeds, 2 warmups; outputs average
+22.8 nodes and 45.7 edges:</p>
+<pre><code>dungeon (10 seeds): median=110.6ms min=69.2ms max=171.2ms avgNodes=22.8 avgEdges=45.7
+dungeon (10 seeds): median=112.4ms min=69.0ms max=169.9ms avgNodes=22.8 avgEdges=45.7
+dungeon (10 seeds): median=111.0ms min=68.0ms max=171.9ms avgNodes=22.8 avgEdges=45.7
+</code></pre>
+<p>That is 268 complete subgraph searches and 3,098 matches per seed.</p>
+<h3 id="4-1-one-hook-at-a-time-on-the-bench-workload">4.1 One hook at a time, on the bench workload</h3>
+<p>Totals sum the 10 timed seeds; counts come from a separate instrumented run of
+the same deterministic workload, so they are exact.</p>
+<table>
+<thead>
+<tr>
+<th>variant</th>
+<th>total ms</th>
+<th>median ms</th>
+<th>search nodes</th>
+<th><code>testEdgeMatch</code></th>
+<th><code>clonePA</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>baseline</td>
+<td>1164.3</td>
+<td>115.0</td>
+<td>45,937</td>
+<td>2,471,337</td>
+<td>43,257</td>
+</tr>
+<tr>
+<td>pre-filter off</td>
+<td>1149.5</td>
+<td>114.5</td>
+<td>46,435</td>
+<td>2,496,647</td>
+<td>43,755</td>
+</tr>
+<tr>
+<td>refinement off</td>
+<td>2147.7</td>
+<td>211.5</td>
+<td>861,094</td>
+<td>812,418</td>
+<td>858,414</td>
+</tr>
+<tr>
+<td>historical <code>predecessors(j)</code> bug</td>
+<td>3163.4</td>
+<td>309.3</td>
+<td>861,094</td>
+<td>812,418</td>
+<td>858,414</td>
+</tr>
+<tr>
+<td><code>_.cloneDeep</code> for <code>clonePA</code></td>
+<td>1165.7</td>
+<td>115.5</td>
+<td>45,937</td>
+<td>2,471,337</td>
+<td>43,257</td>
+</tr>
+</tbody></table>
+<p>Refinement is worth <strong>1.8x</strong>, and the counts show the trade: 3.0x more edge tests
+buy 18.7x fewer recursion nodes and 19.8x fewer clones. The historical bug is
+worse than no refinement at all — <strong>2.7x</strong> slower than baseline, 1.5x slower than
+disabling refinement outright — because it paid the loop overhead (an
+<code>Object.keys</code> allocation per pattern node per candidate, two neighbour lookups)
+and pruned nothing for it; counts identical to the refinement-off row confirm it
+was an exact no-op.</p>
+<p><strong>Two null results.</strong> Turning the pre-filter off changes nothing measurable
+(+1% search nodes, −1% wall clock), and neither does <code>_.cloneDeep</code>. §4.2 and §4.4
+explain why. At five times the size (expansion limit 100, 3 seeds, ~105 nodes /
+223 edges) the picture holds: baseline median 14,392ms, pre-filter off 14,127ms,
+<code>_.cloneDeep</code> 14,112ms — 2% spread, identical digests.</p>
+<h3 id="4-2-what-the-pre-filter-is-worth-when-the-pattern-uses-labels">4.2 What the pre-filter is worth when the pattern uses labels</h3>
+<p>The bench workload cannot see the pre-filter, because the dungeon primitives
+barely use node labels: <code>deadEnd</code>, <code>parallelPath</code> and every <code>refineEdge</code> rule
+declare LHS nodes as bare <code>{ id: &#39;a&#39; }, { id: &#39;b&#39; }</code> (<code>dungeon-primitives.js:206, 242, 473</code>) and put the whole constraint on the edge label, which the pre-filter
+never sees. The second experiment therefore calls <code>SubgraphSearch</code> directly on a
+fixed host (66 nodes, 138 edges, from an expansion-limit-60 dungeon at seed 7: 30
+dead ends, 26 rooms, 4 doors, 4 keys, 86 <code>path</code> and 52 <code>backtrack</code> edges) with
+hand-built patterns: chains of <code>n</code> nodes joined by <code>{type: &#39;path&#39;}</code> edges, nodes
+either labelled <code>{type: &#39;room&#39;}</code>, unlabelled, or carrying an equivalent <code>$test</code>.
+Milliseconds per search, mean of 20 reps:</p>
+<table>
+<thead>
+<tr>
+<th>pattern</th>
+<th>matches</th>
+<th>baseline</th>
+<th>pre-filter off</th>
+<th>refinement off</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>2 nodes, labelled</td>
+<td>23</td>
+<td><strong>1.25</strong></td>
+<td>8.89</td>
+<td>1.81</td>
+</tr>
+<tr>
+<td>2 nodes, <code>$test</code></td>
+<td>23</td>
+<td><strong>1.13</strong></td>
+<td>8.90</td>
+<td>1.82</td>
+</tr>
+<tr>
+<td>2 nodes, unlabelled</td>
+<td>86</td>
+<td>9.14</td>
+<td>9.25</td>
+<td>12.48</td>
+</tr>
+<tr>
+<td>3 nodes, labelled</td>
+<td>10</td>
+<td><strong>1.11</strong></td>
+<td>11.16</td>
+<td>4.92</td>
+</tr>
+<tr>
+<td>3 nodes, unlabelled</td>
+<td>111</td>
+<td>13.31</td>
+<td>13.50</td>
+<td>44.27</td>
+</tr>
+<tr>
+<td>4 nodes, labelled</td>
+<td>2</td>
+<td><strong>0.55</strong></td>
+<td>9.22</td>
+<td>7.49</td>
+</tr>
+<tr>
+<td>4 nodes, unlabelled</td>
+<td>116</td>
+<td>14.50</td>
+<td>14.51</td>
+<td>96.73</td>
+</tr>
+<tr>
+<td>5 nodes, unlabelled</td>
+<td>115</td>
+<td>15.97</td>
+<td>15.82</td>
+<td>168.91</td>
+</tr>
+</tbody></table>
+<p>Three readings. On labelled patterns the pre-filter is worth <strong>7.1x</strong> (2 nodes),
+<strong>10.1x</strong> (3) and <strong>16.8x</strong> (4): its value grows with pattern size, because it
+removes a factor of candidates-per-node from every level of the recursion.
+Labelled patterns get <em>cheaper</em> as they grow (1.25 → 1.11 → 0.55 ms) while
+unlabelled ones get dearer (9.1 → 13.3 → 14.5 → 16.0 ms) — constraints on a
+labelled pattern prune more than they cost. And with refinement off the
+unlabelled column runs 12.5 → 44.3 → 96.7 → 168.9 ms: the exponential refinement
+exists to flatten.</p>
+<p>The <code>$test</code> row is a <strong>negative result against the hypothesis the experiment was
+built to test</strong>. <code>$test</code> was expected to be opaque to the pre-filter and so to
+cost per candidate. It is not: the pre-filter calls <code>nodeLabelMatch</code> on whatever
+query the node carries, <code>$test</code> included, with the compiled function coming from
+<code>testFuncCache</code>. A <code>$test</code> prunes exactly as well as a literal type, and here is
+marginally faster than a regex.</p>
+<h3 id="4-3-rule-level-triage">4.3 Rule-level triage</h3>
+<p>At shipped bench settings the <code>limit</code>/<code>delay</code> guards skip <strong>3</strong> searches of
+2,683: the stage limit of 20 iterations arrives before <code>keyDoor</code> exhausts its
+limit of 3. Under settings that make exhaustion common (stage limit 40, <code>keyDoor</code>
+limit 1) they skip <strong>217</strong> of 5,335, and running those searches anyway and
+discarding the result — same output graph, verified by digest — costs 7,414ms
+against 7,375ms: noise. The saving is proportional to how often rules are
+exhausted, which here is under 4%.</p>
+<h3 id="4-4-why-the-specialised-clone-does-not-show-up">4.4 Why the specialised clone does not show up</h3>
+<p>Cloning a table of <code>s</code> pattern nodes × <code>h</code> candidates, at the 43,257 calls the
+bench workload makes, gives:</p>
+<pre><code>2x23:  clonePA=104.1ms  cloneDeep=196.5ms  ratio=1.89x
+4x23:  clonePA=199.2ms  cloneDeep=389.6ms  ratio=1.96x
+4x66:  clonePA=467.2ms  cloneDeep=882.6ms  ratio=1.89x
+5x127: clonePA=1149.7ms cloneDeep=2125.8ms ratio=1.85x
+</code></pre>
+<p><code>clonePA</code> is consistently about twice as fast, and does not show up end-to-end
+because the tables actually cloned are tiny: 309,413 cells over 43,257 clones, a
+<strong>mean of 7.2 entries per clone</strong> (24.6 at expansion limit 100). Refinement has
+already collapsed most candidate sets to a singleton or to nothing before the
+recursion clones them. The hook is cheap and correct; it is not where the time
+is.</p>
+<p>Where the time is, is <code>testEdgeMatch</code>. On the 66-node host one call —
+<code>graph.hasEdge(v,w)</code> plus a <code>labelMatch</code> against <code>{type:&#39;path&#39;}</code> — costs about
+110ns; at expansion limit 100 the workload makes 205,799,284 of them in a run
+totalling 49.6s, so roughly 22.6s, at least <strong>46% of runtime</strong>, sits in the
+refinement loop. Optimisation starts there. One tempting target is not one:
+refinement&#39;s inner scan looks like it lacks an early exit, but
+<code>foundMatch = foundMatch || search.testEdgeMatch(...)</code> already short-circuits the
+<em>call</em> once a support is found. Replacing the <code>forEach</code> with <code>some</code> saves only
+loop iterations — 1099ms against 1140ms, inside noise, with identical edge-test
+counts.</p>
+<h2 id="5-what-costs-what-for-rule-authors">5. What costs what, for rule authors</h2>
+<table>
+<thead>
+<tr>
+<th>LHS feature</th>
+<th>Cost</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>literal <code>type</code> label on every node</td>
+<td>cheapest</td>
+<td>pre-filter seeds tiny candidate sets (§4.2: 7-17x)</td>
+</tr>
+<tr>
+<td><code>$test</code> on a node</td>
+<td>same as literal</td>
+<td>pre-filter runs it too; compiled once by <code>testFuncCache</code></td>
+</tr>
+<tr>
+<td><code>$not</code> / <code>$and</code> on a node</td>
+<td>cheap</td>
+<td>also a node query, also pre-filtered</td>
+</tr>
+<tr>
+<td>unlabelled node</td>
+<td>expensive</td>
+<td>every host node is a candidate at every level</td>
+</tr>
+<tr>
+<td>constraint carried only by the edge label</td>
+<td>expensive</td>
+<td>edge labels are never pre-filtered; refinement alone must find it</td>
+</tr>
+<tr>
+<td>each extra unlabelled node</td>
+<td>multiplies</td>
+<td>9.1 → 16.0 ms for 2→5 nodes with refinement; 12.5 → 168.9 ms without</td>
+</tr>
+<tr>
+<td><code>condition</code> expression</td>
+<td>cheap</td>
+<td>once per complete match: 3,098 per bench seed against 247,000 edge tests, 80:1</td>
+</tr>
+<tr>
+<td><code>weight</code> expression</td>
+<td>cheap</td>
+<td>same, once per surviving match</td>
+</tr>
+<tr>
+<td><code>strict</code></td>
+<td>costs, saves nothing</td>
+<td>post-filter; the search is already paid for (§3f)</td>
+</tr>
+<tr>
+<td><code>induced</code></td>
+<td>do not use</td>
+<td>post-filter, and throws today (§3f)</td>
+</tr>
+</tbody></table>
+<p>Concretely:</p>
+<ul>
+<li><strong>Label the endpoints, not just the edge.</strong> <code>midpointRoom</code> labels its <code>b</code> node
+<code>{ $not: { type: winType } }</code> (<code>dungeon-primitives.js:134</code>) but leaves <code>a</code>
+bare; a positive <code>type</code> query on both moves it from §4.2&#39;s unlabelled column to
+the labelled one. Do not grow the LHS to say what a label could say: a
+four-node unlabelled chain costs 14.5ms per search on a 66-node graph, a
+labelled one 0.55ms.</li>
+<li><strong>Prefer a node-label query to a <code>condition</code></strong> where the two are equivalent. A
+<code>condition</code> is cheap per site but runs after the match is found, so it never
+prevents work; a node label prevents the branch. Keep <code>condition</code> for what
+labels cannot say — <code>cycleCloseShortcut</code>&#39;s <code>&#39;!$$graph.hasEdge($b.id, $a.id)&#39;</code>
+(<code>dungeon-primitives.js:501</code>) is a claim about a host edge between two matched
+nodes, exactly what §1&#39;s semantics leave unconstrained.</li>
+<li><strong>Reach for <code>$test</code> freely</strong> — no slower than a regex here, and the only way to
+state a predicate over a computed property of a label.</li>
+</ul>
+<h2 id="6-what-is-not-implemented">6. What is not implemented</h2>
+<ul>
+<li><strong>No VF2 or VF3.</strong> VF2 generates candidate pairs from the frontier of the
+partial match and never materialises or clones a table. What is here is the
+older, simpler idea.</li>
+<li><strong>No candidate ordering.</strong> <code>subnodes[nAssigned]</code> takes pattern nodes in
+declaration order. Most-constrained-variable ordering — assign the node with
+the smallest <code>D(i)</code> next — is the standard first improvement to Ullmann and
+would matter most for the mixed patterns §4.2 shows are dear. Untried.</li>
+<li><strong>No degree pre-filter.</strong> A host node with fewer neighbours than its pattern
+node can never match — an <code>O(|V_G|)</code> test that would strengthen §3(a) for the
+unlabelled patterns where it does nothing today.</li>
+<li><strong>No incremental matching</strong>, the largest omission. <code>sampleRuleSite</code> re-runs
+every rule&#39;s search from scratch every iteration, on a graph that changed in
+one bounded place — 1,260 full searches per run over a ~105-node graph at
+expansion limit 100. An incremental scheme would keep per-rule site lists
+between iterations and, after a rewrite touching node set <code>Δ</code>, invalidate only
+sites whose image meets <code>Δ</code>, re-searching within the pattern&#39;s radius of <code>Δ</code>.
+The cost is not the diffing: <code>Context#addNode</code> mints a fresh id for every RHS
+node, so a rewrite changes the identity of the nodes it touches even when their
+labels do not, and a stored site cannot be repaired, only discarded. It would
+also have to preserve §1&#39;s enumeration order, or accept that seeds stop
+reproducing across the change.</li>
+<li><strong>No parallelism, no early termination</strong> — both precluded by the all-matches
+requirement and by <code>mapping</code> being shared mutable state on the search.</li>
+</ul>
+<h2 id="open-problems">Open problems</h2>
+<ol>
+<li><strong>Fix <code>induced</code>.</strong> <code>index.js:598</code> should read <code>rule.lhsGraph.hasEdge(si,sj)</code>.
+Then test it: two pattern nodes, one pattern edge, a host pair joined by two
+edges; assert rejection under <code>induced</code> and acceptance without. Nothing
+exercises the flag today.</li>
+<li><strong>Pre-filter on edge labels.</strong> Seed <code>D</code> by also requiring, for each pattern
+edge <code>(i,k)</code>, that <code>j ∈ D(i)</code> have an outgoing host edge satisfying <code>λ_P(i,k)</code>
+— the first refinement sweep hoisted into the constructor, and the missing half
+of §3(a) for primitives that constrain edges rather than nodes.</li>
+<li><strong>Add most-constrained-variable ordering</strong> and re-run §4.2. Conjecture,
+untested: little on uniformly labelled or unlabelled patterns, a large factor
+on mixed ones.</li>
+<li><strong>Memoise the label match, not just the compiled predicate.</strong> <code>labelMatch</code>
+runs on the same (host label, pattern label) pair many times per search — in
+the pre-filter, then at each assignment — and host labels do not change during
+one. A memo keyed by (host id, pattern id) would cut into §4.4&#39;s 46%.</li>
+<li><strong>Give <code>test/bench.js</code> a labelled-pattern workload</strong>, and measure §3(d)&#39;s
+caches by patching them off as §4.1 does the others. Every number in §4.1 is
+blind to the pre-filter because the bench grammar uses no node labels, and the
+caches are the one hook in §3&#39;s table with no number beside them.</li>
+<li><strong>Decide whether <code>strict</code> belongs inside the search.</strong> A degree constraint is
+checkable at assignment time — (M2) plus a degree test — rather than after,
+turning a post-filter into a pruning one. Whether it pays depends on how often
+<code>strict</code> rejects, which no one has counted.</li>
+</ol>
+<h2 id="see-also">See also</h2>
+<ul>
+<li><a href="budgets.html">budgets</a> — <code>limit</code>, <code>delay</code> and <code>countType</code>, the fields §3(e)
+triages on.</li>
+<li><a href="key-lock-transformations.html">key-lock-transformations</a> — the rules whose LHS
+shapes §5 costs out.</li>
+<li><a href="narrative-slots.html">narrative-slots</a> — what §2&#39;s <code>match</code> records are read for.</li>
+<li><a href="murder-mystery.html">murder-mystery</a>, <a href="logic-minigames.html">logic-minigames</a> —
+rule sets with larger patterns, and so more exposed to §5.</li>
+<li>Source: <a href="https://github.com/ihh/graphgram/blob/master/subgraph.js"><code>subgraph.js</code></a> (all 165 lines);
+<a href="https://github.com/ihh/graphgram/blob/master/index.js"><code>index.js</code></a> <code>Context#sampleRuleSite</code> (576-624) and <code>Matcher</code>
+(739-1040); <a href="https://github.com/ihh/graphgram/blob/master/dungeon-primitives.js"><code>dungeon-primitives.js</code></a> for LHS shapes;
+<a href="https://github.com/ihh/graphgram/blob/master/test/subgraph.test.js"><code>test/subgraph.test.js</code></a>,
+<a href="https://github.com/ihh/graphgram/blob/master/test/matcher.test.js"><code>test/matcher.test.js</code></a>,
+<a href="https://github.com/ihh/graphgram/blob/master/test/bench.js"><code>test/bench.js</code></a>.</li>
+</ul>
+
+</main>
+<footer class="site-foot">
+  <p>graphgram · <a href="https://github.com/ihh/graphgram">github.com/ihh/graphgram</a> · ISC</p>
+</footer>
+</body>
+</html>

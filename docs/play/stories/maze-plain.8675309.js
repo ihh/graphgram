@@ -6,31 +6,79 @@ window.GRAPH = {
   },
   "nodes": [
     {
-      "v": "43",
+      "v": "35",
       "value": {
         "type": "dead_end",
-        "nodeId": "deadend_7",
-        "text": "[dark_fairy_tale:describe_dead_end#deadend_7]"
+        "nodeId": "deadend_4",
+        "text": "[dark_fairy_tale:describe_dead_end#deadend_4]"
       }
     },
     {
-      "v": "45",
+      "v": "39",
       "value": {
-        "type": "room",
-        "nodeId": "room_3",
-        "text": "[dark_fairy_tale:describe_room#room_3]"
+        "type": "dead_end",
+        "nodeId": "deadend_2",
+        "text": "[dark_fairy_tale:describe_dead_end#deadend_2]"
+      }
+    },
+    {
+      "v": "43",
+      "value": {
+        "type": "dead_end",
+        "nodeId": "deadend_1",
+        "text": "[dark_fairy_tale:describe_dead_end#deadend_1]"
+      }
+    },
+    {
+      "v": "47",
+      "value": {
+        "type": "win",
+        "nodeId": "win",
+        "text": "[dark_fairy_tale:describe_win#win]"
       }
     },
     {
       "v": "48",
       "value": {
         "type": "room",
-        "nodeId": "room_2",
-        "text": "[dark_fairy_tale:describe_room#room_2]"
+        "nodeId": "approach_3",
+        "text": "[dark_fairy_tale:describe_room#approach_3]"
       }
     },
     {
       "v": "49",
+      "value": {
+        "type": "dead_end",
+        "nodeId": "deadend_5",
+        "text": "[dark_fairy_tale:describe_dead_end#deadend_5]"
+      }
+    },
+    {
+      "v": "50",
+      "value": {
+        "type": "room",
+        "nodeId": "approach_4",
+        "text": "[dark_fairy_tale:describe_room#approach_4]"
+      }
+    },
+    {
+      "v": "51",
+      "value": {
+        "type": "dead_end",
+        "nodeId": "deadend_3",
+        "text": "[dark_fairy_tale:describe_dead_end#deadend_3]"
+      }
+    },
+    {
+      "v": "52",
+      "value": {
+        "type": "start",
+        "nodeId": "start",
+        "text": "[dark_fairy_tale:theme_intro#start]"
+      }
+    },
+    {
+      "v": "53",
       "value": {
         "type": "dead_end",
         "nodeId": "deadend_6",
@@ -40,65 +88,17 @@ window.GRAPH = {
     {
       "v": "54",
       "value": {
-        "type": "start",
-        "nodeId": "start",
-        "text": "[dark_fairy_tale:theme_intro#start]"
+        "type": "room",
+        "nodeId": "approach_1",
+        "text": "[dark_fairy_tale:describe_room#approach_1]"
       }
     },
     {
       "v": "55",
       "value": {
         "type": "room",
-        "nodeId": "room_9",
-        "text": "[dark_fairy_tale:describe_room#room_9]"
-      }
-    },
-    {
-      "v": "57",
-      "value": {
-        "type": "win",
-        "nodeId": "win",
-        "text": "[dark_fairy_tale:describe_win#win]"
-      }
-    },
-    {
-      "v": "58",
-      "value": {
-        "type": "room",
-        "nodeId": "room_5",
-        "text": "[dark_fairy_tale:describe_room#room_5]"
-      }
-    },
-    {
-      "v": "60",
-      "value": {
-        "type": "room",
-        "nodeId": "room_1",
-        "text": "[dark_fairy_tale:describe_room#room_1]"
-      }
-    },
-    {
-      "v": "61",
-      "value": {
-        "type": "dead_end",
-        "nodeId": "deadend_10",
-        "text": "[dark_fairy_tale:describe_dead_end#deadend_10]"
-      }
-    },
-    {
-      "v": "62",
-      "value": {
-        "type": "room",
-        "nodeId": "room_4",
-        "text": "[dark_fairy_tale:describe_room#room_4]"
-      }
-    },
-    {
-      "v": "63",
-      "value": {
-        "type": "dead_end",
-        "nodeId": "deadend_8",
-        "text": "[dark_fairy_tale:describe_dead_end#deadend_8]"
+        "nodeId": "approach_2",
+        "text": "[dark_fairy_tale:describe_room#approach_2]"
       }
     }
   ],
@@ -109,7 +109,7 @@ window.GRAPH = {
       "value": {
         "type": "backtrack",
         "prereq": {
-          "traversed": "e_ad_6"
+          "traversed": "e_ad_5"
         },
         "dot": {
           "label": "backtrack",
@@ -123,17 +123,194 @@ window.GRAPH = {
       "w": "49",
       "value": {
         "type": "passage",
+        "edgeId": "e_ad_5",
+        "link": "[dark_fairy_tale:button_passage#e_ad_5]"
+      }
+    },
+    {
+      "v": "50",
+      "w": "35",
+      "value": {
+        "type": "passage",
+        "edgeId": "e_ad_4",
+        "link": "[dark_fairy_tale:button_passage#e_ad_4]"
+      }
+    },
+    {
+      "v": "50",
+      "w": "39",
+      "value": {
+        "type": "passage",
+        "edgeId": "e_ad_2",
+        "link": "[dark_fairy_tale:button_passage#e_ad_2]"
+      }
+    },
+    {
+      "v": "50",
+      "w": "47",
+      "value": {
+        "type": "passage",
+        "edgeId": "e_approach_mw_4",
+        "link": "[dark_fairy_tale:button_passage#e_approach_mw_4]"
+      }
+    },
+    {
+      "v": "50",
+      "w": "48",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_approach_am_4"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "35",
+      "w": "50",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_ad_4"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "39",
+      "w": "50",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_ad_2"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "48",
+      "w": "50",
+      "value": {
+        "type": "passage",
+        "edgeId": "e_approach_am_4",
+        "link": "[dark_fairy_tale:button_passage#approach_4]"
+      }
+    },
+    {
+      "v": "51",
+      "w": "50",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_ad_3"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "50",
+      "w": "51",
+      "value": {
+        "type": "passage",
+        "edgeId": "e_ad_3",
+        "link": "[dark_fairy_tale:button_passage#e_ad_3]"
+      }
+    },
+    {
+      "v": "52",
+      "w": "43",
+      "value": {
+        "type": "passage",
+        "edgeId": "e_ad_1",
+        "link": "[dark_fairy_tale:button_passage#e_ad_1]"
+      }
+    },
+    {
+      "v": "43",
+      "w": "52",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_ad_1"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "53",
+      "w": "52",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_ad_6"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "52",
+      "w": "53",
+      "value": {
+        "type": "passage",
         "edgeId": "e_ad_6",
         "link": "[dark_fairy_tale:button_passage#e_ad_6]"
       }
     },
     {
+      "v": "54",
+      "w": "52",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_approach_am_1"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "52",
+      "w": "54",
+      "value": {
+        "type": "passage",
+        "edgeId": "e_approach_am_1",
+        "link": "[dark_fairy_tale:button_passage#approach_1]"
+      }
+    },
+    {
       "v": "55",
       "w": "48",
       "value": {
         "type": "passage",
-        "edgeId": "e_mb_9",
-        "link": "[dark_fairy_tale:button_passage#e_mb_9]"
+        "edgeId": "e_approach_am_3",
+        "link": "[dark_fairy_tale:button_passage#approach_3]"
       }
     },
     {
@@ -142,7 +319,7 @@ window.GRAPH = {
       "value": {
         "type": "backtrack",
         "prereq": {
-          "traversed": "e_am_9"
+          "traversed": "e_approach_am_2"
         },
         "dot": {
           "label": "backtrack",
@@ -157,7 +334,7 @@ window.GRAPH = {
       "value": {
         "type": "backtrack",
         "prereq": {
-          "traversed": "e_mb_9"
+          "traversed": "e_approach_am_3"
         },
         "dot": {
           "label": "backtrack",
@@ -171,208 +348,8 @@ window.GRAPH = {
       "w": "55",
       "value": {
         "type": "passage",
-        "edgeId": "e_am_9",
-        "link": "[dark_fairy_tale:button_passage#e_am_9]"
-      }
-    },
-    {
-      "v": "45",
-      "w": "57",
-      "value": {
-        "type": "passage",
-        "link": "[dark_fairy_tale:button_passage#e_pp_mb_3]"
-      }
-    },
-    {
-      "v": "48",
-      "w": "57",
-      "value": {
-        "type": "passage",
-        "link": "[dark_fairy_tale:button_passage#e_pp_mb_2]"
-      }
-    },
-    {
-      "v": "54",
-      "w": "57",
-      "value": {
-        "type": "passage",
-        "link": "[dark_fairy_tale:button_passage#e_bare_1]"
-      }
-    },
-    {
-      "v": "58",
-      "w": "43",
-      "value": {
-        "type": "passage",
-        "edgeId": "e_ad_7",
-        "link": "[dark_fairy_tale:button_passage#e_ad_7]"
-      }
-    },
-    {
-      "v": "58",
-      "w": "54",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_am_5"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "43",
-      "w": "58",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_ad_7"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "54",
-      "w": "58",
-      "value": {
-        "type": "passage",
-        "edgeId": "e_am_5",
-        "link": "[dark_fairy_tale:button_passage#e_am_5]"
-      }
-    },
-    {
-      "v": "60",
-      "w": "57",
-      "value": {
-        "type": "passage",
-        "link": "[dark_fairy_tale:button_passage#e_pp_mb_1]"
-      }
-    },
-    {
-      "v": "60",
-      "w": "58",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_mb_5"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "58",
-      "w": "60",
-      "value": {
-        "type": "passage",
-        "edgeId": "e_mb_5",
-        "link": "[dark_fairy_tale:button_passage#e_mb_5]"
-      }
-    },
-    {
-      "v": "61",
-      "w": "60",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_ad_10"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "60",
-      "w": "61",
-      "value": {
-        "type": "passage",
-        "edgeId": "e_ad_10",
-        "link": "[dark_fairy_tale:button_passage#e_ad_10]"
-      }
-    },
-    {
-      "v": "62",
-      "w": "45",
-      "value": {
-        "type": "passage",
-        "edgeId": "e_mb_4",
-        "link": "[dark_fairy_tale:button_passage#e_mb_4]"
-      }
-    },
-    {
-      "v": "62",
-      "w": "48",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_am_4"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "45",
-      "w": "62",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_mb_4"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "48",
-      "w": "62",
-      "value": {
-        "type": "passage",
-        "edgeId": "e_am_4",
-        "link": "[dark_fairy_tale:button_passage#e_am_4]"
-      }
-    },
-    {
-      "v": "63",
-      "w": "62",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_ad_8"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "62",
-      "w": "63",
-      "value": {
-        "type": "passage",
-        "edgeId": "e_ad_8",
-        "link": "[dark_fairy_tale:button_passage#e_ad_8]"
+        "edgeId": "e_approach_am_2",
+        "link": "[dark_fairy_tale:button_passage#approach_2]"
       }
     }
   ]

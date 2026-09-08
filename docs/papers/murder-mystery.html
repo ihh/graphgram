@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Daily Murder Mystery · graphgram</title>
+<meta name="description" content="graphgram — a graph grammar library for procedural narrative">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+<header class="site-nav">
+  <nav>
+      <a href="../index.html" class="brand">graphgram</a>
+      <a href="../guide.html">Guide</a>
+      <a href="../advanced.html">Advanced</a>
+      <a href="../examples.html">Examples</a>
+      <a href="../play/index.html">Play</a>
+      <a href="../papers/index.html">Papers</a>
+      <a href="../spec/story-ir.html">Spec</a>
+      <a href="../jsdoc/index.html">API</a>
+      <a href="https://github.com/ihh/graphgram" rel="noopener">GitHub</a>
+  </nav>
+</header>
+<main class="prose">
+<h1 id="the-daily-murder-mystery">The Daily Murder Mystery</h1>
+<p><em>A murder mystery presented as a logic puzzle can be built as a nest of
+key-and-lock puzzles on a generated graph, because the locks are
+informational: the key is a proposition and the gate is &quot;the player holds
+it&quot;. This paper states that three-layer stack — deduction on top,
+reachability underneath, a grammar derivation underneath that — and argues
+the disguise is not a cheat. It develops the reading in which every
+elaboration rule that creates a lock is an anonymous directive from the
+murderer to an accomplice, so that the derivation history</em> is <em>the plan, and
+says what the generator must record for that to be literally true. It gives
+operational fairness criteria with checking procedures, proposes a
+difficulty metric and reports that the generator produces too little
+variance to validate it, and ends with the measured gaps between the mystery
+track and a shippable daily puzzle.</em></p>
+<p>Measurements were taken against the working tree of 2026-09-08 on an Apple
+M1 Max, Node v22.14.0, unless marked a conjecture. <code>mystery-primitives.js</code>
+was under concurrent edit while this was written, so every number is given
+with the check that produced it.</p>
+<h2 id="1-the-conceit">1. The conceit</h2>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>What it is</th>
+<th>Where it lives</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Surface</td>
+<td>Deduction and social manoeuvring: find a fact, work out whom it embarrasses, use it</td>
+<td>narrative slots, <code>MYSTERY_MACROS</code></td>
+</tr>
+<tr>
+<td>Mechanism</td>
+<td>Key–lock reachability on a directed multigraph with monotone gates</td>
+<td><code>prereq.pairId</code>, <code>reachableWith</code></td>
+</tr>
+<tr>
+<td>Authoring</td>
+<td>A grammar derivation: a sampled sequence of rule applications</td>
+<td><code>socialLock</code>, <code>Grammar#evolve</code></td>
+</tr>
+</tbody></table>
+<p>The structural analogue to the dungeon is exact, and the header of
+<code>mystery-primitives.js</code> tabulates it: key becomes secret, door becomes
+suspect, the locked <code>path</code> edge becomes an <code>interview</code> edge, and &quot;unlock the
+door with the key&quot; becomes &quot;confront them with what you know&quot;. One
+<code>socialLock</code> application rewrites one edge into six, of which one is gated:</p>
+<pre><code class="language-js">{ v: &#39;s&#39;, w: &#39;b&#39;, label: {
+    type: &#39;interview&#39;,
+    edgeId: idTell,
+    pairId: pairId,
+    prereq: { pairId: pairId, link: confront, after: preface, ... }
+} }
+</code></pre>
+<p>The disguise is not a cheat because of what the gate quantifies over. In a
+dungeon the key is a token whose only property is identity; carrying it is
+not knowing anything, and the player&#39;s work is navigation. Here the key is a
+proposition — <code>secretLbl.fact</code> comes from the <code>SECRETS</code> table,
+<code>secretLbl.about</code> names whom it concerns — and the gate is a claim about the
+player&#39;s knowledge. The engine can tell you <em>that</em> you hold
+<code>secret_spine_2</code>; it cannot tell you <em>whose silence it buys</em>. That mapping
+is not in the reachability problem at all. It is the inference, and the
+player performs it.</p>
+<p>The limit is worth stating. The inference is real only while enumerating
+the mapping costs more than reasoning about it, and the canonical budget
+gives four secrets and five suspects — twenty pairs, every one attemptable
+for free, because a wrong confrontation is simply a link that is not
+offered. At that size a player brute-forces. Making that unattractive is a
+cost problem (§2), not a size problem.</p>
+<h2 id="2-social-keys">2. Social keys</h2>
+<p>Two properties are usually cited as separating a social key from a brass
+one. Only one is a real difference here.</p>
+<p><strong>A social key is not consumed.</strong> True, and already the model. The gate
+<code>{ pairId: X }</code> is read by <code>play/game.js:101</code> as &quot;has visited a node with
+this <code>pairId</code>&quot; and by <code>prereqSatisfied</code> as <code>state.keys.has(prereq.pairId)</code>;
+state only ever grows. Nothing in graphgram ever consumed a key — the
+<em>dungeon</em> was the anomaly, modelling an object that stays in your pocket
+forever. The social reading needs no change to the engine.</p>
+<p><strong>A social key can be used wrongly.</strong> This is the genuine gap. Wrong use has
+four parts, and the current model expresses two of them:</p>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Expressible today?</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>The wrong action is <em>offered</em> (you may confront anyone)</td>
+<td>No. An <code>interview</code> edge exists only where <code>socialLock</code> put one; there is no edge for confronting the wrong person.</td>
+</tr>
+<tr>
+<td>It has a <em>cost</em></td>
+<td>Yes, in the IR: <code>{ &quot;op&quot;: &quot;add&quot;, &quot;var&quot;: &quot;hp&quot;, &quot;value&quot;: -20 }</code> is a legal effect (story-ir.md §8), and the play engine already runs an HP economy. No grammar primitive emits one.</td>
+</tr>
+<tr>
+<td>It <em>closes</em> something</td>
+<td>Yes in the IR (<code>{ &quot;op&quot;: &quot;set&quot;, &quot;var&quot;: &quot;...&quot;, &quot;value&quot;: false }</code> is legal), no in the analysis.</td>
+</tr>
+<tr>
+<td>It is <em>ordered</em> — right person, too early</td>
+<td>No.</td>
+</tr>
+</tbody></table>
+<p>The last two are one problem seen twice. <code>reachableWith</code> computes a least
+fixed point assuming <code>state.keys</code>, <code>state.visited</code> and <code>state.traversed</code> are
+monotone. A gate that can be <em>retracted</em> makes reachability depend on the
+walk rather than the state, so the closure stops being a sound summary — and
+<code>lockAnalysis</code> and <code>nestingDepth</code>, built on it, stop being sound too. The IR
+is expressive enough for a non-monotone story; the analysis is not. A
+<code>penalty</code> option on <code>socialLock</code> emitting a costed wrong-confrontation edge
+would disturb nothing; retraction would convert every static check in §4
+from a fixed point into a search over walks.</p>
+<h2 id="3-the-murderer-as-author">3. The murderer as author</h2>
+<p>Each application of a rule that creates a lock corresponds to an anonymous
+directive from the murderer to an unwitting accomplice. <code>directive()</code>
+returns a label fragment, not a rule, and <code>socialLock</code> embeds it on the
+locked edge itself:</p>
+<pre><code class="language-js">function directive (opts) {
+  opts = opts || {}
+  return {
+    to: opts.to || roleExpr(),
+    act: opts.act || actExpr(),
+    note: opts.note || macro(DIRECTIVE_SLOT.macro, opts.ctx)
+  }
+}
+</code></pre>
+<p>Every lock is therefore a thing someone was told to do, and <code>dossierEntry</code>
+files each as a <code>directive</code> edge from the evidence node to its recipient,
+gated on the <code>pairId</code> of the lock it describes — so a note is legible only
+once its lock is open, and the dossier is never a shortcut.</p>
+<p><strong>The plan is a partial order.</strong> <code>Grammar#evolve</code> produces a <em>sequence</em> of
+applications <code>r1 … rn</code>, sampled one per iteration from a seeded Mersenne
+Twister. The sequence is total; the plan is not. Write <code>created(ri)</code> for the
+host elements application <code>i</code> adds and <code>matched(rj)</code> for the host elements
+<code>j</code>&#39;s isomorphism binds. Define</p>
+<pre><code>i ≺ j   iff   created(ri) ∩ matched(rj) ≠ ∅
+</code></pre>
+<p>and let <code>⊑</code> be the transitive closure of <code>≺</code>. Read back: application <code>j</code>
+depends on <code>i</code> exactly when <code>j</code> matched something <code>i</code> made. Any linear
+extension of <code>⊑</code> yields the same graph, so <code>⊑</code>, not the sampled sequence, is
+the plan: the murderer acted in <em>an</em> order consistent with <code>⊑</code>.</p>
+<p>Three consequences, and they are why the framing earns its bookkeeping.</p>
+<ol>
+<li>A player who reconstructs <code>⊑</code> has solved the case. Not &quot;has a theory&quot; —
+has the object the generator built.</li>
+<li>An endgame that shows the derivation as a sheaf of notes is therefore a
+<em>fair and complete</em> solution presentation: not a summary of the answer,
+but the answer, in the representation the generator used.</li>
+<li>Constraints on the grammar become constraints on the plot. A murderer
+cannot direct an accomplice before the accomplice has a reason to comply,
+and &quot;has a reason to comply&quot; is exactly a prereq: the rule that files the
+note cannot match until the leverage exists. <code>dossierEntry</code> enforces this
+structurally rather than by convention.</li>
+</ol>
+<p><strong>This demands that the generator record the derivation.</strong> It does not.
+<code>Context.prototype.applyRuleAtSite</code> (<code>index.js:629</code>) increments
+<code>this.ruleCount[rule.countType]</code> and rewrites the graph; nothing else is
+retained, and <code>Grammar#evolve</code> returns <code>{ iterations, graph }</code> — a count and
+a result. The mystery track works around this by leaving <em>residue</em> on
+labels: the nest rule carries <code>chainDepth</code> forward, <code>socialLock</code> stamps
+<code>directive</code> on the lock, <code>dossierEntry</code> reads it back. That recovers what
+each application produced, not what it consumed, so <code>≺</code> — and hence <code>⊑</code> — is
+not reconstructible from the finished graph.</p>
+<p>Closing the gap is cheap and additive: <code>applyRuleAtSite</code> already holds
+<code>site.rule</code>, <code>isomorph.assign</code> (matched host ids) and its local <code>newId</code>
+(created host ids). One record per application, returned alongside
+<code>iterations</code>, makes <code>⊑</code> computable and changes no graph. Proposed, not an
+API:</p>
+<pre><code class="language-js">// proposed, does not exist
+{ iter, rule: rule.name, matched: { a: &#39;7&#39;, b: &#39;11&#39; }, created: { s: &#39;31&#39;, k: &#39;32&#39; } }
+</code></pre>
+<h2 id="4-fairness">4. Fairness</h2>
+<p>A daily puzzle must be solvable by reasoning and be <em>seen</em> to be. Four
+criteria, each with a procedure, each checked over 28 consecutive dates
+(2026-02-01 … 2026-02-28) at the canonical budget. See
+<a href="key-lock-transformations.html">key-lock-transformations</a> §4 for the general
+form of the first two.</p>
+<p><strong>F1 — every lock&#39;s key is reachable without the lock.</strong> Procedure: for
+each <code>interview</code> edge with <code>prereq.pairId = p</code>, delete it, call
+<code>reachableWith(graph, new Set())</code>, and assert the <code>secret</code> node carrying
+<code>pairId: p</code> is in the reached set. <code>test/mystery.test.js</code> checks the weaker
+property that every <code>prereq.pairId</code> resolves to some secret; F1 itself is
+not a test.</p>
+<p><strong>F2 — every clue the solution depends on is discoverable.</strong> Procedure:
+<code>lockAnalysis(graph)</code> iterates &quot;reach with what you hold, collect every
+secret in the open, repeat&quot;; assert its final <code>reached</code> set contains every
+secret and the goal. Measured: holds on 28/28, with <code>rounds</code> of 3 on 27 days
+and 4 on one — the budget asks for <code>nestingDepth: 3</code>, and the extra round is
+an accident of where the spare off-spine lock landed, not a bug.</p>
+<p><strong>F3 — a uniquely determined culprit.</strong> Procedure: assert exactly one node
+with <code>murderer: true</code> and one <code>accuse</code> edge with <code>correct: true</code>. Measured:
+holds on 28/28, but the criterion is too weak. <code>unmaskMurderer</code> selects the
+suspect with <code>chainDepth: 1</code> — the seed of the deduction chain, and
+therefore the last person you can make talk. That is the genre&#39;s convention
+and also a meta-rule that solves every daily puzzle without reading a note.
+Uniqueness needs a companion: the culprit must not be fixed by a property of
+the <em>generator</em> that survives across days.</p>
+<p><strong>F4 — no required guess.</strong> Procedure: assert the correct accusation is
+gated on evidence the player can hold, and that the evidence <em>identifies</em>.
+It fails twice. <code>prereq: { evidence: N }</code> is quantitative — it counts
+secrets — so holding enough never picks out a person; and the dossier does
+not either, because the murderer is a <code>socialLock</code> suspect like any other
+and so receives a note. Measured: the murderer is filed as a note recipient
+on 28/28 days, which makes &quot;the one who got no note&quot; — the obvious
+identifying inference — false.</p>
+<h2 id="5-difficulty">5. Difficulty</h2>
+<p>What plausibly makes one of these hard: nesting depth <code>d</code>; suspect count
+<code>s</code>; accusation branching factor <code>b</code>; red herrings <code>h</code> — locks whose keys
+open nothing on the murderer&#39;s chain; and the shortest solving walk <code>L</code>
+against map size <code>|V|</code>. The figures below are measured on the <em>graph</em>, not
+the IR, so they are independent of the export bugs in §7, and over the same
+28 days at the canonical
+budget <code>{ rooms: 8, keys: 4, nestingDepth: 3, npcs: 5, minigames: 1 }</code>; <code>L</code>
+is an upper bound from a greedy solver (walk the shortest currently-open
+path to the nearest unheld secret, repeat, then go to the goal), not an
+optimum.</p>
+<table>
+<thead>
+<tr>
+<th>quantity</th>
+<th>min</th>
+<th>median</th>
+<th>max</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>nodes (<code>V</code>)</td>
+<td>28</td>
+<td>28</td>
+<td>28</td>
+</tr>
+<tr>
+<td>edges</td>
+<td>56</td>
+<td>60</td>
+<td>61</td>
+</tr>
+<tr>
+<td>suspects <code>s</code></td>
+<td>5</td>
+<td>5</td>
+<td>5</td>
+</tr>
+<tr>
+<td>locks</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+</tr>
+<tr>
+<td>red herrings <code>h</code></td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>accusation branching <code>b</code></td>
+<td>5</td>
+<td>5</td>
+<td>5</td>
+</tr>
+<tr>
+<td>nesting depth <code>d</code></td>
+<td>3</td>
+<td>3</td>
+<td>4</td>
+</tr>
+<tr>
+<td>greedy walk <code>L</code></td>
+<td>12</td>
+<td>15</td>
+<td>26</td>
+</tr>
+</tbody></table>
+<p>A metric computable from the generated graph:</p>
+<pre><code>D = log2(b) + Σ_{k=1..m} log2(a_k) + d + L/|V|
+</code></pre>
+<p>where <code>m</code> is the number of secrets and <code>a_k</code> the number of suspects whose
+lock is still shut when secret <code>k</code> first becomes reachable. Read back: the
+first term is the bits to name the culprit; the sum is the bits to place
+each secret against a still-silent suspect, which is the deduction the
+surface asks for; <code>d</code> charges for serial dependency, each level forcing a
+return trip; <code>L/|V|</code> charges for how much of the map the solution uses. Red
+herrings need no term of their own: a herring lock keeps one more suspect
+silent, and so raises <code>a_k</code> for every secret found while it stands.</p>
+<p>Confidence: low, and untested. The terms are not commensurable — two are
+bits, one a count, one a ratio — and the additive weighting is a guess.
+Worse, the metric cannot be validated on this generator: four of its five
+inputs are constant across a month, only <code>d</code> and <code>L</code> move, and <code>D</code> travels
+about one and a half bits over 28 days. A metric that does not vary over the
+sample it was fitted to has not been tested. I would defend the ranking by
+<code>d</code>; the rest is a conjecture needing budget variance (§7) first.</p>
+<h2 id="6-the-daily-loop">6. The daily loop</h2>
+<p>Seed from the date. <code>seedForDate</code> in <code>examples/mystery-daily.js</code> is FNV-1a
+over the raw <code>&#39;YYYY-MM-DD&#39;</code> string with a final <code>&gt;&gt;&gt; 1</code>; it reads no clock
+and does no date arithmetic, so the same date names the same mystery
+everywhere. The theme derives from the seed by the same hash, so a day has
+one look as well as one plot.</p>
+<p>Generate a batch; measure; a human curates. Measured: 28 puzzles at the
+canonical budget in 1.69 s, a mean of 60 ms each, with the placeholder
+narrator and no model calls — a year&#39;s batch takes seconds, putting the
+whole cost of the loop in the curation and in the prose. See
+<a href="budgets.html">budgets</a> §6 for the batch-and-measure loop generally.</p>
+<p>The player-facing artefact is one puzzle, the same for everyone, on a date.
+The shareable result should be the <em>shape</em> of the solve, not the answer:
+confrontations attempted, wrong accusations, whether the dossier was opened,
+moves against that day&#39;s <code>L</code>. All of it is already in the play engine&#39;s
+dump-trace payload (README, &quot;Playing a dungeon in the browser&quot;), and none of
+it names a suspect, so the share string is spoiler-free by construction.</p>
+<p>The archive is free — yesterday&#39;s puzzle is <code>seedForDate(&#39;2026-09-07&#39;)</code>, so
+it needs no storage. The catch is the version: <code>docs/spec/examples.md</code>
+promises byte-identical output only <em>for a fixed library version</em>, so the
+archive is a function of (date, version) and must pin the version per date.
+Otherwise one change to <code>socialLock</code> rewrites every puzzle anyone played.</p>
+<h2 id="7-what-it-would-take-to-ship">7. What it would take to ship</h2>
+<p>Present today: the primitives (<code>socialLock</code>, <code>suspect</code>, <code>directive</code>,
+<code>accusation</code> and its four stages, <code>dossierEntry</code>), the staged grammar with
+date seeding, the analysis functions, and an end-to-end path to Story IR —
+<code>bin/story.js --example mystery-daily --format ir</code> produces an IR that
+<code>validateStoryIR</code> accepts with zero problems. The gaps, in the order they
+block:</p>
+<ol>
+<li><strong>Secrets are not keys to either consumer.</strong> <code>story-ir.js</code> emits an
+<code>acquire</code> effect only for nodes whose <code>label.type</code> is <code>&#39;key&#39;</code>, and
+<code>play/game.js:105</code> satisfies a <code>pairId</code> gate only from such a node.
+Mystery secrets are <code>type: &#39;secret&#39;</code>. Measured: the exported mystery IR
+contains <strong>0</strong> <code>acquire</code> effects against 2 for <code>maze-locked</code> at the same
+seed, so every <code>interview</code> condition is permanently false.
+<code>validateStoryIR</code> passes it, because its rule 6 checks that a condition&#39;s
+var is <em>declared</em>, not that it is <em>set</em>. <code>story-solver.js</code>&#39;s
+<code>analyzeStory</code> catches it: on the seed-42 mystery IR it reports 4 dead
+<code>interview</code> links, 4 dead <code>directive</code> links and 2 unreachable secret
+passages, against 0 dead links for <code>maze-locked</code>.</li>
+<li><strong>The evidence gate does not survive export.</strong> <code>story-ir.js</code> contains no
+handling of <code>prereq.evidence</code>; the correct accusation link exports with
+<code>condition: null</code>. Measured on seed 42.</li>
+<li><strong>The disguise leaks at the inventory.</strong> Secrets become IR items named by
+<code>keyName</code>, so the exported story offers &quot;the glass key&quot;, &quot;the iron key&quot;,
+&quot;the bone key&quot; for what are facts about people; the passages also land
+with <code>role: &quot;normal&quot;</code> rather than <code>&quot;item&quot;</code>.</li>
+<li><strong>The derivation is not recorded</strong> (§3), so the endgame can show the
+notes but not the plan.</li>
+<li><strong>Fairness is only partly checked</strong> (§4). <code>test/mystery.test.js</code> covers
+the structural invariants — lock/secret pairing, one correct accusation,
+budgeted nesting depth, no route to the goal around the accusation — but
+F1 and F4 are not among them.</li>
+<li><strong>Cast coherence.</strong> The cast index counts suspects already in the graph,
+and <code>applyRuleAtSite</code> adds each RHS node before evaluating the next
+label, so <code>secretLbl.about</code> is one step ahead. Measured: <code>secret.about</code>
+disagrees with the <code>castRole</code> of the suspect its <code>pairId</code> unlocks in 4 of
+4 locks on 28/28 days. <code>directive.to</code> had the same fault and was fixed
+while this was being written, by reading the role off the node already
+carrying the <code>pairId</code>; <code>about</code> needs the same fix.</li>
+<li><strong>No variety.</strong> Every day is 28 nodes, 5 suspects, 4 secrets, 1 red
+herring (§5). Until the budget jitters per date, &quot;today&#39;s mystery&quot; is one
+mystery with the names permuted.</li>
+<li><strong>Curation and archive pinning</strong> (§6) — product work, blocked only by the
+fairness checks.</li>
+</ol>
+<h2 id="open-problems">Open problems</h2>
+<ol>
+<li>Implement derivation recording in <code>applyRuleAtSite</code>, compute <code>⊑</code>, and
+measure the width of the partial order on real mysteries. A plan of width
+1 is a chain of errands, not a conspiracy.</li>
+<li>Make the culprit unidentifiable by structure alone. The cheapest fix
+that preserves the conceit: give the murderer no <code>interview</code> lock of
+their own — make them the one suspect who received no note — and gate the
+correct accusation on holding the notes that exclude everyone else.</li>
+<li>Give <code>socialLock</code> a <code>penalty</code> option emitting a costed
+wrong-confrontation edge, and measure whether it deters brute force at
+cast sizes of 5, 8 and 12.</li>
+<li>Decide whether retractable gates are worth abandoning the monotone
+closure for (§2); if so, replace <code>reachableWith</code> with a walk search and
+quantify the cost on a 28-node graph.</li>
+<li>Teach <code>story-ir.js</code> and <code>play/game.js</code> a key-bearing node <em>predicate</em>
+(any node with a <code>pairId</code> that is not the lock side) instead of a type
+equality test, and add a <code>validateStoryIR</code> rule: every var in a condition
+must be set by at least one reachable effect.</li>
+<li>Validate the §5 metric. It needs per-date budget jitter and a small
+panel of human solve times; without both, <code>D</code> is arithmetic on constants.</li>
+<li>Name secrets as facts, not keys, in the IR item layer — <code>secretLbl</code>
+already carries <code>fact</code> and <code>about</code>, which is all a noun phrase needs.</li>
+</ol>
+<h2 id="see-also">See also</h2>
+<ul>
+<li><a href="key-lock-transformations.html">key-lock-transformations</a> — the graph
+transformation the social lock re-skins; §4 for reachability invariants.</li>
+<li><a href="budgets.html">budgets</a> — how a budget becomes rule <code>limit</code>s; §6 for the
+batch-and-curate loop.</li>
+<li><a href="narrative-slots.html">narrative-slots</a> — the ten slots <code>SOCIAL_LOCK_SLOTS</code>
+mirrors, and the criterion that admits the eleventh (<code>noteText</code>).</li>
+<li><a href="matching-engine.html">matching-engine</a> — how <code>socialLock({nest: true})</code>
+finds a frontier secret, and what the triage hooks cost.</li>
+<li><a href="logic-minigames.html">logic-minigames</a> — the cipher stage of
+<code>mystery-daily</code>, and locks skinned as puzzles rather than people.</li>
+<li>Source: <a href="https://github.com/ihh/graphgram/blob/master/mystery-primitives.js"><code>mystery-primitives.js</code></a>,
+<a href="https://github.com/ihh/graphgram/blob/master/examples/mystery-daily.js"><code>examples/mystery-daily.js</code></a>,
+<a href="https://github.com/ihh/graphgram/blob/master/dungeon-primitives.js"><code>dungeon-primitives.js</code></a>,
+<a href="https://github.com/ihh/graphgram/blob/master/index.js"><code>index.js</code></a> (<code>Context#applyRuleAtSite</code>),
+<a href="https://github.com/ihh/graphgram/blob/master/story-ir.js"><code>story-ir.js</code></a>,
+<a href="../spec/story-ir.html"><code>docs/spec/story-ir.md</code></a>.</li>
+</ul>
+
+</main>
+<footer class="site-foot">
+  <p>graphgram · <a href="https://github.com/ihh/graphgram">github.com/ihh/graphgram</a> · ISC</p>
+</footer>
+</body>
+</html>

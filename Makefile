@@ -114,6 +114,11 @@ docs-html:
 play-site:
 	node bin/build-play.js
 
+# Same, but generate real prose for each example's canonical seed via the
+# Anthropic API. Cached on disk by prompt hash, so re-runs are free.
+play-site-prose:
+	PROSE=1 node bin/build-play.js
+
 # jsdoc + JSON-schema reference (needs jsdoc and generate-schema-doc on PATH).
 docs-api:
 	$(MAKE) -C docs all
@@ -122,4 +127,4 @@ clean-site:
 	rm -f docs/*.html docs/spec/*.html
 	rm -rf docs/papers docs/play/stories docs/play/game.js docs/play/phrasebook.js
 
-.PHONY: examples example-pdfs site docs-html play-site docs-api clean-site
+.PHONY: examples example-pdfs site docs-html play-site play-site-prose docs-api clean-site

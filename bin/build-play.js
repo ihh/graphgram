@@ -35,6 +35,23 @@ const STORIES = path.join(OUT, 'stories')
 // visibly different maps. Keep this small — each story is a committed file.
 function seedsFor (ex) { return ex.defaultSeeds.slice(0, 3) }
 
+// PROSE=1 generates real narrative for the CANONICAL seed of each example via
+// the Anthropic API, leaving the other seeds on themed placeholders.
+//
+// Only the canonical seed, for two reasons. It is the one the docs link to and
+// the one anybody actually plays, so it is where prose earns its cost; and the
+// placeholder seeds stay useful precisely *because* they are placeholders —
+// `[gothic_horror:describe_room#room_4]` shows which slot each string fills,
+// which is what you want while a grammar is still moving. Shipping both side by
+// side lets the site show the same map in both modes.
+//
+// Every call is cached on disk by sha256(model + system + prompt), so a rebuild
+// at an unchanged seed makes zero API requests. See sonnet-runner.js.
+const PROSE = process.env.PROSE === '1'
+function prosePassFor (ex, seed) {
+  return PROSE && seed === ex.defaultSeeds[0]
+}
+
 fs.mkdirSync(STORIES, { recursive: true })
 
 // --- 1. the stories --------------------------------------------------------
@@ -44,14 +61,17 @@ examples.list().forEach(function (ex) {
   seedsFor(ex).forEach(function (seed) {
     const base = ex.id + '.' + seed + '.js'
     const dest = path.join(STORIES, base)
-    execFileSync(process.execPath, [
+    const args = [
       path.join(ROOT, 'bin', 'story.js'),
       '--example', ex.id,
       '--seed', String(seed),
       '--format', 'play',
       '--out', dest,
       '--quiet'
-    ], { cwd: ROOT, stdio: ['ignore', 'inherit', 'inherit'] })
+    ]
+    if (prosePassFor(ex, seed)) args.push('--sonnet')
+    execFileSync(process.execPath, args,
+      { cwd: ROOT, stdio: ['ignore', 'inherit', 'inherit'] })
 
     const graph = JSON.parse(fs.readFileSync(dest, 'utf-8')
       .replace(/^window\.GRAPH = /, '').replace(/;\n?$/, ''))
@@ -64,10 +84,12 @@ examples.list().forEach(function (ex) {
       topology: ex.topology,
       puzzles: ex.puzzles,
       nodes: graph.nodes.length,
-      edges: graph.edges.length
+      edges: graph.edges.length,
+      prose: prosePassFor(ex, seed) ? 'generated' : 'placeholder'
     })
     console.log('  ' + ex.id + ' @ ' + seed + ' -> docs/play/stories/' + base +
-                '  (' + graph.nodes.length + ' nodes, ' + graph.edges.length + ' edges)')
+                '  (' + graph.nodes.length + ' nodes, ' + graph.edges.length + ' edges' +
+                (prosePassFor(ex, seed) ? ', prose' : '') + ')')
   })
 })
 
@@ -164,7 +186,7 @@ ${PICKER_STYLE}
     stories.forEach(function (s) {
       var opt = document.createElement('option')
       opt.value = s.id + '.' + s.seed
-      opt.textContent = s.id + ' · seed ' + s.seed
+      opt.textContent = s.id + ' · seed ' + s.seed + (s.prose === 'generated' ? ' ✍' : '')
       if (s === chosen) opt.selected = true
       sel.appendChild(opt)
     })
@@ -175,7 +197,8 @@ ${PICKER_STYLE}
     document.getElementById('story-meta').textContent =
       chosen.title + ' — ' + chosen.topology +
       (chosen.puzzles ? ', puzzles' : ', no puzzles') +
-      ' — ' + chosen.nodes + ' nodes, ' + chosen.edges + ' edges'
+      ' — ' + chosen.nodes + ' nodes, ' + chosen.edges + ' edges' +
+      (chosen.prose === 'generated' ? ' — written' : ' — placeholder text')
 
     function load (src, next) {
       var el = document.createElement('script')

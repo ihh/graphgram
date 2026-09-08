@@ -6,62 +6,7 @@ window.GRAPH = {
   },
   "nodes": [
     {
-      "v": "30",
-      "value": {
-        "type": "room",
-        "nodeId": "dag_room_1",
-        "text": "[high_fantasy:describe_room#dag_room_1]",
-        "dot": {
-          "label": "room"
-        }
-      }
-    },
-    {
-      "v": "34",
-      "value": {
-        "type": "room",
-        "nodeId": "dag_room_5",
-        "text": "[high_fantasy:describe_room#dag_room_5]",
-        "dot": {
-          "label": "room"
-        }
-      }
-    },
-    {
-      "v": "38",
-      "value": {
-        "type": "room",
-        "nodeId": "dag_fork1_3",
-        "text": "[high_fantasy:describe_room#dag_fork1_3]",
-        "dot": {
-          "label": "room"
-        }
-      }
-    },
-    {
-      "v": "39",
-      "value": {
-        "type": "start",
-        "nodeId": "start",
-        "text": "[high_fantasy:theme_intro#start]",
-        "dot": {
-          "label": "start"
-        }
-      }
-    },
-    {
-      "v": "40",
-      "value": {
-        "type": "room",
-        "nodeId": "dag_fork2_3",
-        "text": "[high_fantasy:describe_room#dag_fork2_3]",
-        "dot": {
-          "label": "room"
-        }
-      }
-    },
-    {
-      "v": "41",
+      "v": "25",
       "value": {
         "type": "win",
         "nodeId": "win",
@@ -72,7 +17,7 @@ window.GRAPH = {
       }
     },
     {
-      "v": "42",
+      "v": "36",
       "value": {
         "type": "room",
         "nodeId": "dag_room_2",
@@ -83,11 +28,77 @@ window.GRAPH = {
       }
     },
     {
+      "v": "40",
+      "value": {
+        "type": "room",
+        "nodeId": "approach_1",
+        "text": "[high_fantasy:describe_room#approach_1]",
+        "dot": {
+          "label": "room"
+        }
+      }
+    },
+    {
       "v": "43",
       "value": {
         "type": "room",
-        "nodeId": "dag_room_4",
-        "text": "[high_fantasy:describe_room#dag_room_4]",
+        "nodeId": "dag_fork1_3",
+        "text": "[high_fantasy:describe_room#dag_fork1_3]",
+        "dot": {
+          "label": "room"
+        }
+      }
+    },
+    {
+      "v": "45",
+      "value": {
+        "type": "room",
+        "nodeId": "approach_3",
+        "text": "[high_fantasy:describe_room#approach_3]",
+        "dot": {
+          "label": "room"
+        }
+      }
+    },
+    {
+      "v": "46",
+      "value": {
+        "type": "start",
+        "nodeId": "start",
+        "text": "[high_fantasy:theme_intro#start]",
+        "dot": {
+          "label": "start"
+        }
+      }
+    },
+    {
+      "v": "47",
+      "value": {
+        "type": "room",
+        "nodeId": "dag_fork2_3",
+        "text": "[high_fantasy:describe_room#dag_fork2_3]",
+        "dot": {
+          "label": "room"
+        }
+      }
+    },
+    {
+      "v": "48",
+      "value": {
+        "type": "room",
+        "nodeId": "approach_2",
+        "text": "[high_fantasy:describe_room#approach_2]",
+        "dot": {
+          "label": "room"
+        }
+      }
+    },
+    {
+      "v": "49",
+      "value": {
+        "type": "room",
+        "nodeId": "dag_room_1",
+        "text": "[high_fantasy:describe_room#dag_room_1]",
         "dot": {
           "label": "room"
         }
@@ -96,56 +107,20 @@ window.GRAPH = {
   ],
   "edges": [
     {
-      "v": "30",
-      "w": "34",
+      "v": "36",
+      "w": "25",
       "value": {
         "type": "path",
-        "edgeId": "e_dag_am_5",
-        "link": "[high_fantasy:button_passage#e_dag_am_5]",
+        "edgeId": "e_dag_mb_2",
+        "link": "[high_fantasy:button_passage#e_dag_mb_2]",
         "dot": {
           "label": "path"
         }
       }
     },
     {
-      "v": "39",
-      "w": "38",
-      "value": {
-        "type": "path",
-        "edgeId": "e_dag_a1_3",
-        "link": "[high_fantasy:button_passage#e_dag_a1_3]",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "39",
+      "v": "43",
       "w": "40",
-      "value": {
-        "type": "path",
-        "edgeId": "e_dag_a2_3",
-        "link": "[high_fantasy:button_passage#e_dag_a2_3]",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "34",
-      "w": "41",
-      "value": {
-        "type": "path",
-        "edgeId": "e_dag_mb_5",
-        "link": "[high_fantasy:button_passage#e_dag_mb_5]",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "38",
-      "w": "42",
       "value": {
         "type": "path",
         "edgeId": "e_dag_1b_3",
@@ -156,8 +131,32 @@ window.GRAPH = {
       }
     },
     {
-      "v": "40",
-      "w": "42",
+      "v": "45",
+      "w": "36",
+      "value": {
+        "type": "path",
+        "edgeId": "e_dag_am_2",
+        "link": "[high_fantasy:button_passage#e_dag_am_2]",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "46",
+      "w": "43",
+      "value": {
+        "type": "path",
+        "edgeId": "e_dag_a1_3",
+        "link": "[high_fantasy:button_passage#e_dag_a1_3]",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "47",
+      "w": "40",
       "value": {
         "type": "path",
         "edgeId": "e_dag_2b_3",
@@ -168,24 +167,48 @@ window.GRAPH = {
       }
     },
     {
-      "v": "43",
-      "w": "30",
+      "v": "46",
+      "w": "47",
       "value": {
         "type": "path",
-        "edgeId": "e_dag_mb_4",
-        "link": "[high_fantasy:button_passage#e_dag_mb_4]",
+        "edgeId": "e_dag_a2_3",
+        "link": "[high_fantasy:button_passage#e_dag_a2_3]",
         "dot": {
           "label": "path"
         }
       }
     },
     {
-      "v": "42",
-      "w": "43",
+      "v": "40",
+      "w": "48",
       "value": {
         "type": "path",
-        "edgeId": "e_dag_am_4",
-        "link": "[high_fantasy:button_passage#e_dag_am_4]",
+        "edgeId": "e_approach_am_2",
+        "link": "[high_fantasy:button_passage#approach_2]",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "49",
+      "w": "45",
+      "value": {
+        "type": "path",
+        "edgeId": "e_dag_mb_1",
+        "link": "[high_fantasy:button_passage#e_dag_mb_1]",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "48",
+      "w": "49",
+      "value": {
+        "type": "path",
+        "edgeId": "e_dag_am_1",
+        "link": "[high_fantasy:button_passage#e_dag_am_1]",
         "dot": {
           "label": "path"
         }

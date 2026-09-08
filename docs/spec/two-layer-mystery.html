@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The two-layer mystery: geography × approval · graphgram</title>
+<meta name="description" content="graphgram — a graph grammar library for procedural narrative">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+<header class="site-nav">
+  <nav>
+      <a href="../index.html" class="brand">graphgram</a>
+      <a href="../guide.html">Guide</a>
+      <a href="../advanced.html">Advanced</a>
+      <a href="../examples.html">Examples</a>
+      <a href="../play/index.html">Play</a>
+      <a href="../papers/index.html">Papers</a>
+      <a href="../spec/story-ir.html">Spec</a>
+      <a href="../jsdoc/index.html">API</a>
+      <a href="https://github.com/ihh/graphgram" rel="noopener">GitHub</a>
+  </nav>
+</header>
+<main class="prose">
+<h1 id="the-two-layer-mystery-geography-approval">The two-layer mystery: geography × approval</h1>
+<p><em>The architecture of the murder-mystery track. Two grammars, generated
+independently over different aspects of the same world, composed by an
+embedding. The player must navigate both at once, and the puzzle is the
+product.</em></p>
+<h2 id="1-why-two-layers">1. Why two layers</h2>
+<p>The obvious way to build a social mystery on a graph grammar is to write one
+grammar whose rules emit rooms and suspects and secrets together, interleaved.
+That is what the first pass did, and it is wrong in a specific way: it conflates
+two structures that want independent budgets, independent shapes, and
+independent solvability checks.</p>
+<p>Split them:</p>
+<p><strong>The geographic layer.</strong> A navigable map. Rooms, passages, dead ends,
+backtracks. Possibly a physical key-and-door or two, kept as a garnish rather
+than the main course. NPCs stand at some of the nodes. This layer answers <em>where
+can I walk, and who is there</em>.</p>
+<p><strong>The approval layer.</strong> A chain, tree, or DAG over the NPCs, in which an edge
+<code>A → B</code> means <em>B will not receive you until A has vouched for you</em>. It has one
+or more roots — people who will talk to a stranger — and a sink: the boss at the
+top, whose cooperation yields the truth of the conspiracy. This layer answers
+<em>who will talk to me, given who already has</em>.</p>
+<p>Neither layer is a puzzle on its own. The geographic layer without the approval
+layer is a maze; the approval layer without the geographic layer is a to-do
+list. The puzzle is their product.</p>
+<h2 id="2-what-a-lock-is-here">2. What a lock is here</h2>
+<p>The key-and-lock structure was never really about keys and doors. It is:</p>
+<blockquote>
+<p>an uncooperative NPC, holding a secret, where the secret is learnable
+somewhere else on the map, and revealing it to them makes them cooperative.</p>
+</blockquote>
+<h3 id="2-1-the-correspondence-worked-through">2.1 The correspondence, worked through</h3>
+<p>Getting the slot mapping exactly right matters, because it is easy to conflate
+the key with the <em>use</em> of the key, and the taxonomy in
+<a href="https://github.com/ihh/graphgram/blob/master/docs/spec/narrative-slots.md">narrative-slots</a> depends on keeping them apart. Take the
+butler:</p>
+<table>
+<thead>
+<tr>
+<th>slot</th>
+<th>the physical case</th>
+<th>the social case</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>the closed door</td>
+<td>an oak door, banded in iron</td>
+<td><strong>the butler&#39;s silence</strong></td>
+</tr>
+<tr>
+<td>description of the closed door</td>
+<td>&quot;it will not budge&quot;</td>
+<td><em>the butler says there is no reason to look in the pantry</em></td>
+</tr>
+<tr>
+<td>where the key is found</td>
+<td>a room off the crypt stair</td>
+<td>from someone else — his subordinate, say — after solving <em>their</em> puzzle</td>
+</tr>
+<tr>
+<td>what the key is</td>
+<td>a brass key</td>
+<td><strong>knowing about the butler&#39;s affair</strong></td>
+</tr>
+<tr>
+<td>picking the key up</td>
+<td>prising it from a dead hand</td>
+<td>being told about the affair</td>
+</tr>
+<tr>
+<td>carrying the key</td>
+<td>it is in your pocket</td>
+<td>you know it, and he does not know you know</td>
+</tr>
+<tr>
+<td>recognition</td>
+<td>this key looks like that lock</td>
+<td>realising the affair is a hold over <em>him</em> specifically</td>
+</tr>
+<tr>
+<td>the act of unlocking</td>
+<td>turning the key</td>
+<td><strong>&quot;Confront the butler about his affair&quot;</strong></td>
+</tr>
+<tr>
+<td>the door opening</td>
+<td>the door swings in</td>
+<td><strong>the butler admits the pantry is worth a look</strong></td>
+</tr>
+<tr>
+<td>taking the edge</td>
+<td>walking through</td>
+<td>going into the pantry</td>
+</tr>
+</tbody></table>
+<p>The line most often got wrong is the seventh and eighth. <em>Confront the butler
+about his affair</em> is not the key. It is the <strong>use</strong> of the key, and the key is
+the knowledge, acquired somewhere else and carried until it is worth spending.</p>
+<h3 id="2-2-the-room-need-not-be-a-room">2.2 The room need not be a room</h3>
+<p>Nothing above requires the pantry to be a physical space. What lies behind a
+social door can as easily be another piece of knowledge: the butler, once
+broken, coughing up what he knows about his employer. The door opening <em>is</em> the
+reward, and the reward is a fact.</p>
+<p>So the two layers are <strong>aspects, not ontologies</strong>. A node is a thing the player
+can reach and a state they can be in; some of those are places and some are
+facts, and the WALK and CONFRONT moves in §3 are the two ways of getting to one.
+It is worth resisting the urge to unify them into a single node type: they are
+generated by different rules with different budgets, they are laid out
+differently, and — decisively — a player holds them in mind differently, which
+is the whole cognitive point of §7.</p>
+<h3 id="2-3-what-cooperation-yields">2.3 What cooperation yields</h3>
+<p>Two cases, and the second is the one that gives the mystery its shape:</p>
+<p><strong>(a) passage or fact.</strong> The NPC lets you through, or tells you the thing. A
+door with a person in front of it. This is the ordinary case, and it is the
+physical lock with better prose.</p>
+<p><strong>(b) approval.</strong> The NPC&#39;s cooperation is what gives you access to the <em>next
+person</em>. The thing unlocked is not a room; it is somebody&#39;s willingness to
+receive you at all. This is what makes the suspects a conspiracy rather than a
+cast list, because it imposes an order on them.</p>
+<p>Case (b) is why the approval layer is a graph and not a set. To reach the boss
+you need the boss&#39;s approval; the boss receives no one who has not been vouched
+for by their lieutenant; the lieutenant is uncooperative until confronted with
+their secret; that secret is in a locked study, or held by a third person who
+has their own precondition. The nesting is social, and it goes all the way down
+to somebody who will simply talk to you.</p>
+<h2 id="3-the-formal-object">3. The formal object</h2>
+<pre><code>Geographic layer   G_s = (R, P)        rooms R, passages P ⊆ R × R
+                   physical locks      lock: P ⇀ K,  keys placed in rooms
+Approval layer     G_n = (N, A)        NPCs N, approvals A ⊆ N × N   (a DAG)
+                   boss               the unique sink of G_n
+Embedding          φ : N → R           which room each NPC stands in
+Secrets            σ : N → N ⊎ R       where each NPC&#39;s secret is found:
+                                       held by another NPC, or lying in a room
+</code></pre>
+<p>Player state is a pair <code>(r, C)</code> — the room they are in, and the set of NPCs made
+cooperative so far (plus any physical keys held, which behave identically and
+are folded into <code>C</code>).</p>
+<p>Two move types:</p>
+<pre><code>WALK      (r, C) → (r&#39;, C)     if (r,r&#39;) ∈ P and any lock on it is in C
+CONFRONT  (r, C) → (r, C ∪ {n})  if φ(n) = r
+                                 and every predecessor of n in G_n is in C
+                                 and σ(n) is satisfied:
+                                     σ(n) ∈ N  ⇒  σ(n) ∈ C
+                                     σ(n) ∈ R  ⇒  the player has visited σ(n)
+</code></pre>
+<p>The story is solvable iff <code>boss ∈ C</code> is reachable from <code>(start, ∅)</code>. That is a
+reachability problem in the product of the two layers, and it is <em>not</em> implied
+by either layer being fine on its own.</p>
+<h2 id="4-the-deadlock-this-architecture-makes-possible">4. The deadlock this architecture makes possible</h2>
+<p>This is the engineering point, and the reason the check has to run on the
+product.</p>
+<p>Consider: NPC <strong>B</strong>&#39;s secret is a document in the <strong>study</strong>. The study is behind
+a physical door. The key to that door is carried by NPC <strong>A</strong>. And A is
+uncooperative until vouched for by — B.</p>
+<p>Every individual piece is well-formed. <code>G_n</code> is a legitimate DAG. <code>G_s</code> is a
+connected map with a solvable physical lock. <code>σ</code> assigns each secret a real
+location. And the puzzle is dead: B needs the study, the study needs A, A needs
+B.</p>
+<p>Nothing local catches this. A rule that places a secret cannot see the approval
+graph; a rule that adds an approval edge cannot see where secrets ended up. The
+cycle exists only in the composition, so the composition is where it must be
+checked:</p>
+<blockquote>
+<p><strong>Solvability invariant.</strong> Compute the fixpoint of reachable <code>(r, C)</code> from
+<code>(start, ∅)</code> under WALK and CONFRONT. The story is fair iff the fixpoint
+contains a state with <code>boss ∈ C</code>.</p>
+</blockquote>
+<p>The fixpoint is cheap — the state space is <code>|R| × 2^|N|</code>, and <code>|N|</code> is five or
+six by budget — so this is a check to run on <em>every</em> generated story, not a
+sampling audit. When it fails, reject the seed and advance; see
+<a href="https://github.com/ihh/graphgram/blob/master/docs/spec/budgets.md">budgets</a> on rejection sampling.</p>
+<p>A stronger property is worth computing at the same time, because it is what
+makes the mystery feel authored rather than merely possible:</p>
+<blockquote>
+<p><strong>Criticality.</strong> Every NPC in <code>G_n</code> should lie on some path to the boss, and
+every secret placement should be load bearing. An NPC nobody needs is a red
+herring, which is legitimate — but it should be a <em>deliberate</em> red herring
+with a budget, not an accident of generation.</p>
+</blockquote>
+<h2 id="5-generation-order">5. Generation order</h2>
+<pre><code>1. approval layer   grow G_n to the npc budget, at the target nesting depth.
+                    Shape is a knob (§6). Pure structure; no rooms yet.
+2. geographic layer grow G_s to the room budget, using the ordinary
+                    dungeon primitives. Add 0-2 physical locks.
+3. embedding        choose φ and σ. This is the step with all the freedom
+                    and all the danger.
+4. verification     run the §4 fixpoint. On failure, redo step 3 with the
+                    next seed; on repeated failure, redo step 2.
+5. narration        fill the slots.
+</code></pre>
+<p>Step 3 is the interesting one. Placement is not free: <code>σ(n)</code> must be reachable
+without <code>n</code>&#39;s own cooperation, or the lock guards its own key. The cheap
+constructive rule that avoids most deadlocks is to <strong>place along the approval
+order</strong>: process NPCs in a topological order of <code>G_n</code>, and place each one&#39;s
+secret only in rooms or NPCs already reachable given the cooperations available
+at that point in the order. That does not make the §4 check redundant — physical
+locks can still interpose — but it turns the check from a filter into a
+formality.</p>
+<h2 id="6-provenance-why-this-person-knows-that-person-s-secret">6. Provenance: why <em>this</em> person knows <em>that</em> person&#39;s secret</h2>
+<p><code>σ</code> says where each secret is found. When <code>σ(n)</code> is another NPC, there is a
+second question the generator must answer and the fiction must justify: on what
+grounds does <em>that</em> person know it?</p>
+<p>The obvious answer — employment hierarchy, a subordinate who sees more than
+their employer thinks — is only one, and a map built entirely from it reads as
+an organisational chart. The relation is arbitrary, and its arbitrariness is
+content:</p>
+<table>
+<thead>
+<tr>
+<th>relation</th>
+<th>why they know</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>subordinate</code></td>
+<td>they serve them, and servants see everything</td>
+</tr>
+<tr>
+<td><code>rumour</code></td>
+<td>no formal tie at all; the household simply says so</td>
+</tr>
+<tr>
+<td><code>kinship</code></td>
+<td>family, acknowledged or not</td>
+</tr>
+<tr>
+<td><code>complicity</code></td>
+<td>they were both there</td>
+</tr>
+<tr>
+<td><code>proximity</code></td>
+<td>adjacent rooms, shared hours, an overheard thing</td>
+</tr>
+<tr>
+<td><code>correspondence</code></td>
+<td>letters, and one of them kept them</td>
+</tr>
+<tr>
+<td><code>predecessor</code></td>
+<td>they held the post before, and left knowing</td>
+</tr>
+</tbody></table>
+<p>Two consequences. First, the relation is a <strong>narrative slot</strong> in its own right —
+the player is told, or shown, that these two are connected, and that telling is
+where the clue lives. Second, a relation like <code>rumour</code> deliberately cuts across
+the geography and the hierarchy, which is what stops the approval DAG from being
+guessable from the seating plan.</p>
+<h3 id="6-1-direct-and-indirect-clue-delivery">6.1 Direct and indirect clue delivery</h3>
+<p>There are two ways to hand the player a provenance link, and the difference is
+one of the better difficulty knobs available.</p>
+<p><strong>Direct.</strong> The narrator says it: <em>rumours link the butler and the fallen
+woman.</em> One sentence, no inference. Perfectly legitimate, and often the right
+choice — a puzzle in which nothing is ever stated plainly is exhausting rather
+than deep.</p>
+<p><strong>Indirect.</strong> The narrator says two ordinary things in two different places —
+<em>the butler&#39;s prideful air</em>, and later <em>the fallen woman&#39;s prideful nature</em> —
+and never connects them. The player has to notice the echo. This is the social
+counterpart of a brass key in a brass lock, and it is the nicer layer when the
+clue set can afford it.</p>
+<p>The engine treats these as the same object at different preference weights. In
+<a href="https://github.com/ihh/graphgram/blob/master/hallmarks.js"><code>hallmarks.js</code></a>, the shared adjective is the <code>bearing</code>
+axis, and the direct statement is an <code>is</code> clue. <code>generateClueSet</code>&#39;s default
+preference order tries <code>attrEq</code> (the echo) first and falls back to naming names
+only when nothing else finishes the deduction — so a clue set that <em>can</em> be
+all-indirect is, and one that cannot still exists rather than failing. Over 60
+generated four-way puzzles that default produces no bare give-aways at all.</p>
+<p>The important restraint: do not always take the indirect route. Both belong in
+the same puzzle, and a mix reads better than either pole.</p>
+<h2 id="7-the-shape-of-the-approval-layer-is-the-difficulty-knob">7. The shape of the approval layer is the difficulty knob</h2>
+<p><code>G_n</code> is a DAG, and which DAG matters more to the play experience than any
+other single parameter.</p>
+<table>
+<thead>
+<tr>
+<th>shape</th>
+<th>what the player experiences</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>chain</strong> <code>n₁ → n₂ → … → boss</code></td>
+<td>forced order, no agency about sequence. Reads as linear, but the <em>deduction</em> of the order can still be the puzzle.</td>
+</tr>
+<tr>
+<td><strong>tree</strong> (branching toward the boss)</td>
+<td>several independent lines of enquiry converging. The player chooses which to pursue first; all must be finished.</td>
+</tr>
+<tr>
+<td><strong>general DAG with joins</strong></td>
+<td>the boss requires several chains completed, and some NPCs serve more than one chain — so cooperating with one person pays off twice. This is the shape that rewards planning.</td>
+</tr>
+</tbody></table>
+<p>Depth sets how much is nested; width sets how much can be done in parallel; join
+count sets how much of the structure the player can discover early and exploit.
+A budget of <code>{ npcs: 5, nestingDepth: 3 }</code> describes a DAG with those two
+parameters, and the remaining freedom is the width profile.</p>
+<h2 id="8-what-the-player-is-doing">8. What the player is doing</h2>
+<p>Worth stating plainly, because it is the justification for the whole
+construction. At any moment the player holds a set of cooperations and stands
+somewhere. Their problem is to choose the next thing to do, and doing that well
+requires holding two maps in mind at once: the physical one, which they can see,
+and the social one, which they must infer from what people say about each other.</p>
+<p>That is a genuinely different cognitive task from either maze-walking or logic-
+puzzling, and it is the thing this architecture exists to produce. When the two
+layers are aligned — the person you need next is in the next room — it collapses
+into a corridor. When they are orthogonal — the person you need next is back
+where you started, and you did not know you would need them — it becomes a
+route-planning problem over information you acquired in the wrong order. Aim for
+the second.</p>
+<h2 id="9-the-murderer-as-author">9. The murderer as author</h2>
+<p>The approval DAG has a diegetic reading, and it is the reason the whole thing
+holds together as fiction. Each approval edge <code>A → B</code> exists because somebody
+arranged for it: an anonymous directive telling A to vouch for whoever comes
+asking, on pain of their own secret. The murderer knows everybody&#39;s sin, and the
+DAG is the shape of what they built out of that knowledge.</p>
+<p>So the derivation history of the approval grammar <em>is</em> the murderer&#39;s plan, and
+a player who reconstructs the DAG has reconstructed the conspiracy. The endgame
+that shows the derivation as a sheaf of blackmail notes is therefore a fair and
+complete solution presentation, not a gimmick — it is the same object the player
+has been inferring, finally shown directly.</p>
+<p>This has a consequence for the generator: the derivation must be <strong>recorded</strong>,
+not merely applied. See <a href="https://github.com/ihh/graphgram/blob/master/docs/spec/murder-mystery.md">murder-mystery</a>.</p>
+<h2 id="see-also">See also</h2>
+<ul>
+<li><a href="https://github.com/ihh/graphgram/blob/master/docs/spec/murder-mystery.md">murder-mystery</a> — the design paper</li>
+<li><a href="https://github.com/ihh/graphgram/blob/master/docs/spec/key-lock-transformations.md">key-lock-transformations</a> — the catalogue of lock realisations, of which the social lock is one</li>
+<li><a href="https://github.com/ihh/graphgram/blob/master/docs/spec/logic-minigames.md">logic-minigames</a> — the matching problem, when several secrets are live at once</li>
+<li><a href="https://github.com/ihh/graphgram/blob/master/docs/spec/budgets.md">budgets</a> — rejection sampling, and what each budget field binds</li>
+<li><a href="https://github.com/ihh/graphgram/blob/master/mystery-primitives.js"><code>mystery-primitives.js</code></a>, <a href="https://github.com/ihh/graphgram/blob/master/examples/mystery-daily.js"><code>examples/mystery-daily.js</code></a></li>
+</ul>
+
+</main>
+<footer class="site-foot">
+  <p>graphgram · <a href="https://github.com/ihh/graphgram">github.com/ihh/graphgram</a> · ISC</p>
+</footer>
+</body>
+</html>

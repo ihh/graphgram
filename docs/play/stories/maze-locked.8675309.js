@@ -6,7 +6,7 @@ window.GRAPH = {
   },
   "nodes": [
     {
-      "v": "109",
+      "v": "104",
       "value": {
         "type": "distractor",
         "nodeId": "distractor1_2",
@@ -18,7 +18,7 @@ window.GRAPH = {
       }
     },
     {
-      "v": "110",
+      "v": "105",
       "value": {
         "type": "distractor",
         "nodeId": "distractor2_2",
@@ -30,7 +30,7 @@ window.GRAPH = {
       }
     },
     {
-      "v": "111",
+      "v": "106",
       "value": {
         "type": "distractor",
         "nodeId": "distractor3_2",
@@ -42,7 +42,7 @@ window.GRAPH = {
       }
     },
     {
-      "v": "114",
+      "v": "109",
       "value": {
         "type": "puzzle_intro",
         "nodeId": "puzzle_2",
@@ -55,32 +55,31 @@ window.GRAPH = {
       }
     },
     {
-      "v": "130",
+      "v": "113",
       "value": {
-        "type": "door",
-        "pairId": "pair_13",
-        "nodeId": "door_13",
-        "text": "[dark_fairy_tale:describe_door#pair_12]",
+        "type": "win",
+        "nodeId": "win",
+        "text": "[dark_fairy_tale:describe_win#win]",
         "dot": {
-          "label": "door (pair_13)",
-          "shape": "house"
-        },
-        "theme": "dark_fairy_tale"
-      }
-    },
-    {
-      "v": "135",
-      "value": {
-        "type": "room",
-        "nodeId": "room_6",
-        "text": "[dark_fairy_tale:describe_room#room_6]",
-        "dot": {
-          "label": "room"
+          "label": "win"
         }
       }
     },
     {
-      "v": "142",
+      "v": "115",
+      "value": {
+        "type": "door",
+        "pairId": "goalpair_1",
+        "nodeId": "goaldoor_1",
+        "text": "[dark_fairy_tale:describe_door#pair_0]",
+        "dot": {
+          "label": "door (goalpair_1)",
+          "shape": "house"
+        }
+      }
+    },
+    {
+      "v": "137",
       "value": {
         "type": "dead_end",
         "nodeId": "deadend_5",
@@ -91,7 +90,29 @@ window.GRAPH = {
       }
     },
     {
-      "v": "144",
+      "v": "150",
+      "value": {
+        "type": "dead_end",
+        "nodeId": "deadend_1",
+        "text": "[dark_fairy_tale:describe_dead_end#deadend_1]",
+        "dot": {
+          "label": "dead_end"
+        }
+      }
+    },
+    {
+      "v": "152",
+      "value": {
+        "type": "room",
+        "nodeId": "room_9",
+        "text": "[dark_fairy_tale:describe_room#room_9]",
+        "dot": {
+          "label": "room"
+        }
+      }
+    },
+    {
+      "v": "156",
       "value": {
         "type": "death",
         "nodeId": "death_1",
@@ -103,99 +124,42 @@ window.GRAPH = {
       }
     },
     {
-      "v": "148",
+      "v": "157",
       "value": {
         "type": "room",
-        "nodeId": "room_11",
-        "text": "[dark_fairy_tale:describe_room#room_11]",
+        "nodeId": "approach_4",
+        "text": "[dark_fairy_tale:describe_room#approach_4]",
         "dot": {
           "label": "room"
         }
       }
     },
     {
-      "v": "150",
+      "v": "158",
       "value": {
-        "type": "room",
-        "nodeId": "room_14",
-        "text": "[dark_fairy_tale:describe_room#room_14]",
+        "type": "key",
+        "pairId": "goalpair_1",
+        "nodeId": "goalkey_1",
+        "text": "[dark_fairy_tale:describe_key#pair_0]",
         "dot": {
-          "label": "room"
-        }
-      }
-    },
-    {
-      "v": "155",
-      "value": {
-        "type": "dead_end",
-        "nodeId": "deadend_9",
-        "text": "[dark_fairy_tale:describe_dead_end#deadend_9]",
-        "dot": {
-          "label": "dead_end"
+          "label": "key (goalpair_1)",
+          "shape": "diamond"
         }
       }
     },
     {
       "v": "159",
       "value": {
-        "type": "choice",
-        "state": "advantage",
-        "nodeId": "battle_advantage_1",
-        "dot": {
-          "label": "battle (advantage)",
-          "shape": "box",
-          "color": "darkgreen"
-        }
-      }
-    },
-    {
-      "v": "162",
-      "value": {
-        "type": "random",
-        "flavor": "attack",
-        "nodeId": "roll_attack_1",
-        "dot": {
-          "label": "roll (attack)",
-          "shape": "ellipse",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "169",
-      "value": {
-        "type": "win",
-        "nodeId": "win",
-        "text": "[dark_fairy_tale:describe_win#win]",
-        "dot": {
-          "label": "win"
-        }
-      }
-    },
-    {
-      "v": "170",
-      "value": {
         "type": "room",
-        "nodeId": "room_12",
-        "text": "[dark_fairy_tale:describe_room#room_12]",
+        "nodeId": "room_4",
+        "text": "[dark_fairy_tale:describe_room#room_4]",
         "dot": {
           "label": "room"
         }
       }
     },
     {
-      "v": "174",
-      "value": {
-        "type": "room",
-        "nodeId": "room_7",
-        "text": "[dark_fairy_tale:describe_room#room_7]",
-        "dot": {
-          "label": "room"
-        }
-      }
-    },
-    {
-      "v": "176",
+      "v": "160",
       "value": {
         "type": "room",
         "nodeId": "room_8",
@@ -206,32 +170,53 @@ window.GRAPH = {
       }
     },
     {
-      "v": "177",
+      "v": "162",
       "value": {
-        "type": "potion",
-        "nodeId": "potion_1",
-        "healValue": 0.3,
-        "text": "[dark_fairy_tale:describe_potion#potion_1]",
+        "type": "room",
+        "nodeId": "room_10",
+        "text": "[dark_fairy_tale:describe_room#room_10]",
         "dot": {
-          "label": "potion (+0.3)",
-          "shape": "invtriangle",
-          "color": "darkgreen"
+          "label": "room"
         }
       }
     },
     {
-      "v": "178",
+      "v": "163",
       "value": {
-        "type": "start",
-        "nodeId": "start",
-        "text": "[dark_fairy_tale:theme_intro#start]",
+        "type": "room",
+        "nodeId": "approach_2",
+        "text": "[dark_fairy_tale:describe_room#approach_2]",
         "dot": {
-          "label": "start"
+          "label": "room"
         }
       }
     },
     {
-      "v": "179",
+      "v": "166",
+      "value": {
+        "type": "dead_end",
+        "nodeId": "deadend_2",
+        "text": "[dark_fairy_tale:describe_dead_end#deadend_2]",
+        "dot": {
+          "label": "dead_end"
+        }
+      }
+    },
+    {
+      "v": "169",
+      "value": {
+        "type": "random",
+        "flavor": "defend",
+        "nodeId": "roll_defend_1",
+        "dot": {
+          "label": "roll (defend)",
+          "shape": "ellipse",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "170",
       "value": {
         "type": "choice",
         "state": "normal",
@@ -245,73 +230,92 @@ window.GRAPH = {
       }
     },
     {
-      "v": "180",
+      "v": "173",
+      "value": {
+        "type": "start",
+        "nodeId": "start",
+        "text": "[dark_fairy_tale:theme_intro#start]",
+        "dot": {
+          "label": "start"
+        }
+      }
+    },
+    {
+      "v": "174",
       "value": {
         "type": "dead_end",
-        "nodeId": "deadend_10",
-        "text": "[dark_fairy_tale:describe_dead_end#deadend_10]",
+        "nodeId": "deadend_6",
+        "text": "[dark_fairy_tale:describe_dead_end#deadend_6]",
         "dot": {
           "label": "dead_end"
         }
       }
     },
     {
-      "v": "182",
-      "value": {
-        "type": "key",
-        "pairId": "pair_13",
-        "nodeId": "key_13",
-        "text": "[dark_fairy_tale:describe_key#pair_12]",
-        "dot": {
-          "label": "key (pair_13)",
-          "shape": "diamond"
-        }
-      }
-    },
-    {
-      "v": "183",
-      "value": {
-        "type": "room",
-        "nodeId": "room_2",
-        "text": "[dark_fairy_tale:describe_room#room_2]",
-        "dot": {
-          "label": "room"
-        }
-      }
-    },
-    {
-      "v": "184",
-      "value": {
-        "type": "potion",
-        "nodeId": "potion_3",
-        "healValue": 0.3,
-        "text": "[dark_fairy_tale:describe_potion#potion_3]",
-        "dot": {
-          "label": "potion (+0.3)",
-          "shape": "invtriangle",
-          "color": "darkgreen"
-        }
-      }
-    },
-    {
-      "v": "185",
+      "v": "175",
       "value": {
         "type": "random",
-        "flavor": "defend",
-        "nodeId": "roll_defend_1",
+        "flavor": "attack",
+        "nodeId": "roll_attack_1",
         "dot": {
-          "label": "roll (defend)",
+          "label": "roll (attack)",
           "shape": "ellipse",
           "color": "purple"
         }
       }
     },
     {
-      "v": "186",
+      "v": "176",
+      "value": {
+        "type": "choice",
+        "state": "advantage",
+        "nodeId": "battle_advantage_1",
+        "dot": {
+          "label": "battle (advantage)",
+          "shape": "box",
+          "color": "darkgreen"
+        }
+      }
+    },
+    {
+      "v": "177",
       "value": {
         "type": "room",
-        "nodeId": "room_4",
-        "text": "[dark_fairy_tale:describe_room#room_4]",
+        "nodeId": "approach_1",
+        "text": "[dark_fairy_tale:describe_room#approach_1]",
+        "dot": {
+          "label": "room"
+        }
+      }
+    },
+    {
+      "v": "178",
+      "value": {
+        "type": "dead_end",
+        "nodeId": "deadend_7",
+        "text": "[dark_fairy_tale:describe_dead_end#deadend_7]",
+        "dot": {
+          "label": "dead_end"
+        }
+      }
+    },
+    {
+      "v": "179",
+      "value": {
+        "type": "room",
+        "nodeId": "approach_3",
+        "text": "[dark_fairy_tale:describe_room#approach_3]",
+        "dot": {
+          "label": "room"
+        }
+      }
+    },
+    {
+      "v": "180",
+      "value": {
+        "type": "room",
+        "nodeId": "room_3",
+        "text": "[dark_fairy_tale:describe_room#room_3]",
         "dot": {
           "label": "room"
         }
@@ -320,8 +324,8 @@ window.GRAPH = {
   ],
   "edges": [
     {
-      "v": "114",
-      "w": "109",
+      "v": "109",
+      "w": "104",
       "value": {
         "type": "choice",
         "correct": false,
@@ -333,8 +337,8 @@ window.GRAPH = {
       }
     },
     {
-      "v": "114",
-      "w": "110",
+      "v": "109",
+      "w": "105",
       "value": {
         "type": "choice",
         "correct": false,
@@ -346,8 +350,8 @@ window.GRAPH = {
       }
     },
     {
-      "v": "114",
-      "w": "111",
+      "v": "109",
+      "w": "106",
       "value": {
         "type": "choice",
         "correct": false,
@@ -359,8 +363,230 @@ window.GRAPH = {
       }
     },
     {
+      "v": "115",
+      "w": "113",
+      "value": {
+        "type": "passage",
+        "edgeId": "e_goal_dw_1",
+        "link": "[dark_fairy_tale:describe_unlock#pair_0]",
+        "prereq": {
+          "pairId": "goalpair_1",
+          "link": "[dark_fairy_tale:describe_unlock#pair_0]",
+          "after": "[dark_fairy_tale:describe_after_unlock#pair_0]"
+        },
+        "dot": {
+          "label": "locked (goalpair_1)",
+          "style": "bold",
+          "color": "red"
+        }
+      }
+    },
+    {
+      "v": "109",
+      "w": "150",
+      "value": {
+        "type": "choice",
+        "correct": true,
+        "dot": {
+          "label": "correct",
+          "color": "darkgreen"
+        }
+      }
+    },
+    {
+      "v": "157",
+      "w": "115",
+      "value": {
+        "type": "passage",
+        "edgeId": "e_goal_ad_1",
+        "link": "[dark_fairy_tale:describe_take_passage#pair_0/branch]",
+        "dot": {
+          "label": "passage"
+        }
+      }
+    },
+    {
+      "v": "115",
+      "w": "157",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_goal_ad_1"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "158",
+      "w": "157",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_goal_ak_1"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "157",
+      "w": "158",
+      "value": {
+        "type": "passage",
+        "edgeId": "e_goal_ak_1",
+        "before": "[dark_fairy_tale:describe_passage#pair_0/branch]",
+        "link": "[dark_fairy_tale:describe_take_passage#pair_0/branch]",
+        "dot": {
+          "label": "passage"
+        }
+      }
+    },
+    {
+      "v": "159",
+      "w": "109",
+      "value": {
+        "type": "path",
+        "link": "[dark_fairy_tale:button_passage#puzzle_2]",
+        "dot": {
+          "label": "path"
+        }
+      }
+    },
+    {
+      "v": "104",
+      "w": "159",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "back to puzzle",
+          "style": "dotted",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "105",
+      "w": "159",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "back to puzzle",
+          "style": "dotted",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "106",
+      "w": "159",
+      "value": {
+        "type": "path",
+        "dot": {
+          "label": "back to puzzle",
+          "style": "dotted",
+          "color": "gray"
+        }
+      }
+    },
+    {
       "v": "162",
-      "w": "144",
+      "w": "163",
+      "value": {
+        "type": "passage",
+        "link": "[dark_fairy_tale:button_passage#e_pp_mb_10]",
+        "dot": {
+          "label": "passage"
+        }
+      }
+    },
+    {
+      "v": "169",
+      "w": "156",
+      "value": {
+        "type": "consequence",
+        "role": "defend-death",
+        "weight": 0.1,
+        "playerDamage": 0.5,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "169",
+      "w": "157",
+      "value": {
+        "type": "consequence",
+        "role": "defend-victory",
+        "weight": 0.1,
+        "playerDamage": 0,
+        "monsterDamage": 1,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "170",
+      "w": "169",
+      "value": {
+        "type": "choice",
+        "flavor": "defensive",
+        "risk": 0.2,
+        "dot": {
+          "label": "defend",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "169",
+      "w": "170",
+      "value": {
+        "type": "consequence",
+        "role": "defend-stalemate",
+        "weight": 0.5,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "173",
+      "w": "160",
+      "value": {
+        "type": "passage",
+        "link": "[dark_fairy_tale:button_passage#room_8]",
+        "edgeId": "e_approach_am_1",
+        "dot": {
+          "label": "passage"
+        }
+      }
+    },
+    {
+      "v": "152",
+      "w": "174",
+      "value": {
+        "type": "passage",
+        "link": "[dark_fairy_tale:button_passage#e_pp_mb_9]",
+        "dot": {
+          "label": "passage"
+        }
+      }
+    },
+    {
+      "v": "175",
+      "w": "156",
       "value": {
         "type": "consequence",
         "role": "attack-death",
@@ -373,8 +599,89 @@ window.GRAPH = {
       }
     },
     {
-      "v": "162",
-      "w": "159",
+      "v": "175",
+      "w": "157",
+      "value": {
+        "type": "consequence",
+        "role": "attack-victory",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 1,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "175",
+      "w": "170",
+      "value": {
+        "type": "consequence",
+        "role": "attack-stalemate",
+        "weight": 0.4,
+        "playerDamage": 0.2,
+        "monsterDamage": 0.3,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "170",
+      "w": "175",
+      "value": {
+        "type": "choice",
+        "flavor": "aggressive",
+        "risk": 0.7,
+        "dot": {
+          "label": "attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "176",
+      "w": "169",
+      "value": {
+        "type": "choice",
+        "flavor": "hold-position",
+        "risk": 0.1,
+        "dot": {
+          "label": "hold position",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "176",
+      "w": "175",
+      "value": {
+        "type": "choice",
+        "flavor": "press-attack",
+        "risk": 0.3,
+        "dot": {
+          "label": "press attack",
+          "color": "purple"
+        }
+      }
+    },
+    {
+      "v": "169",
+      "w": "176",
+      "value": {
+        "type": "consequence",
+        "role": "defend-advantage",
+        "weight": 0.3,
+        "playerDamage": 0,
+        "monsterDamage": 0,
+        "dot": {
+          "label": "consequence"
+        }
+      }
+    },
+    {
+      "v": "175",
+      "w": "176",
       "value": {
         "type": "consequence",
         "role": "attack-advantage",
@@ -387,83 +694,99 @@ window.GRAPH = {
       }
     },
     {
-      "v": "159",
-      "w": "162",
-      "value": {
-        "type": "choice",
-        "flavor": "press-attack",
-        "risk": 0.3,
-        "dot": {
-          "label": "press attack",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "174",
-      "w": "114",
-      "value": {
-        "type": "path",
-        "link": "[dark_fairy_tale:button_passage#puzzle_2]",
-        "edgeId": "e_ad_10",
-        "dot": {
-          "label": "path"
-        }
-      }
-    },
-    {
-      "v": "109",
-      "w": "174",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "110",
-      "w": "174",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "111",
-      "w": "174",
-      "value": {
-        "type": "path",
-        "dot": {
-          "label": "back to puzzle",
-          "style": "dotted",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "174",
-      "w": "176",
+      "v": "177",
+      "w": "150",
       "value": {
         "type": "passage",
-        "link": "[dark_fairy_tale:button_passage#room_8]",
+        "edgeId": "e_ad_1",
+        "link": "[dark_fairy_tale:button_passage#e_ad_1]",
         "dot": {
           "label": "passage"
         }
       }
     },
     {
-      "v": "148",
-      "w": "177",
+      "v": "177",
+      "w": "152",
       "value": {
         "type": "passage",
-        "link": "[dark_fairy_tale:button_passage#e_pp_mb_11]",
+        "link": "[dark_fairy_tale:button_passage#room_9]",
+        "edgeId": "e_ad_6",
+        "dot": {
+          "label": "passage"
+        }
+      }
+    },
+    {
+      "v": "177",
+      "w": "159",
+      "value": {
+        "type": "passage",
+        "link": "[dark_fairy_tale:button_passage#room_4]",
+        "edgeId": "e_ad_1",
+        "dot": {
+          "label": "passage"
+        }
+      }
+    },
+    {
+      "v": "177",
+      "w": "162",
+      "value": {
+        "type": "passage",
+        "link": "[dark_fairy_tale:button_passage#room_10]",
+        "edgeId": "e_approach_am_2",
+        "dot": {
+          "label": "passage"
+        }
+      }
+    },
+    {
+      "v": "177",
+      "w": "163",
+      "value": {
+        "type": "passage",
+        "edgeId": "e_approach_am_2",
+        "link": "[dark_fairy_tale:button_passage#approach_2]",
+        "dot": {
+          "label": "passage"
+        }
+      }
+    },
+    {
+      "v": "177",
+      "w": "166",
+      "value": {
+        "type": "passage",
+        "edgeId": "e_ad_2",
+        "link": "[dark_fairy_tale:button_passage#e_ad_2]",
+        "dot": {
+          "label": "passage"
+        }
+      }
+    },
+    {
+      "v": "177",
+      "w": "173",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_approach_am_1"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "177",
+      "w": "174",
+      "value": {
+        "type": "passage",
+        "edgeId": "e_ad_6",
+        "link": "[dark_fairy_tale:button_passage#e_ad_6]",
         "dot": {
           "label": "passage"
         }
@@ -473,26 +796,19 @@ window.GRAPH = {
       "v": "150",
       "w": "177",
       "value": {
-        "type": "passage",
-        "link": "[dark_fairy_tale:button_passage#e_pp_mb_14]",
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_ad_1"
+        },
         "dot": {
-          "label": "passage"
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
         }
       }
     },
     {
-      "v": "174",
-      "w": "177",
-      "value": {
-        "type": "passage",
-        "link": "[dark_fairy_tale:button_passage#e_pp_mb_7]",
-        "dot": {
-          "label": "passage"
-        }
-      }
-    },
-    {
-      "v": "176",
+      "v": "160",
       "w": "177",
       "value": {
         "type": "passage",
@@ -503,8 +819,92 @@ window.GRAPH = {
       }
     },
     {
+      "v": "163",
+      "w": "177",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_approach_am_2"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "166",
+      "w": "177",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_ad_2"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "173",
+      "w": "177",
+      "value": {
+        "type": "passage",
+        "edgeId": "e_approach_am_1",
+        "link": "[dark_fairy_tale:button_passage#approach_1]",
+        "dot": {
+          "label": "passage"
+        }
+      }
+    },
+    {
+      "v": "174",
+      "w": "177",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_ad_6"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
       "v": "178",
-      "w": "142",
+      "w": "177",
+      "value": {
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_ad_7"
+        },
+        "dot": {
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
+        }
+      }
+    },
+    {
+      "v": "177",
+      "w": "178",
+      "value": {
+        "type": "passage",
+        "edgeId": "e_ad_7",
+        "link": "[dark_fairy_tale:button_passage#e_ad_7]",
+        "dot": {
+          "label": "passage"
+        }
+      }
+    },
+    {
+      "v": "179",
+      "w": "137",
       "value": {
         "type": "passage",
         "edgeId": "e_ad_5",
@@ -515,54 +915,35 @@ window.GRAPH = {
       }
     },
     {
-      "v": "178",
-      "w": "155",
+      "v": "179",
+      "w": "157",
       "value": {
         "type": "passage",
-        "edgeId": "e_ad_9",
-        "link": "[dark_fairy_tale:button_passage#e_ad_9]",
+        "edgeId": "e_approach_am_4",
+        "link": "[dark_fairy_tale:button_passage#approach_4]",
         "dot": {
           "label": "passage"
         }
       }
     },
     {
-      "v": "178",
-      "w": "169",
+      "v": "179",
+      "w": "163",
       "value": {
-        "type": "passage",
+        "type": "backtrack",
+        "prereq": {
+          "traversed": "e_approach_am_3"
+        },
         "dot": {
-          "label": "passage"
+          "label": "backtrack",
+          "style": "dashed",
+          "color": "gray"
         }
       }
     },
     {
-      "v": "178",
-      "w": "170",
-      "value": {
-        "type": "passage",
-        "link": "[dark_fairy_tale:button_passage#room_12]",
-        "edgeId": "e_ap_1",
-        "dot": {
-          "label": "passage"
-        }
-      }
-    },
-    {
-      "v": "178",
-      "w": "177",
-      "value": {
-        "type": "passage",
-        "edgeId": "e_ap_1",
-        "link": "[dark_fairy_tale:button_passage#e_ap_1]",
-        "dot": {
-          "label": "passage"
-        }
-      }
-    },
-    {
-      "v": "142",
-      "w": "178",
+      "v": "137",
+      "w": "179",
       "value": {
         "type": "backtrack",
         "prereq": {
@@ -576,12 +957,12 @@ window.GRAPH = {
       }
     },
     {
-      "v": "155",
-      "w": "178",
+      "v": "157",
+      "w": "179",
       "value": {
         "type": "backtrack",
         "prereq": {
-          "traversed": "e_ad_9"
+          "traversed": "e_approach_am_4"
         },
         "dot": {
           "label": "backtrack",
@@ -591,426 +972,61 @@ window.GRAPH = {
       }
     },
     {
-      "v": "159",
-      "w": "178",
-      "value": {
-        "type": "retreat",
-        "dot": {
-          "label": "retreat",
-          "style": "dashed",
-          "color": "orange"
-        }
-      }
-    },
-    {
-      "v": "177",
-      "w": "178",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_ap_1"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "179",
-      "w": "162",
-      "value": {
-        "type": "choice",
-        "flavor": "aggressive",
-        "risk": 0.7,
-        "dot": {
-          "label": "attack",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "179",
-      "w": "178",
-      "value": {
-        "type": "retreat",
-        "dot": {
-          "label": "retreat",
-          "style": "dashed",
-          "color": "orange"
-        }
-      }
-    },
-    {
-      "v": "162",
+      "v": "163",
       "w": "179",
       "value": {
-        "type": "consequence",
-        "role": "attack-stalemate",
-        "weight": 0.4,
-        "playerDamage": 0.2,
-        "monsterDamage": 0.3,
+        "type": "passage",
+        "edgeId": "e_approach_am_3",
+        "link": "[dark_fairy_tale:button_passage#approach_3]",
         "dot": {
-          "label": "consequence"
+          "label": "passage"
         }
       }
     },
     {
-      "v": "178",
-      "w": "179",
+      "v": "180",
+      "w": "170",
       "value": {
         "type": "path",
         "link": "[dark_fairy_tale:button_passage#e_mb_1]",
-        "edgeId": "e_ap_1",
         "dot": {
           "label": "path"
         }
       }
     },
     {
-      "v": "180",
-      "w": "174",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_ad_10"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "114",
+      "v": "170",
       "w": "180",
       "value": {
-        "type": "choice",
-        "correct": true,
-        "edgeId": "e_ad_10",
+        "type": "retreat",
         "dot": {
-          "label": "correct",
-          "color": "darkgreen"
-        }
-      }
-    },
-    {
-      "v": "183",
-      "w": "130",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_db_13"
-        },
-        "dot": {
-          "label": "backtrack",
+          "label": "retreat",
           "style": "dashed",
-          "color": "gray"
+          "color": "orange"
         }
       }
     },
     {
-      "v": "183",
-      "w": "148",
+      "v": "176",
+      "w": "180",
       "value": {
-        "type": "passage",
-        "link": "[dark_fairy_tale:button_passage#room_11]",
+        "type": "retreat",
         "dot": {
-          "label": "passage"
-        }
-      }
-    },
-    {
-      "v": "183",
-      "w": "150",
-      "value": {
-        "type": "passage",
-        "link": "[dark_fairy_tale:button_passage#room_14]",
-        "dot": {
-          "label": "passage"
-        }
-      }
-    },
-    {
-      "v": "183",
-      "w": "174",
-      "value": {
-        "type": "passage",
-        "link": "[dark_fairy_tale:button_passage#room_7]",
-        "dot": {
-          "label": "passage"
-        }
-      }
-    },
-    {
-      "v": "183",
-      "w": "177",
-      "value": {
-        "type": "passage",
-        "link": "[dark_fairy_tale:button_passage#e_pp_mb_2]",
-        "dot": {
-          "label": "passage"
-        }
-      }
-    },
-    {
-      "v": "130",
-      "w": "183",
-      "value": {
-        "type": "passage",
-        "edgeId": "e_db_13",
-        "link": "[dark_fairy_tale:describe_unlock#pair_12]",
-        "prereq": {
-          "pairId": "pair_13",
-          "link": "[dark_fairy_tale:describe_unlock#pair_12]",
-          "after": "[dark_fairy_tale:describe_after_unlock#pair_12]"
-        },
-        "dot": {
-          "label": "locked (pair_13)",
-          "style": "bold",
-          "color": "red"
-        }
-      }
-    },
-    {
-      "v": "135",
-      "w": "183",
-      "value": {
-        "type": "passage",
-        "link": "[dark_fairy_tale:button_passage#e_pp_mb_6]",
-        "dot": {
-          "label": "passage"
-        }
-      }
-    },
-    {
-      "v": "170",
-      "w": "183",
-      "value": {
-        "type": "passage",
-        "link": "[dark_fairy_tale:button_passage#e_pp_mb_12]",
-        "dot": {
-          "label": "passage"
-        }
-      }
-    },
-    {
-      "v": "178",
-      "w": "183",
-      "value": {
-        "type": "passage",
-        "link": "[dark_fairy_tale:button_passage#room_2]",
-        "edgeId": "e_ap_1",
-        "dot": {
-          "label": "passage"
-        }
-      }
-    },
-    {
-      "v": "184",
-      "w": "183",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_ap_3"
-        },
-        "dot": {
-          "label": "backtrack",
+          "label": "retreat",
           "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "183",
-      "w": "184",
-      "value": {
-        "type": "passage",
-        "edgeId": "e_ap_3",
-        "link": "[dark_fairy_tale:button_passage#e_ap_3]",
-        "dot": {
-          "label": "passage"
-        }
-      }
-    },
-    {
-      "v": "185",
-      "w": "144",
-      "value": {
-        "type": "consequence",
-        "role": "defend-death",
-        "weight": 0.1,
-        "playerDamage": 0.5,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "185",
-      "w": "159",
-      "value": {
-        "type": "consequence",
-        "role": "defend-advantage",
-        "weight": 0.3,
-        "playerDamage": 0,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "185",
-      "w": "179",
-      "value": {
-        "type": "consequence",
-        "role": "defend-stalemate",
-        "weight": 0.5,
-        "playerDamage": 0,
-        "monsterDamage": 0,
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "159",
-      "w": "185",
-      "value": {
-        "type": "choice",
-        "flavor": "hold-position",
-        "risk": 0.1,
-        "dot": {
-          "label": "hold position",
-          "color": "purple"
+          "color": "orange"
         }
       }
     },
     {
       "v": "179",
-      "w": "185",
-      "value": {
-        "type": "choice",
-        "flavor": "defensive",
-        "risk": 0.2,
-        "dot": {
-          "label": "defend",
-          "color": "purple"
-        }
-      }
-    },
-    {
-      "v": "186",
-      "w": "130",
+      "w": "180",
       "value": {
         "type": "passage",
-        "edgeId": "e_ad_13",
-        "link": "[dark_fairy_tale:describe_take_passage#pair_12/branch]",
+        "link": "[dark_fairy_tale:button_passage#room_3]",
+        "edgeId": "e_approach_am_4",
         "dot": {
           "label": "passage"
-        }
-      }
-    },
-    {
-      "v": "186",
-      "w": "135",
-      "value": {
-        "type": "passage",
-        "link": "[dark_fairy_tale:button_passage#room_6]",
-        "dot": {
-          "label": "passage"
-        }
-      }
-    },
-    {
-      "v": "186",
-      "w": "182",
-      "value": {
-        "type": "passage",
-        "edgeId": "e_ak_13",
-        "before": "[dark_fairy_tale:describe_passage#pair_12/branch]",
-        "link": "[dark_fairy_tale:describe_take_passage#pair_12/branch]",
-        "dot": {
-          "label": "passage"
-        }
-      }
-    },
-    {
-      "v": "130",
-      "w": "186",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_ad_13"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "162",
-      "w": "186",
-      "value": {
-        "type": "consequence",
-        "role": "attack-victory",
-        "weight": 0.3,
-        "playerDamage": 0,
-        "monsterDamage": 1,
-        "edgeId": "e_ap_1",
-        "dot": {
-          "label": "consequence"
-        }
-      }
-    },
-    {
-      "v": "182",
-      "w": "186",
-      "value": {
-        "type": "backtrack",
-        "prereq": {
-          "traversed": "e_ak_13"
-        },
-        "dot": {
-          "label": "backtrack",
-          "style": "dashed",
-          "color": "gray"
-        }
-      }
-    },
-    {
-      "v": "183",
-      "w": "186",
-      "value": {
-        "type": "return",
-        "prereq": {
-          "visited": "room_4"
-        },
-        "dot": {
-          "label": "return (pair_13)",
-          "style": "bold",
-          "color": "blue"
-        }
-      }
-    },
-    {
-      "v": "185",
-      "w": "186",
-      "value": {
-        "type": "consequence",
-        "role": "defend-victory",
-        "weight": 0.1,
-        "playerDamage": 0,
-        "monsterDamage": 1,
-        "edgeId": "e_ap_1",
-        "dot": {
-          "label": "consequence"
         }
       }
     }

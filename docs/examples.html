@@ -61,7 +61,7 @@ harder than it sounds, and <code>dag-locked</code> exists to show one way to do 
 <span class="pill">no puzzles</span></p>
 <p><code>dag-plain</code>, canonical seed <code>42</code>.
  Other pinned seeds: <a href="play/index.html?story=dag-plain.1729">1729</a>, <a href="play/index.html?story=dag-plain.8675309">8675309</a>.</p>
-<span class="meta">rooms 10</span>
+<span class="meta">rooms 10 · criticalPath 3</span>
 </li>
 <li class="card">
 <h3><a href="play/index.html?story=dag-locked.42">The Sealed Gate</a></h3>
@@ -69,7 +69,7 @@ harder than it sounds, and <code>dag-locked</code> exists to show one way to do 
 <span class="pill">puzzles</span></p>
 <p><code>dag-locked</code>, canonical seed <code>42</code>.
  Other pinned seeds: <a href="play/index.html?story=dag-locked.1729">1729</a>, <a href="play/index.html?story=dag-locked.8675309">8675309</a>.</p>
-<span class="meta">rooms 14 · keys 2 · nestingDepth 2</span>
+<span class="meta">rooms 18 · keys 2 · nestingDepth 2 · criticalPath 2</span>
 </li>
 <li class="card">
 <h3><a href="play/index.html?story=maze-plain.42">The Warren</a></h3>
@@ -77,7 +77,7 @@ harder than it sounds, and <code>dag-locked</code> exists to show one way to do 
 <span class="pill">no puzzles</span></p>
 <p><code>maze-plain</code>, canonical seed <code>42</code>.
  Other pinned seeds: <a href="play/index.html?story=maze-plain.1729">1729</a>, <a href="play/index.html?story=maze-plain.8675309">8675309</a>.</p>
-<span class="meta">rooms 12</span>
+<span class="meta">rooms 12 · criticalPath 4</span>
 </li>
 <li class="card">
 <h3><a href="play/index.html?story=maze-locked.42">The Cindermoor Vault</a></h3>
@@ -85,7 +85,7 @@ harder than it sounds, and <code>dag-locked</code> exists to show one way to do 
 <span class="pill">puzzles</span></p>
 <p><code>maze-locked</code>, canonical seed <code>42</code>.
  Other pinned seeds: <a href="play/index.html?story=maze-locked.1729">1729</a>, <a href="play/index.html?story=maze-locked.8675309">8675309</a>.</p>
-<span class="meta">rooms 16 · keys 3 · nestingDepth 2 · minigames 2</span>
+<span class="meta">rooms 16 · keys 3 · nestingDepth 2 · minigames 2 · criticalPath 4</span>
 </li>
 <li class="card">
 <h3><a href="play/index.html?story=mystery-daily.1024651441">A Note in Another Hand</a></h3>
@@ -155,11 +155,12 @@ turn the tree into a Metroidvania graph, health potions, Markov monster battles,
 and multiple-choice puzzle gates. This is the file to copy when starting
 something new; its header comment walks through all six stages.</p>
 <h3 id="mystery-daily-the-destination"><code>mystery-daily</code> — the destination</h3>
-<p>Suspects, secrets, and social locks. The keys are facts rather than brass:
-<em>confront the butler about his affair</em> is a key, and a suspect&#39;s silence is a
-door. What a lock yields need not be a room — more often it is the next
-person&#39;s willingness to receive you at all, which is what turns a set of
-suspects into a conspiracy with a shape.</p>
+<p>Suspects, secrets, and social locks. The keys are facts rather than brass, and
+the correspondence is exact: the butler&#39;s silence is the door, knowing about his
+affair is the key, confronting him with it is the act of unlocking, and his
+conceding that the pantry is worth a look is the door swinging open. What lies
+beyond need not be a room at all — it can be another secret, which is how a set
+of suspects becomes a conspiracy with a shape.</p>
 <p>The seed derives from the date, so everyone gets the same puzzle on the same
 day. <a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/murder-mystery.html">The design paper</a> is the long version.</p>
 <h2 id="playing-them">Playing them</h2>
