@@ -73,3 +73,53 @@ play/graph.js: grammars/dunjs-dungeon.js dungeon-primitives.js narrator.js index
 README.md: bin/transform.js
 	bin/transform.js -h | perl -pe 's/</&lt;/g;s/>/&gt;/g;' | perl -e 'open FILE,"<README.md";while(<FILE>){last if/<pre>/;print}close FILE;print"<pre><code>\n";while(<>){print};print"</code></pre>\n"' >temp.md
 	mv temp.md $@
+
+# ---------------------------------------------------------------------------
+# Worked examples and the GitHub Pages site.
+#
+# GitHub Pages serves this repo from master:/docs, so the site is committed as
+# static files. `make site` regenerates all of it; `make examples` regenerates
+# the exported artefacts under out/.
+# ---------------------------------------------------------------------------
+
+EXAMPLES := dag-plain dag-locked maze-plain maze-locked mystery-daily
+FORMATS  := ir twine choicescript inform7
+
+# Every example, every format, at its canonical seed.
+#   make examples
+examples:
+	@mkdir -p out/examples
+	@for e in $(EXAMPLES); do \
+	  bin/story.js --example $$e --format ir      --out out/examples/$$e.ir.json   -q; \
+	  bin/story.js --example $$e --format twine   --out out/examples/$$e.twee      -q; \
+	  bin/story.js --example $$e --format inform7 --out out/examples/$$e.ni        -q; \
+	  bin/story.js --example $$e --format choicescript --out out/examples/$$e.cs   -q; \
+	  bin/story.js --example $$e --format dot     --out out/examples/$$e.dot       -q; \
+	  echo "built out/examples/$$e.*"; \
+	done
+
+# PDFs of every example map (requires graphviz).
+example-pdfs: examples
+	@mkdir -p out/examples
+	@for e in $(EXAMPLES); do \
+	  dot -Tpdf out/examples/$$e.dot -o out/examples/$$e.pdf; \
+	done
+
+# The documentation site: markdown -> HTML, plus the playable stories.
+site: docs-html play-site
+
+docs-html:
+	node bin/build-docs.js
+
+play-site:
+	node bin/build-play.js
+
+# jsdoc + JSON-schema reference (needs jsdoc and generate-schema-doc on PATH).
+docs-api:
+	$(MAKE) -C docs all
+
+clean-site:
+	rm -f docs/*.html docs/spec/*.html
+	rm -rf docs/papers docs/play/stories docs/play/game.js docs/play/phrasebook.js
+
+.PHONY: examples example-pdfs site docs-html play-site docs-api clean-site

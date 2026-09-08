@@ -1,9 +1,108 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta http-equiv="refresh" content="0; url='jsdoc/tutorial-getting-started.html'" />
-  </head>
-  <body>
-    <p>Redirecting to <a href="jsdoc/tutorial-getting-started.html">jsdoc/tutorial-getting-started.html</a>...</p>
-  </body>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>graphgram</title>
+<meta name="description" content="graphgram — a graph grammar library for procedural narrative">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<header class="site-nav">
+  <nav>
+      <a href="index.html" class="brand active">graphgram</a>
+      <a href="guide.html">Guide</a>
+      <a href="advanced.html">Advanced</a>
+      <a href="examples.html">Examples</a>
+      <a href="play/index.html">Play</a>
+      <a href="papers/index.html">Papers</a>
+      <a href="spec/story-ir.html">Spec</a>
+      <a href="jsdoc/index.html">API</a>
+      <a href="https://github.com/ihh/graphgram" rel="noopener">GitHub</a>
+  </nav>
+</header>
+<main class="prose">
+<h1 id="graphgram">graphgram</h1>
+<p><em>A graph grammar library, and a pipeline that turns the graphs it grows into playable stories — Twine, ChoiceScript, Inform 7, or a browser.</em></p>
+<p><code>graphgram</code> rewrites <a href="https://github.com/dagrejs/graphlib">graphlib</a> graphs
+according to a JSON-described grammar. You give it rules of the form <em>&quot;wherever
+you find this pattern, replace it with that one&quot;</em>, a weight and a limit for
+each, and it grows a graph. Rooms, corridors, locks, keys, suspects, secrets.</p>
+<p>The one genuinely heavyweight thing it does is <strong>find the patterns</strong>: applying a
+rewrite rule means locating every occurrence of its left-hand side in the host
+graph, which is subgraph isomorphism, which is NP-complete. The implementation
+is Ullmann&#39;s 1976 algorithm with several deliberate triage hooks bolted on so
+that the common case — a rule whose pattern nodes carry literal type labels —
+never enters the expensive part of the search at all.</p>
+<pre><code class="language-bash">npm install graphgram
+</code></pre>
+<pre><code class="language-bash"># grow a dungeon and play it in a browser
+bin/story.js --example maze-locked --seed 42 --format play --out play/graph.js
+open play/index.html
+
+# the same dungeon, as a Twine story
+bin/story.js --example maze-locked --seed 42 --format twine --out maze.twee
+</code></pre>
+<h2 id="start-here">Start here</h2>
+<ul class="cards">
+<li class="card">
+<h3><a href="guide.html">Guide</a></h3>
+<p>Rules, labels, stages, and the sampler. Everything you need to write your first grammar and grow a graph from it.</p>
+<span class="meta">basic usage</span>
+</li>
+<li class="card">
+<h3><a href="advanced.html">Advanced</a></h3>
+<p>The matching engine and its performance hooks, reusable primitives, narrative slots, and how to add an export target.</p>
+<span class="meta">the machinery</span>
+</li>
+<li class="card">
+<h3><a href="examples.html">Worked examples</a></h3>
+<p>Five reproducible stories spanning DAG and bidirectional hypertexts, with and without puzzles. Every one playable at a pinned seed.</p>
+<span class="meta">seeds you can run</span>
+</li>
+<li class="card">
+<h3><a href="papers/index.html">Papers</a></h3>
+<p>A small internal literature: the narrative slot taxonomy, key-lock transformations, budgets, the matcher, and the daily murder mystery.</p>
+<span class="meta">design rationale</span>
+</li>
+</ul><h2 id="what-it-is-for">What it is for</h2>
+<p>The library came out of level generation for roguelikes and choose-your-own
+adventures — see <a href="https://www.rockpapershotgun.com/how-unexplored-generates-great-roguelike-dungeons">Joris Dormans&#39; <em>Unexplored</em></a>,
+which uses graph grammars to build cyclic levels, and
+<a href="http://www.its.caltech.edu/~matilde/GraphGrammarsLing.pdf">Matilde Marcolli&#39;s slides</a>
+for the formal background. It is not limited to games: a graph grammar is a
+reasonable way to grow any structured artefact whose parts have a small number
+of recurring local shapes.</p>
+<p>What this repo adds on top of the bare grammar engine is a full path from
+grammar to playable artefact:</p>
+<ol>
+<li><strong>Primitives</strong> — <a href="https://github.com/ihh/graphgram/blob/master/dungeon-primitives.js"><code>dungeon-primitives.js</code></a>
+and its siblings package the recurring rewrites (midpoint rooms, dead ends,
+parallel paths, key/door pairs, cycle-closing shortcuts, monster battles,
+multiple-choice puzzles) as parameterised rule factories.</li>
+<li><strong>Narrative slots</strong> — every node and edge a rule creates carries named text
+fields, filled from a themed macro table offline or by a language model
+online. See <a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/narrative-slots.html">the slot taxonomy</a>.</li>
+<li><strong>Story IR</strong> — a target-agnostic intermediate representation
+(<a href="https://github.com/ihh/graphgram/blob/master/docs/src/spec/story-ir.html">spec</a>) that normalises a generated graph into
+passages, links, conditions and effects.</li>
+<li><strong>Exporters</strong> — Twine (Twee 3 / Harlowe), ChoiceScript, Inform 7, and a
+browser play engine, each a pure function of the IR.</li>
+</ol>
+<h2 id="the-destination">The destination</h2>
+<p>Everything above is scaffolding towards one thing: a generatively-constructed,
+optionally human-curated <strong>daily murder mystery</strong> that presents as a logic
+puzzle and is, underneath, a nest of key-and-lock puzzles on a generated map.</p>
+<p>The keys are facts rather than brass. <em>Confront the butler about his affair</em> is
+a key; a suspect&#39;s silence is a door. Each application of an elaboration rule
+that creates a lock has a diegetic reading — an anonymous directive from the
+murderer to an unwitting accomplice — so that the grammar&#39;s derivation history
+<em>is</em> the murderer&#39;s plan, and a player who reconstructs it has solved the case.</p>
+<p><a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/murder-mystery.html">The daily murder mystery</a> is the design paper.</p>
+
+</main>
+<footer class="site-foot">
+  <p>graphgram · <a href="https://github.com/ihh/graphgram">github.com/ihh/graphgram</a> · ISC</p>
+</footer>
+</body>
 </html>

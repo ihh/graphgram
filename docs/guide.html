@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guide · graphgram</title>
+<meta name="description" content="graphgram — a graph grammar library for procedural narrative">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<header class="site-nav">
+  <nav>
+      <a href="index.html" class="brand">graphgram</a>
+      <a href="guide.html" class="active">Guide</a>
+      <a href="advanced.html">Advanced</a>
+      <a href="examples.html">Examples</a>
+      <a href="play/index.html">Play</a>
+      <a href="papers/index.html">Papers</a>
+      <a href="spec/story-ir.html">Spec</a>
+      <a href="jsdoc/index.html">API</a>
+      <a href="https://github.com/ihh/graphgram" rel="noopener">GitHub</a>
+  </nav>
+</header>
+<main class="prose">
+<h1 id="guide">Guide</h1>
+<p><em>Rules, labels, stages and the sampler: everything needed to write a grammar and grow a graph from it. For the machinery underneath — the matcher, the performance hooks, how to add primitives or export targets — see <a href="https://github.com/ihh/graphgram/blob/master/docs/src/advanced.html">Advanced</a>.</em></p>
+<h2 id="1-install-and-run">1. Install and run</h2>
+<pre><code class="language-bash">npm install graphgram          # as a library
+git clone https://github.com/ihh/graphgram &amp;&amp; cd graphgram &amp;&amp; npm install
+</code></pre>
+<p>The smallest useful program:</p>
+<pre><code class="language-js">const { Grammar } = require(&#39;graphgram&#39;)
+
+const grammar = new Grammar({
+  start: &#39;A&#39;,
+  limit: 6,
+  rules: [
+    { lhs: &#39;A&#39;, rhs: [&#39;A&#39;, &#39;B&#39;] },   // an &#39;A&#39; node becomes an A→B chain
+    { lhs: &#39;B&#39;, rhs: &#39;C&#39; }           // a &#39;B&#39; node becomes a &#39;C&#39; node
+  ]
+})
+
+const { graph, iterations } = grammar.evolve({ seed: 42 })
+console.log(graph.nodes().length, &#39;nodes after&#39;, iterations, &#39;rules&#39;)
+</code></pre>
+<p><code>graph</code> is a plain graphlib <code>Graph</code>. <code>evolve</code> is the only API method you need
+for most work; <code>seed</code> makes the run reproducible.</p>
+<h2 id="2-a-rule">2. A rule</h2>
+<p>A rule is a pattern to find and a replacement to substitute:</p>
+<pre><code class="language-js">{
+  name: &#39;insert-room&#39;,                 // for logs; optional
+  lhs: {                               // the pattern to find
+    node: [{ id: &#39;a&#39; }, { id: &#39;b&#39; }],
+    edge: [{ v: &#39;a&#39;, w: &#39;b&#39;, label: { type: &#39;path&#39; } }]
+  },
+  rhs: {                               // what to put in its place
+    node: [{ id: &#39;a&#39; }, { id: &#39;b&#39; }, { id: &#39;m&#39;, label: { type: &#39;room&#39; } }],
+    edge: [{ v: &#39;a&#39;, w: &#39;m&#39;, label: { type: &#39;path&#39; } },
+           { v: &#39;m&#39;, w: &#39;b&#39;, label: { type: &#39;path&#39; } }]
+  },
+  weight: 2,                           // sampling weight
+  limit: 5                             // fire at most 5 times
+}
+</code></pre>
+<p>Read it as: <em>find any two nodes joined by a <code>path</code> edge; replace that edge with
+a new <code>room</code> node in the middle.</em></p>
+<p>Node ids (<code>a</code>, <code>b</code>, <code>m</code>) are <strong>local to the rule</strong>. An id that appears on both
+sides means &quot;this node survives&quot;; an id that appears only on the LHS means &quot;this
+node is deleted&quot;; an id that appears only on the RHS means &quot;this node is
+created&quot;. The two <code>path</code> edges on the RHS reference the surviving <code>a</code> and <code>b</code>.</p>
+<h3 id="syntactic-sugar">Syntactic sugar</h3>
+<p>Most rules are shorter than that. The grammar loader expands several
+abbreviations before validation:</p>
+<table>
+<thead>
+<tr>
+<th>you write</th>
+<th>it means</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>lhs: &#39;A&#39;</code></td>
+<td>a single node whose label matches <code>&#39;A&#39;</code></td>
+</tr>
+<tr>
+<td><code>rhs: [&#39;A&#39;,&#39;B&#39;,&#39;C&#39;]</code></td>
+<td>a chain of three new nodes, auto-linked head-to-tail into the surrounding graph</td>
+</tr>
+<tr>
+<td><code>node: &#39;room&#39;</code></td>
+<td><code>{ id: &lt;auto&gt;, label: &#39;room&#39; }</code></td>
+</tr>
+<tr>
+<td><code>node: [&#39;m&#39;,&#39;room&#39;]</code></td>
+<td><code>{ id: &#39;m&#39;, label: &#39;room&#39; }</code></td>
+</tr>
+<tr>
+<td><code>edge: [&#39;a&#39;,&#39;b&#39;]</code></td>
+<td><code>{ v: &#39;a&#39;, w: &#39;b&#39; }</code></td>
+</tr>
+<tr>
+<td><code>edge: [&#39;a&#39;,&#39;b&#39;,{type:&#39;path&#39;}]</code></td>
+<td>with a label</td>
+</tr>
+<tr>
+<td><code>edge: [&#39;a&#39;,&#39;b&#39;,lbl,&#39;e&#39;]</code></td>
+<td>…and an id, so the RHS can refer back to it</td>
+</tr>
+<tr>
+<td><code>{ id: &#39;a&#39; }</code> on the RHS, no label</td>
+<td>copy <code>a</code>&#39;s matched label through unchanged</td>
+</tr>
+<tr>
+<td><code>{ id: &#39;a&#39;, update: {hot:true} }</code></td>
+<td>copy it through, with <code>hot</code> set</td>
+</tr>
+</tbody></table>
+<p>Pass <code>{ canonical: true }</code> to the <code>Grammar</code> constructor to switch all of this
+off and require fully explicit rules — useful when generating grammars
+programmatically.</p>
+<h2 id="3-labels-and-label-queries">3. Labels and label queries</h2>
+<p>A label is any JSON value. Strings and numbers work; objects are what you
+actually want, because they let you attach several independent facts to one
+node.</p>
+<p>On the <strong>left-hand side</strong>, a label is a <em>query</em>. On the <strong>right-hand side</strong>, it
+is an <em>expression</em> that builds a new label.</p>
+<h3 id="queries-lhs">Queries (LHS)</h3>
+<pre><code class="language-js">{ type: &#39;path&#39; }                       // object must have type == &#39;path&#39;
+{ type: &#39;ro+m&#39; }                       // strings are anchored regexes: ^ro+m$
+{ $not: { type: &#39;win&#39; } }              // negation
+{ $and: [{ type: &#39;path&#39; }, { $not: { edgeId: &#39;(.+)&#39; } }] }
+{ $or:  [{ type: &#39;key&#39; }, { type: &#39;door&#39; }] }
+{ $equals: { type: &#39;room&#39; } }          // exact: no other properties allowed
+{ $contains: { type: &#39;room&#39; } }        // the default: extra properties fine
+{ $find: { pairId: &#39;pair_3&#39; } }        // recursive descent anywhere in the label
+{ $test: &#39;function (l) { return l.hp &gt; 3 }&#39; }
+</code></pre>
+<p>Omitting <code>label</code> entirely matches any node. Regex capture groups are available
+downstream as <code>${a.match[1]}</code>.</p>
+<p><code>$and</code> is the workhorse. The idiom</p>
+<pre><code class="language-js">{ $and: [ { type: &#39;path&#39; }, { $not: { edgeId: &#39;(.+)&#39; } } ] }
+</code></pre>
+<p>reads <em>a <code>path</code> edge that does not already carry an <code>edgeId</code></em>, and appears
+throughout <a href="https://github.com/ihh/graphgram/blob/master/dungeon-primitives.js"><code>dungeon-primitives.js</code></a>
+to stop a rule from splitting an edge that some other rule has already paired
+with a backtrack.</p>
+<h3 id="expressions-rhs">Expressions (RHS)</h3>
+<pre><code class="language-js">&#39;room ${a.label.name}&#39;                 // ${...} template interpolation
+{ $eval: &#39;$a.label.depth + 1&#39; }        // JavaScript, with $id.label in scope
+{ $extend: [ {type:&#39;path&#39;}, {edgeId: {$eval:&#39;$e.label.edgeId&#39;}} ] }   // skips undefined
+{ $assign: [ {$eval:&#39;$a.label&#39;}, {seen: true} ] }                     // keeps undefined
+{ $merge:  [ {$eval:&#39;$a.label&#39;}, {dot: {color: &#39;red&#39;}} ] }            // recursive
+</code></pre>
+<p>The distinction between <code>$extend</code> and <code>$assign</code> matters more than it looks.
+<code>$extend</code> <strong>drops</strong> keys whose value is <code>undefined</code>; <code>$assign</code> keeps them,
+writing an explicit <code>undefined</code>. So</p>
+<pre><code class="language-js">{ $extend: [ { type: &#39;path&#39; },
+             { edgeId: { $eval: &#39;$e.label.edgeId&#39; },
+               prereq: { $eval: &#39;$e.label.prereq&#39; } } ] }
+</code></pre>
+<p>copies <code>edgeId</code> and <code>prereq</code> from the matched edge <em>if it had them</em>, and leaves
+the new label clean if it did not. With <code>$assign</code> you would get
+<code>{ type: &#39;path&#39;, edgeId: undefined, prereq: undefined }</code>, and every downstream
+<code>if (label.prereq)</code> would still be false but every <code>&#39;prereq&#39; in label</code> would be
+true — a difference that shows up much later, in the exporter, as a mysterious
+locked door with no lock.</p>
+<p>In every expression, <code>$$iter</code> is the current iteration counter of the enclosing
+stage and <code>$$graph</code> is the graph itself. Both are heavily used:</p>
+<pre><code class="language-js">nodeId:    { $eval: &#39;&quot;room_&quot; + ($$iter + 1)&#39; }        // a unique, stable id
+condition: &#39;$$graph.hasEdge($b.id, $a.id)&#39;            // fire only inside a cycle
+</code></pre>
+<h2 id="4-conditions-and-weights">4. Conditions and weights</h2>
+<p>Two per-rule expressions, evaluated once per candidate match:</p>
+<pre><code class="language-js">condition: &#39;$$graph.hasEdge($b.id, $a.id)&#39;,   // veto this match site
+weight:    &#39;$a.label.depth &lt; 3 ? 5 : 1&#39;       // bias the sampler at this site
+</code></pre>
+<p><code>condition</code> runs <em>after</em> the pattern has been found, so it is a filter of last
+resort — cheap per match, but it does not save you any search. Put everything
+you can into the LHS labels instead; see <a href="https://github.com/ihh/graphgram/blob/master/docs/src/advanced.html#what-costs-what">Advanced</a>.</p>
+<h2 id="5-the-sampler-how-a-rule-gets-chosen">5. The sampler — how a rule gets chosen</h2>
+<p>This is the part people most often get wrong, so it is worth stating plainly.
+On each iteration the engine:</p>
+<ol>
+<li>skips any rule that has hit its <code>limit</code> or has not reached its <code>delay</code>;</li>
+<li>for every remaining rule, finds <strong>all</strong> match sites in the graph;</li>
+<li>evaluates <code>condition</code> at each site, discarding the failures;</li>
+<li>evaluates <code>weight</code> at each surviving site;</li>
+<li>samples one site with probability proportional to its weight;</li>
+<li>applies that rule there.</li>
+</ol>
+<blockquote>
+<p><strong>A weight is not a probability.</strong> A rule&#39;s realised firing rate is its weight
+<em>times its number of match sites</em>, and the number of match sites grows as the
+graph grows. A <code>weight: 1</code> rule that matches every <code>path</code> edge will out-fire a
+<code>weight: 5</code> rule that matches only the start node, and increasingly so as the
+graph gets bigger.</p>
+</blockquote>
+<p>That is why the practical control knob is <code>limit</code>, not <code>weight</code>. Weights set the
+<em>mix</em>; limits set the <em>count</em>. <a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/budgets.html">Budgets</a> works this out
+quantitatively, with measured distributions.</p>
+<h2 id="6-stages">6. Stages</h2>
+<p>A staged grammar is a list of sub-grammars run in order, each on the output of
+the last. This is how every non-trivial grammar in the repo is organised,
+because it lets you say <em>finish growing the skeleton before you start
+decorating it</em>:</p>
+<pre><code class="language-js">const g = new Grammar({
+  start: &#39;START&#39;,
+  stages: [
+    { name: &#39;init&#39;,   rules: [...] },
+    { name: &#39;expand&#39;, limit: 25, rules: [...] },   // grow structure
+    { name: &#39;refine&#39;, rules: [...] },              // flavour the edges
+    { name: &#39;decorate&#39;, rules: [...] }             // fill in display labels
+  ]
+})
+</code></pre>
+<p>Each stage has its own <code>limit</code>, and <code>$$iter</code> <strong>resets at each stage boundary</strong> —
+which is why id-generating expressions in the primitives qualify themselves with
+a role string (<code>&quot;room_&quot; + ($$iter+1)</code>, <code>&quot;e_ak_&quot; + ($$iter+1)</code>) rather than using
+the bare counter.</p>
+<p>Run one stage in isolation with <code>evolve({ stage: 2 })</code>, or from the CLI with
+<code>bin/transform.js -S 2</code>. That is the single most useful debugging move available
+when a grammar produces something unexpected.</p>
+<h2 id="7-using-the-primitives">7. Using the primitives</h2>
+<p>You rarely write the rules above by hand. <code>dungeonPrimitives</code> packages them as
+factories, each returning a fresh rule object and each accepting the usual
+<code>{ name, weight, limit, type, delay, condition }</code>:</p>
+<pre><code class="language-js">const { Grammar, Matcher, dungeonPrimitives: dp, registerNarrator } = require(&#39;graphgram&#39;)
+
+const matcher = new Matcher()
+registerNarrator(matcher, { placeholder: true })   // see §8
+
+const g = new Grammar({
+  start: &#39;START&#39;,
+  stages: [
+    dp.initStartGoalStage(),
+
+    { name: &#39;expand&#39;, limit: 25, rules: [
+      dp.midpointRoom({ weight: 2 }),                 // a &lt;-&gt; m &lt;-&gt; b
+      dp.midpointRoom({ oneWay: true, weight: 1 }),   // only inside cycles
+      dp.deadEnd({ weight: 1 }),                      // side branch + return
+      dp.parallelPath({ weight: 1 }),                 // a second route a→m→b
+      dp.keyDoor({ weight: 1, limit: 3 }),            // lock + shared pairId
+      dp.healthPotion({ weight: 1, limit: 3 })
+    ]},
+
+    { name: &#39;close-cycles&#39;, limit: 3, rules: [dp.cycleCloseShortcut()] },
+
+    { name: &#39;refine&#39;, rules: dp.refineEdges(
+        dp.EDGE_PATH, [dp.EDGE_PASSAGE, dp.EDGE_MONSTER, dp.EDGE_PUZZLE]) },
+
+    { name: &#39;flavor&#39;, rules: [dp.monsterBattle(), dp.puzzleChoice()] },
+
+    dp.dotDecorationStage()
+  ]
+}, { matcher })
+
+const graph = g.evolve({ seed: 42 }).graph
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>factory</th>
+<th>what it does</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>initStartGoalStage()</code></td>
+<td>spawns <code>start</code> and <code>win</code> plus the initial <code>start→win</code> path</td>
+</tr>
+<tr>
+<td><code>midpointRoom(o)</code></td>
+<td>inserts a room mid-edge; two-way by default, <code>{oneWay:true}</code> fires only inside existing cycles</td>
+</tr>
+<tr>
+<td><code>deadEnd(o)</code></td>
+<td>side branch off a path source, with an explicit backtrack</td>
+</tr>
+<tr>
+<td><code>parallelPath(o)</code></td>
+<td>a second route a→m→b alongside a→b, inheriting the original&#39;s <code>edgeId</code> and <code>prereq</code></td>
+</tr>
+<tr>
+<td><code>keyDoor(o)</code></td>
+<td>key + door sharing a <code>pairId</code>; the locked edge carries <code>prereq.pairId</code></td>
+</tr>
+<tr>
+<td><code>cycleCloseShortcut(o)</code></td>
+<td>a gated <code>return</code> edge b→a reusing an existing key: turns trees into Metroidvania graphs</td>
+</tr>
+<tr>
+<td><code>healthPotion(o)</code></td>
+<td>side-branch pickup with a <code>healValue</code></td>
+</tr>
+<tr>
+<td><code>monsterBattle(o)</code></td>
+<td>expands a <code>monster</code> edge into a Markov battle</td>
+</tr>
+<tr>
+<td><code>puzzleChoice(o)</code></td>
+<td>expands a <code>puzzle</code> edge into an intro plus one correct answer and N distractors</td>
+</tr>
+<tr>
+<td><code>refineEdges(from, [to…])</code></td>
+<td>rewrites one edge type into a random pick from several, preserving other label fields</td>
+</tr>
+<tr>
+<td><code>dotDecorationStage()</code></td>
+<td>fills in <code>label.dot.label</code> wherever missing, for readable DOT output</td>
+</tr>
+</tbody></table>
+<p>The acyclic siblings live in <code>dag-primitives.js</code> (<code>dagMidpoint</code>, <code>forkJoin</code>,
+<code>dagKeyLock</code>) and the social ones in <code>mystery-primitives.js</code> (<code>suspect</code>,
+<code>socialLock</code>, <code>directive</code>, <code>accusation</code>).</p>
+<h2 id="8-narrative-slots-and-the-narrator">8. Narrative slots and the narrator</h2>
+<p>Every node and edge a primitive creates carries named text fields — <code>text</code> on a
+room, <code>link</code> on a passage, and a full bundle on a key/door pair. Those fields
+are filled by <em>narrator macros</em>, which are plugin RHS-label functions:</p>
+<pre><code class="language-js">{ id: &#39;m&#39;, label: { type: &#39;room&#39;,
+                    nodeId: roomNid,
+                    text: { $macro: [&#39;describe_room&#39;, roomNid] } } }
+</code></pre>
+<p><code>$macro</code> and friends are installed on the <code>Matcher</code> by <code>registerNarrator</code>, and
+they must be installed <strong>before</strong> the <code>Grammar</code> is constructed — <code>Grammar</code>
+builds its JSON schema from the matcher&#39;s plugin table, so an unregistered
+<code>$macro</code> is a schema validation error, not a runtime one. This trips everyone
+up once:</p>
+<pre><code class="language-js">const matcher = new Matcher()
+registerNarrator(matcher, { placeholder: true })
+const g = new Grammar(json, { matcher })          // ← this order, always
+</code></pre>
+<p>Three modes:</p>
+<table>
+<thead>
+<tr>
+<th>mode</th>
+<th>what a slot returns</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>{ placeholder: true }</code></td>
+<td><code>[gothic_horror:describe_room#room_4]</code> — legible, offline, deterministic</td>
+</tr>
+<tr>
+<td><code>{ llm: &#39;llm&#39; }</code></td>
+<td>shells out to the <a href="https://github.com/simonw/llm"><code>llm</code> CLI</a></td>
+</tr>
+<tr>
+<td><code>{ runner: sonnetRunner }</code></td>
+<td>calls the Anthropic API, with an on-disk prompt cache</td>
+</tr>
+</tbody></table>
+<p>The macro names are a fixed vocabulary in
+<a href="https://github.com/ihh/graphgram/blob/master/themes.js"><code>themes.js</code></a>; list them
+with <code>bin/transform.js --list-macros</code>. The taxonomy behind them — which slots
+exist, why, and which ones are still missing — is
+<a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/narrative-slots.html">the narrative slot paper</a>.</p>
+<h2 id="9-gating-how-a-lock-is-expressed">9. Gating: how a lock is expressed</h2>
+<p>Generated nodes carry a <code>label.nodeId</code>; forward edges paired with a backtrack
+carry a <code>label.edgeId</code>. An edge is gated by a <code>prereq</code> in one of three flavours:</p>
+<table>
+<thead>
+<tr>
+<th><code>prereq</code></th>
+<th>unlocks when</th>
+<th>used by</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>{ pairId: X }</code></td>
+<td>the player has visited a <code>key</code> node with <code>pairId: X</code></td>
+<td>locked doors</td>
+</tr>
+<tr>
+<td><code>{ traversed: X }</code></td>
+<td>the player has traversed the forward edge with <code>edgeId: X</code></td>
+<td>backtracks</td>
+</tr>
+<tr>
+<td><code>{ visited: X }</code></td>
+<td>the player has visited a node with <code>nodeId: X</code></td>
+<td>cycle-closing returns</td>
+</tr>
+</tbody></table>
+<p>The distinction between the last two is the interesting one. A <em>backtrack</em> is
+gated on having walked a specific corridor, so it unwinds a route you actually
+took. A <em>return</em> is gated on having been somewhere, so it is a loop you have
+discovered rather than a corridor you are retracing.</p>
+<h2 id="10-from-graph-to-story">10. From graph to story</h2>
+<pre><code class="language-bash">bin/story.js --list                                        # the catalogue
+bin/story.js --example maze-locked --seed 42 --format ir   # the Story IR
+bin/story.js --example maze-locked --seed 42 --format twine        --out story.twee
+bin/story.js --example maze-locked --seed 42 --format choicescript --out cs/
+bin/story.js --example maze-locked --seed 42 --format inform7      --out story.ni
+bin/story.js --example maze-locked --seed 42 --format play  --out play/graph.js
+bin/story.js --example maze-locked --seed 42 --format dot   --out d.dot
+</code></pre>
+<p>Everything downstream of <code>--format ir</code> is a pure function of the
+<a href="https://github.com/ihh/graphgram/blob/master/docs/src/spec/story-ir.html">Story IR</a>: passages, links, a small condition/effect
+language, and text objects with first/repeat/brief variants. An exporter never
+sees a graphlib graph.</p>
+<p>For a fixed library version, <code>--example E --seed S</code> produces byte-identical
+output on every machine, in every format. The only entropy source is the seeded
+Mersenne Twister; the theme is derived from the seed; nothing stamps a
+timestamp.</p>
+<h2 id="11-rendering-and-debugging">11. Rendering and debugging</h2>
+<pre><code class="language-bash"># a PDF of any grammar, via graphviz
+make pdf/dunjs-dungeon.42.pdf SEED=42
+
+# quality-check a generated graph
+bin/qc-graph.js -i graph.json
+
+# run one stage only, loudly
+bin/transform.js -g grammars/dunjs-dungeon.js -S 2 -v
+</code></pre>
+<p><code>-v</code> prints every match site found, its weight, and the sampled rule — which is
+usually enough to see why a rule you expected to fire did not. The most common
+answers are: the LHS did not match (check your label queries against an actual
+generated label), the rule hit its <code>limit</code>, or another rule with far more match
+sites out-competed it.</p>
+<h2 id="next">Next</h2>
+<ul>
+<li><a href="https://github.com/ihh/graphgram/blob/master/docs/src/advanced.html">Advanced</a> — the matcher, its triage hooks, writing your own primitives and exporters</li>
+<li><a href="https://github.com/ihh/graphgram/blob/master/docs/src/examples.html">Worked examples</a> — five reproducible stories with pinned seeds</li>
+<li><a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/index.html">Papers</a> — the design literature</li>
+</ul>
+
+</main>
+<footer class="site-foot">
+  <p>graphgram · <a href="https://github.com/ihh/graphgram">github.com/ihh/graphgram</a> · ISC</p>
+</footer>
+</body>
+</html>

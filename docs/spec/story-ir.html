@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Story IR v1 — the export contract · graphgram</title>
+<meta name="description" content="graphgram — a graph grammar library for procedural narrative">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+<header class="site-nav">
+  <nav>
+      <a href="../index.html" class="brand">graphgram</a>
+      <a href="../guide.html">Guide</a>
+      <a href="../advanced.html">Advanced</a>
+      <a href="../examples.html">Examples</a>
+      <a href="../play/index.html">Play</a>
+      <a href="../papers/index.html">Papers</a>
+      <a href="../spec/story-ir.html" class="active">Spec</a>
+      <a href="../jsdoc/index.html">API</a>
+      <a href="https://github.com/ihh/graphgram" rel="noopener">GitHub</a>
+  </nav>
+</header>
+<main class="prose">
+<h1 id="story-ir-v1-the-export-contract">Story IR v1 — the export contract</h1>
+<p><code>graphgram</code> generates <em>graphs</em>. Twine, ChoiceScript and Inform 7 want
+<em>stories</em>. The Story IR is the narrow waist between them: one
+target-agnostic JSON document that every exporter consumes and every
+generator produces.</p>
+<pre><code>grammar ──evolve──▶ graphlib graph ──buildStoryIR──▶ Story IR ──┬─▶ Twee / Harlowe
+                                                                ├─▶ ChoiceScript
+                                                                ├─▶ Inform 7
+                                                                └─▶ play/ engine
+</code></pre>
+<p>Everything downstream of the IR is a pure function of the IR. That is the
+whole point: an exporter never reads a graphlib graph, never knows what a
+<code>prereq.pairId</code> is, and never has to be updated when a new dungeon
+primitive is added — only <code>buildStoryIR</code> does.</p>
+<p>The normative example lives at
+<a href="https://github.com/ihh/graphgram/blob/master/test/fixtures/story-ir.sample.json"><code>test/fixtures/story-ir.sample.json</code></a>.
+It is hand-authored, exercises every field in this document, and is the
+fixture that all three exporter test suites run against. If this spec and
+that fixture ever disagree, the fixture wins and the spec is the bug.</p>
+<hr>
+<h2 id="1-top-level">1. Top level</h2>
+<pre><code class="language-jsonc">{
+  &quot;irVersion&quot;: 1,
+  &quot;meta&quot;:     { ... },   // §2
+  &quot;vars&quot;:     [ ... ],   // §3
+  &quot;items&quot;:    [ ... ],   // §4
+  &quot;passages&quot;: [ ... ],   // §5
+  &quot;links&quot;:    [ ... ],   // §6
+  &quot;start&quot;:    &quot;P_start&quot;, // passage id
+  &quot;endings&quot;:  [&quot;P_win&quot;, &quot;P_death&quot;]
+}
+</code></pre>
+<p><code>start</code> must name a passage in <code>passages</code>. Every id in <code>endings</code> must too.
+Ordering of <code>passages</code> and <code>links</code> is stable and deterministic: passages in
+breadth-first order from <code>start</code>, ties broken by ascending host id; links
+grouped by source passage in the order they appear on that passage&#39;s
+<code>links</code> array. Exporters may rely on this — golden-file tests do.</p>
+<h2 id="2-meta">2. <code>meta</code></h2>
+<table>
+<thead>
+<tr>
+<th>field</th>
+<th>type</th>
+<th>notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>title</code></td>
+<td>string</td>
+<td>human title, e.g. <code>&quot;The Cindermoor Vault&quot;</code></td>
+</tr>
+<tr>
+<td><code>id</code></td>
+<td>string</td>
+<td>slug of the example, e.g. <code>&quot;maze-locked&quot;</code></td>
+</tr>
+<tr>
+<td><code>seed</code></td>
+<td>integer</td>
+<td>the RNG seed. Reproducibility contract: same <code>id</code> + <code>seed</code> + library version ⇒ byte-identical IR</td>
+</tr>
+<tr>
+<td><code>theme</code></td>
+<td>string</td>
+<td>one of <code>themes.js</code>&#39;s themes</td>
+</tr>
+<tr>
+<td><code>grammar</code></td>
+<td>string</td>
+<td>repo-relative path of the grammar that produced this</td>
+</tr>
+<tr>
+<td><code>generator</code></td>
+<td>string</td>
+<td><code>&quot;graphgram &lt;version&gt;&quot;</code></td>
+</tr>
+<tr>
+<td><code>topology</code></td>
+<td><code>&quot;dag&quot;</code> | <code>&quot;bidirectional&quot;</code></td>
+<td>see §8</td>
+</tr>
+<tr>
+<td><code>puzzles</code></td>
+<td>boolean</td>
+<td>whether any locked link or minigame is present</td>
+</tr>
+<tr>
+<td><code>budget</code></td>
+<td>object</td>
+<td>the budget the generator was run under (§9)</td>
+</tr>
+</tbody></table>
+<p><code>meta</code> carries <strong>no wall-clock timestamp</strong>. A build that embedded <code>Date.now()</code>
+would defeat the reproducibility contract and make golden files churn.</p>
+<h2 id="3-vars-the-state-vector">3. <code>vars</code> — the state vector</h2>
+<p>Every piece of mutable state an exporter must declare up front. Exporters
+that need declarations (ChoiceScript <code>*create</code>, Inform 7 &quot;a number that
+varies&quot;) emit one per entry; exporters with implicit state (Harlowe <code>$x</code>)
+may skip declaration but must still honour <code>init</code>.</p>
+<pre><code class="language-jsonc">{ &quot;name&quot;: &quot;has_pair_1&quot;, &quot;kind&quot;: &quot;item&quot;,      &quot;ref&quot;: &quot;pair_1&quot;,  &quot;init&quot;: false }
+{ &quot;name&quot;: &quot;seen_room_3&quot;, &quot;kind&quot;: &quot;visited&quot;,  &quot;ref&quot;: &quot;room_3&quot;,  &quot;init&quot;: false }
+{ &quot;name&quot;: &quot;took_e_ak_2&quot;, &quot;kind&quot;: &quot;traversed&quot;,&quot;ref&quot;: &quot;e_ak_2&quot;,  &quot;init&quot;: false }
+{ &quot;name&quot;: &quot;hp&quot;,          &quot;kind&quot;: &quot;number&quot;,   &quot;ref&quot;: null,      &quot;init&quot;: 100 }
+{ &quot;name&quot;: &quot;moves&quot;,       &quot;kind&quot;: &quot;counter&quot;,  &quot;ref&quot;: null,      &quot;init&quot;: 0 }
+</code></pre>
+<p><code>name</code> is <code>[a-z][a-z0-9_]*</code>, unique, and already safe for all three
+targets (ChoiceScript is the strictest: lowercase, no leading digit, and
+it reserves a handful of words — <code>buildStoryIR</code> is responsible for
+avoiding them, not the exporters).</p>
+<p><code>kind</code> is advisory — it lets an exporter render item state as an Inform 7
+<em>thing carried by the player</em> rather than a flag — but the semantics are
+always &quot;a variable with this <code>init</code> value&quot;.</p>
+<h2 id="4-items">4. <code>items</code></h2>
+<p>Concrete objects the player can hold. Present so that Inform 7 can build a
+real world model instead of a pile of flags, and so ChoiceScript can print
+an inventory.</p>
+<pre><code class="language-jsonc">{
+  &quot;id&quot;: &quot;pair_1&quot;,
+  &quot;var&quot;: &quot;has_pair_1&quot;,          // the vars entry set when acquired
+  &quot;name&quot;: &quot;the tarnished brass key&quot;,
+  &quot;description&quot;: &quot;...&quot;,          // §7 text object
+  &quot;takeText&quot;:  { ... },          // the act of picking it up
+  &quot;carryText&quot;: { ... }           // the state of carrying it
+}
+</code></pre>
+<p><code>name</code> should be a noun phrase with its article, because Inform 7 will
+write <code>The player carries the tarnished brass key.</code></p>
+<h2 id="5-passages">5. <code>passages</code></h2>
+<pre><code class="language-jsonc">{
+  &quot;id&quot;: &quot;P_room_3&quot;,
+  &quot;hostId&quot;: &quot;7&quot;,
+  &quot;nodeId&quot;: &quot;room_3&quot;,
+  &quot;type&quot;: &quot;room&quot;,
+  &quot;role&quot;: &quot;normal&quot;,
+  &quot;title&quot;: &quot;The Long Gallery&quot;,
+  &quot;text&quot;: { &quot;first&quot;: &quot;...&quot;, &quot;repeat&quot;: &quot;...&quot;, &quot;brief&quot;: &quot;...&quot; },
+  &quot;status&quot;: &quot;Key (pair_1)&quot;,
+  &quot;onEnter&quot;: [ { &quot;op&quot;: &quot;set&quot;, &quot;var&quot;: &quot;seen_room_3&quot;, &quot;value&quot;: true } ],
+  &quot;links&quot;: [&quot;L_3_5&quot;, &quot;L_3_9&quot;],
+  &quot;tags&quot;: [&quot;room&quot;]
+}
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>field</th>
+<th>notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>id</code></td>
+<td>unique, <code>[A-Za-z_][A-Za-z0-9_]*</code>. Doubles as a Twee passage name, a ChoiceScript <code>*label</code>, and an Inform 7 room name stem</td>
+</tr>
+<tr>
+<td><code>hostId</code></td>
+<td>the graphlib node id it came from. Debug provenance only</td>
+</tr>
+<tr>
+<td><code>nodeId</code></td>
+<td>the grammar&#39;s <code>label.nodeId</code>, or <code>null</code></td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td>the grammar&#39;s <code>label.type</code> (<code>room</code>, <code>key</code>, <code>door</code>, <code>win</code>, …)</td>
+</tr>
+<tr>
+<td><code>role</code></td>
+<td><code>&quot;start&quot;</code>, <code>&quot;normal&quot;</code>, <code>&quot;ending&quot;</code>, <code>&quot;death&quot;</code>, <code>&quot;item&quot;</code>, <code>&quot;choice&quot;</code>, <code>&quot;random&quot;</code>. Drives structural decisions: an exporter must terminate the story at <code>ending</code>/<code>death</code>, and must auto-resolve links out of a <code>random</code> passage</td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td>short display name. Never empty</td>
+</tr>
+<tr>
+<td><code>text</code></td>
+<td>§7</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>optional one-line status-bar chip, or <code>null</code></td>
+</tr>
+<tr>
+<td><code>onEnter</code></td>
+<td>§8 effects, applied on arrival, in order, before links are offered</td>
+</tr>
+<tr>
+<td><code>links</code></td>
+<td>ids of outgoing links, in presentation order</td>
+</tr>
+<tr>
+<td><code>tags</code></td>
+<td>free-form; Twee writes them as passage tags</td>
+</tr>
+</tbody></table>
+<p>A passage with <code>role: &quot;random&quot;</code> must have every outgoing link carrying
+<code>kind: &quot;random&quot;</code> and a numeric <code>weight</code>. A passage with an empty <code>links</code>
+array must have <code>role</code> of <code>&quot;ending&quot;</code> or <code>&quot;death&quot;</code>.</p>
+<h2 id="6-links">6. <code>links</code></h2>
+<pre><code class="language-jsonc">{
+  &quot;id&quot;: &quot;L_9_11&quot;,
+  &quot;edgeId&quot;: &quot;e_db_2&quot;,
+  &quot;from&quot;: &quot;P_door_2&quot;,
+  &quot;to&quot;: &quot;P_room_5&quot;,
+  &quot;type&quot;: &quot;path&quot;,
+  &quot;kind&quot;: &quot;choice&quot;,
+  &quot;weight&quot;: 1,
+  &quot;linkText&quot;:   { &quot;first&quot;: &quot;Unlock the door with the brass key&quot;, &quot;repeat&quot;: &quot;Go through the open door&quot; },
+  &quot;text&quot;:       { &quot;first&quot;: &quot;The lock turns...&quot;, &quot;repeat&quot;: &quot;You pass through again.&quot; },
+  &quot;closedText&quot;: { &quot;first&quot;: &quot;The door will not budge.&quot; },
+  &quot;condition&quot;:  { &quot;all&quot;: [ { &quot;var&quot;: &quot;has_pair_1&quot;, &quot;is&quot;: true } ] },
+  &quot;whenBlocked&quot;: &quot;show&quot;,
+  &quot;onTraverse&quot;: [ { &quot;op&quot;: &quot;set&quot;, &quot;var&quot;: &quot;took_e_db_2&quot;, &quot;value&quot;: true } ]
+}
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>field</th>
+<th>notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>id</code></td>
+<td>unique, same charset as passage ids</td>
+</tr>
+<tr>
+<td><code>edgeId</code></td>
+<td>the grammar&#39;s <code>label.edgeId</code>, or <code>null</code></td>
+</tr>
+<tr>
+<td><code>from</code>, <code>to</code></td>
+<td>passage ids</td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td>the grammar&#39;s edge <code>label.type</code></td>
+</tr>
+<tr>
+<td><code>kind</code></td>
+<td><code>&quot;choice&quot;</code> — the player picks it; or <code>&quot;random&quot;</code> — the engine rolls it by <code>weight</code></td>
+</tr>
+<tr>
+<td><code>weight</code></td>
+<td>positive number; only meaningful when <code>kind</code> is <code>&quot;random&quot;</code></td>
+</tr>
+<tr>
+<td><code>linkText</code></td>
+<td>the affordance itself: the words on the link/button</td>
+</tr>
+<tr>
+<td><code>text</code></td>
+<td>narration printed <em>on</em> traversal, after the choice is made</td>
+</tr>
+<tr>
+<td><code>closedText</code></td>
+<td>narration shown when <code>condition</code> is false. <code>null</code> means say nothing</td>
+</tr>
+<tr>
+<td><code>condition</code></td>
+<td>§8 condition, or <code>null</code> for always-open</td>
+</tr>
+<tr>
+<td><code>whenBlocked</code></td>
+<td><code>&quot;show&quot;</code> — render the link greyed/with <code>closedText</code>; <code>&quot;hide&quot;</code> — omit it entirely</td>
+</tr>
+<tr>
+<td><code>onTraverse</code></td>
+<td>§8 effects, applied when the link is taken</td>
+</tr>
+</tbody></table>
+<h2 id="7-text-objects-the-flavor-axes">7. Text objects — the flavor axes</h2>
+<p>Every narrative slot in the IR is a <strong>text object</strong>, never a bare string:</p>
+<pre><code class="language-jsonc">{
+  &quot;first&quot;:  &quot;A door of blackened oak, banded in iron, stands shut.&quot;,
+  &quot;repeat&quot;: &quot;The oak door again.&quot;,
+  &quot;brief&quot;:  &quot;An oak door.&quot;,
+  &quot;variants&quot;: [ &quot;The oak door, still shut.&quot;, &quot;That same banded door.&quot; ]
+}
+</code></pre>
+<ul>
+<li><code>first</code> — required. Shown the first time this element is encountered.</li>
+<li><code>repeat</code> — optional. Shown on every subsequent encounter. Falls back to
+<code>first</code> when absent.</li>
+<li><code>brief</code> — optional. A terse form for map legends, status chips, and
+Inform 7&#39;s <code>printed name</code>.</li>
+<li><code>variants</code> — optional. Sampled (round-robin, not randomly — determinism)
+after <code>repeat</code> has been used once.</li>
+</ul>
+<p><code>buildStoryIR</code> may emit a plain string wherever a text object is expected;
+consumers must accept that and treat <code>&quot;foo&quot;</code> as <code>{ &quot;first&quot;: &quot;foo&quot; }</code>. A
+tiny <code>normalizeText</code> helper is exported from <code>story-ir.js</code> for exactly
+this. Producing normalized objects is preferred.</p>
+<h3 id="why-an-object-and-not-a-function">Why an object and not a function</h3>
+<p>The fully general form of history-dependent text is a function
+<code>f(trajectory) → string</code>, where a trajectory is the player&#39;s path through
+the graph and a sufficient summary of it is the vector of edge traversal
+counts. The IR deliberately does <strong>not</strong> ship functions: they don&#39;t
+serialize, and none of the three export targets can evaluate JavaScript.</p>
+<p>What the IR ships instead is the <em>first-order projection</em> of that
+function — the distinction between &quot;count is zero&quot; (<code>first</code>) and &quot;count is
+positive&quot; (<code>repeat</code>) — which is the part every target can express with a
+single boolean. Richer projections (count thresholds, &quot;you have been here
+three times&quot;, conditional on some <em>other</em> edge&#39;s count) are future work
+and are discussed in
+<a href="https://github.com/ihh/graphgram/blob/master/papers/narrative-slots.md"><code>papers/narrative-slots.md</code></a>. When they
+land they will be additive: a <code>&quot;conditions&quot;</code> array on the text object,
+each entry pairing a §8 condition with a string, evaluated top-down with
+<code>first</code>/<code>repeat</code> as the fallback. Exporters that ignore the new field keep
+working.</p>
+<h2 id="8-conditions-and-effects">8. Conditions and effects</h2>
+<p>A deliberately tiny language, chosen so that it compiles to all three
+targets without an interpreter.</p>
+<p><strong>Conditions</strong></p>
+<pre><code class="language-jsonc">{ &quot;var&quot;: &quot;has_pair_1&quot;, &quot;is&quot;: true }        // boolean equality
+{ &quot;var&quot;: &quot;hp&quot;, &quot;gt&quot;: 0 }                   // also: gte, lt, lte, eq, ne
+{ &quot;all&quot;: [ cond, cond, ... ] }
+{ &quot;any&quot;: [ cond, cond, ... ] }
+{ &quot;not&quot;: cond }
+</code></pre>
+<p><strong>Effects</strong></p>
+<pre><code class="language-jsonc">{ &quot;op&quot;: &quot;set&quot;,     &quot;var&quot;: &quot;seen_room_3&quot;, &quot;value&quot;: true }
+{ &quot;op&quot;: &quot;add&quot;,     &quot;var&quot;: &quot;hp&quot;,          &quot;value&quot;: -20 }
+{ &quot;op&quot;: &quot;acquire&quot;, &quot;item&quot;: &quot;pair_1&quot; }      // sets the item&#39;s var
+</code></pre>
+<p>Every effect is idempotent under <code>set</code>/<code>acquire</code> and monotone-safe under
+<code>add</code>. Exporters apply them in array order.</p>
+<h2 id="9-topology-and-budgets">9. Topology and budgets</h2>
+<p><code>meta.topology</code> is a <em>promise about the graph</em>, and exporters may lean on it:</p>
+<ul>
+<li><code>&quot;dag&quot;</code> — the link graph is acyclic. No link&#39;s <code>to</code> reaches its <code>from</code>.
+Inform 7 can lay this out with one-way doors; Twine needs no
+&quot;go back&quot; affordances; ChoiceScript can use <code>*finish</code> between scenes.</li>
+<li><code>&quot;bidirectional&quot;</code> — cycles exist. Backtracks and returns are present,
+the player can revisit passages, and every exporter must handle
+re-entry (hence <code>text.repeat</code> mattering).</li>
+</ul>
+<p><code>meta.budget</code> records the caps the generator ran under. It is descriptive,
+not prescriptive — the IR is already generated — but it travels with the
+story so the docs site can show it and so regression tests can assert the
+generator respected it.</p>
+<pre><code class="language-jsonc">{ &quot;rooms&quot;: 12, &quot;keys&quot;: 3, &quot;nestingDepth&quot;: 2, &quot;npcs&quot;: 0, &quot;minigames&quot;: 2 }
+</code></pre>
+<p>See <a href="https://github.com/ihh/graphgram/blob/master/papers/budgets.md"><code>papers/budgets.md</code></a> for how the budget is
+turned into rule <code>limit</code>s and how nesting depth is measured.</p>
+<h2 id="10-validation">10. Validation</h2>
+<p><code>story-ir.js</code> exports <code>validateStoryIR(ir) → string[]</code> returning a list of
+human-readable problems (empty when valid). It checks, at minimum:</p>
+<ol>
+<li>every <code>links</code> id on a passage exists in <code>links</code></li>
+<li>every link&#39;s <code>from</code>/<code>to</code> names a real passage</li>
+<li><code>start</code> and each of <code>endings</code> name real passages</li>
+<li>every passage is reachable from <code>start</code></li>
+<li>every passage with no outgoing links has <code>role</code> <code>&quot;ending&quot;</code> or <code>&quot;death&quot;</code></li>
+<li>every var referenced by a condition or effect is declared in <code>vars</code></li>
+<li>every item&#39;s <code>var</code> is declared in <code>vars</code></li>
+<li>ids are unique and match the exporter-safe charset</li>
+<li><code>meta.topology === &quot;dag&quot;</code> ⇒ the link graph really is acyclic</li>
+<li><code>role: &quot;random&quot;</code> passages have only <code>kind: &quot;random&quot;</code> outgoing links,
+each with a positive <code>weight</code></li>
+</ol>
+<p>Exporters call <code>validateStoryIR</code> and throw on a non-empty result rather
+than emitting a broken story.</p>
+
+</main>
+<footer class="site-foot">
+  <p>graphgram · <a href="https://github.com/ihh/graphgram">github.com/ihh/graphgram</a> · ISC</p>
+</footer>
+</body>
+</html>

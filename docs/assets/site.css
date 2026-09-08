@@ -1,0 +1,250 @@
+/* graphgram documentation site.
+ *
+ * One stylesheet, no build step, no framework. The site is committed as
+ * static HTML (GitHub Pages serves master:/docs), so everything here has to
+ * work from a plain <link> with no preprocessing.
+ *
+ * Colours are defined once on :root as the light palette and overridden in a
+ * single prefers-color-scheme block, so no colour is ever declared only
+ * inside a media query. */
+
+:root {
+  --bg:        #fbfaf7;
+  --bg-raised: #ffffff;
+  --bg-sunk:   #f2efe9;
+  --fg:        #1e1b16;
+  --fg-muted:  #5f594e;
+  --fg-faint:  #8b8375;
+  --rule:      #e2ddd2;
+  --accent:    #8a4b2a;
+  --accent-bg: #f6ece3;
+  --link:      #7a3d1f;
+  --code-bg:   #f4f1ea;
+  --shadow:    0 1px 2px rgba(30, 27, 22, .06), 0 4px 12px rgba(30, 27, 22, .05);
+  --mono: ui-monospace, "SF Mono", "Menlo", "Consolas", monospace;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:        #16151a;
+    --bg-raised: #1e1d23;
+    --bg-sunk:   #121116;
+    --fg:        #e8e4db;
+    --fg-muted:  #a8a396;
+    --fg-faint:  #7b7668;
+    --rule:      #2f2d36;
+    --accent:    #d99a6c;
+    --accent-bg: #2a2119;
+    --link:      #e0a878;
+    --code-bg:   #1b1a20;
+    --shadow:    0 1px 2px rgba(0, 0, 0, .3), 0 4px 14px rgba(0, 0, 0, .25);
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* --- navigation -------------------------------------------------------- */
+
+.site-nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: saturate(1.4) blur(8px);
+  border-bottom: 1px solid var(--rule);
+}
+.site-nav nav {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: .6rem 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: .25rem 1.1rem;
+}
+.site-nav a {
+  color: var(--fg-muted);
+  text-decoration: none;
+  font-size: .9rem;
+  letter-spacing: .01em;
+  white-space: nowrap;
+}
+.site-nav a:hover { color: var(--fg); }
+.site-nav a.active { color: var(--accent); }
+.site-nav a.brand {
+  font-family: var(--mono);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--fg);
+  margin-right: auto;
+}
+
+/* --- prose ------------------------------------------------------------- */
+
+.prose {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 4rem;
+}
+
+.prose h1 {
+  font-family: var(--serif);
+  font-size: clamp(1.9rem, 1.3rem + 2.2vw, 2.7rem);
+  line-height: 1.15;
+  letter-spacing: -.015em;
+  margin: 0 0 1.2rem;
+  font-weight: 600;
+}
+.prose h2 {
+  font-family: var(--serif);
+  font-size: 1.45rem;
+  line-height: 1.25;
+  margin: 2.8rem 0 .8rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--rule);
+  font-weight: 600;
+}
+.prose h3 {
+  font-size: 1.08rem;
+  margin: 2rem 0 .5rem;
+  font-weight: 650;
+  letter-spacing: .005em;
+}
+.prose h4 { font-size: .98rem; margin: 1.5rem 0 .4rem; color: var(--fg-muted); }
+
+.prose p { margin: 0 0 1.05rem; }
+.prose > p:first-of-type em:only-child { color: var(--fg-muted); }
+
+.prose a { color: var(--link); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+.prose a:hover { text-decoration-thickness: 2px; }
+
+.prose ul, .prose ol { margin: 0 0 1.05rem; padding-left: 1.4rem; }
+.prose li { margin: .3rem 0; }
+.prose li > ul, .prose li > ol { margin-bottom: .2rem; }
+
+.prose blockquote {
+  margin: 1.2rem 0;
+  padding: .1rem 0 .1rem 1.1rem;
+  border-left: 3px solid var(--accent);
+  color: var(--fg-muted);
+}
+
+.prose hr { border: 0; border-top: 1px solid var(--rule); margin: 2.4rem 0; }
+
+/* --- code -------------------------------------------------------------- */
+
+.prose code {
+  font-family: var(--mono);
+  font-size: .87em;
+  background: var(--code-bg);
+  padding: .12em .34em;
+  border-radius: 3px;
+}
+.prose pre {
+  background: var(--code-bg);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: .9rem 1rem;
+  overflow-x: auto;
+  margin: 0 0 1.2rem;
+  line-height: 1.5;
+}
+.prose pre code {
+  background: none;
+  padding: 0;
+  font-size: .82rem;
+}
+
+/* --- tables ------------------------------------------------------------ */
+
+/* Wide tables are common in the papers (taxonomies, comparisons). Let them
+ * scroll inside their own box rather than pushing the page sideways. */
+.prose table {
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 1.3rem;
+  font-size: .88rem;
+}
+.prose th, .prose td {
+  border: 1px solid var(--rule);
+  padding: .42rem .7rem;
+  text-align: left;
+  vertical-align: top;
+}
+.prose th { background: var(--bg-sunk); font-weight: 600; }
+.prose tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--bg-sunk) 45%, transparent); }
+
+/* --- cards, used by the landing page and the example gallery ----------- */
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0 2rem;
+  padding: 0;
+  list-style: none;
+}
+.card {
+  background: var(--bg-raised);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+  box-shadow: var(--shadow);
+  margin: 0;
+}
+.card h3 { margin: 0 0 .35rem; font-size: 1rem; }
+.card h3 a { text-decoration: none; }
+.card p { margin: 0 0 .5rem; font-size: .9rem; color: var(--fg-muted); }
+.card .meta {
+  font-family: var(--mono);
+  font-size: .74rem;
+  color: var(--fg-faint);
+  letter-spacing: .01em;
+}
+
+.pill {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: .72rem;
+  padding: .1rem .45rem;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  margin-right: .3rem;
+}
+
+.lede {
+  font-size: 1.1rem;
+  color: var(--fg-muted);
+  margin-bottom: 1.8rem;
+}
+
+/* --- footer ------------------------------------------------------------ */
+
+.site-foot {
+  border-top: 1px solid var(--rule);
+  padding: 1.4rem 1.25rem 3rem;
+  text-align: center;
+}
+.site-foot p { margin: 0; font-size: .82rem; color: var(--fg-faint); }
+.site-foot a { color: var(--fg-muted); }
+
+@media (max-width: 40rem) {
+  .prose { padding: 1.8rem 1rem 3rem; }
+  .site-nav nav { padding: .5rem 1rem; gap: .2rem .8rem; }
+}

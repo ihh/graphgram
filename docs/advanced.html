@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Advanced · graphgram</title>
+<meta name="description" content="graphgram — a graph grammar library for procedural narrative">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<header class="site-nav">
+  <nav>
+      <a href="index.html" class="brand">graphgram</a>
+      <a href="guide.html">Guide</a>
+      <a href="advanced.html" class="active">Advanced</a>
+      <a href="examples.html">Examples</a>
+      <a href="play/index.html">Play</a>
+      <a href="papers/index.html">Papers</a>
+      <a href="spec/story-ir.html">Spec</a>
+      <a href="jsdoc/index.html">API</a>
+      <a href="https://github.com/ihh/graphgram" rel="noopener">GitHub</a>
+  </nav>
+</header>
+<main class="prose">
+<h1 id="advanced">Advanced</h1>
+<p><em>The machinery: what the matcher actually does, which of its hooks you can reach, how to write a primitive that composes with the existing ones, and how to add an export target. Assumes <a href="https://github.com/ihh/graphgram/blob/master/docs/src/guide.html">the Guide</a>.</em></p>
+<h2 id="1-the-one-hard-thing">1. The one hard thing</h2>
+<p>Applying a rewrite rule requires finding every occurrence of its left-hand side
+in the host graph. That is subgraph isomorphism, and it is NP-complete. It is
+also the only computationally interesting thing in this library; everything else
+is bookkeeping.</p>
+<p>Two consequences shape the whole design.</p>
+<p><strong>All matches, not one.</strong> The sampler in §5 of the Guide weights over match
+sites, so a partial enumeration would silently bias the distribution — a rule
+would fire at the first place it matched rather than at a place chosen in
+proportion to weight. <code>SubgraphSearch</code> therefore enumerates every isomorphism,
+every iteration, for every eligible rule.</p>
+<p><strong>From scratch, every time.</strong> The search is re-run after each rewrite, on a
+graph that changed in exactly one place. Nothing is cached across iterations.
+That is a real cost and a real opportunity; see
+<a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/matching-engine.html">the matching engine paper</a> for what an incremental
+scheme would look like.</p>
+<h2 id="2-the-algorithm">2. The algorithm</h2>
+<p><a href="https://github.com/ihh/graphgram/blob/master/subgraph.js"><code>subgraph.js</code></a> is
+Ullmann (1976), about 150 lines. Two data structures matter.</p>
+<p><strong><code>possibleAssignments</code></strong> maps each pattern node to the set of host nodes it
+could still be. It starts small (§3) and shrinks as the search descends.</p>
+<p><strong><code>updatePossibleAssignments</code></strong> is an arc-consistency refinement, iterated to
+a fixpoint. For each pattern node <em>i</em> with candidate <em>j</em>, it requires that every
+neighbour <em>x</em> of <em>i</em> in the pattern has <strong>some</strong> candidate <em>y</em> with a matching
+edge <em>(j,y)</em> or <em>(y,j)</em>. If not, <em>j</em> cannot be <em>i</em>, and is struck out. Striking
+one candidate can invalidate another, hence the loop.</p>
+<pre><code>search(possibleAssignments):
+    refine to fixpoint
+    if any already-assigned pattern edge fails to match in the host: return []
+    if every pattern node is assigned: return [this mapping]
+    i := next unassigned pattern node
+    for each candidate j of i not already used:
+        if labels match:
+            assign i := j, narrow j&#39;s candidate set to {j}
+            recurse
+            unassign; strike j; re-refine
+    return collected results
+</code></pre>
+<p>The refinement is what makes this tractable in practice. It was, for a while,
+silently broken: <code>updatePossibleAssignments</code> called <code>subgraph.predecessors(j)</code>
+with a <em>host</em> id instead of <code>subgraph.predecessors(i)</code> with a <em>pattern</em> id.
+Since pattern ids (<code>a</code>, <code>b</code>, <code>m</code>) essentially never collide with host ids
+(<code>1</code>, <code>2</code>, <code>3</code>), the call returned undefined, the loop body never ran, and
+refinement became a no-op. Correctness was unaffected — the recursive search
+still rejected bad assignments, just much later and much more often — so the
+bug was invisible except as slowness.</p>
+<h2 id="3-the-triage-hooks">3. The triage hooks</h2>
+<p>Five deliberate optimisations, in rough order of how much they buy.</p>
+<h3 id="3-1-label-pre-filtering">3.1 Label pre-filtering</h3>
+<p><code>possibleAssignments</code> is seeded by running the LHS node-label predicate over
+every host node <em>before the search starts</em>:</p>
+<pre><code class="language-js">this.subnodes.forEach(function (sid) {
+  var pa = {}, sLabel = subgraph.node(sid)
+  hostNodes.forEach(function (gid) {
+    if (typeof sLabel === &#39;undefined&#39; || search.nodeLabelMatch(graph.node(gid), sLabel))
+      pa[gid] = true
+  })
+  possibleAssignments[sid] = pa
+})
+</code></pre>
+<p>Before this, every pattern node&#39;s candidate set began as the entire host graph
+and all rejection happened deep in the recursion. This is the single biggest
+lever you have as a rule author, and it is the reason for the practical advice
+in §5: <strong>put a literal <code>type</code> on every LHS node.</strong></p>
+<h3 id="3-2-compiled-predicate-caches">3.2 Compiled predicate caches</h3>
+<p><code>Matcher</code> keeps four <code>Map</code>s keyed by source string: <code>regexCache</code>,
+<code>testFuncCache</code>, <code>evalFuncCache</code>, <code>templatePathCache</code>. A <code>$test</code> predicate or a
+<code>condition</code> expression is compiled once — via <code>new Function</code>, not repeated
+<code>eval</code> — and reused across every candidate, every match, every iteration, and
+across rules that happen to share the same source text.</p>
+<h3 id="3-3-rule-level-triage-before-any-search">3.3 Rule-level triage before any search</h3>
+<p>In <code>Context#sampleRuleSite</code>, the <code>limit</code>/<code>countType</code> check and the <code>delay</code> check
+run <em>before</em> <code>new SubgraphSearch(...)</code>. A rule that has exhausted its limit costs
+nothing at all. This is why a <code>limit</code> on an expensive rule is cheap insurance,
+and why <code>delay</code> is a legitimate performance tool and not just a design one.</p>
+<h3 id="3-4-specialised-cloning">3.4 Specialised cloning</h3>
+<p><code>clonePA</code> hand-rolls the clone of the <code>possibleAssignments</code> table — a plain
+object of <code>{ patternId: { hostId: true } }</code> — instead of <code>_.cloneDeep</code>. The
+table is cloned at every level of the recursion, so a generic deep clone shows
+up prominently in a profile. Similarly, the mapping is <em>shallow</em>-cloned at the
+accept point, which is safe because the objects it references (regex match
+arrays, label objects) are read-only downstream.</p>
+<h3 id="3-5-post-filters-that-do-not-save-search">3.5 Post-filters that do not save search</h3>
+<p><code>strict</code> (a pattern node must have exactly the same degree as its host match)
+and <code>induced</code> (no host edge between matched nodes unless the pattern has it) are
+applied <em>after</em> the search returns. They reject matches, so they save rewrite
+work — but they do not prune the search tree. Do not reach for them expecting a
+speedup.</p>
+<h2 id="4-extending-the-query-language">4. Extending the query language</h2>
+<p><code>Matcher</code> is a swappable component. If you construct a <code>Grammar</code> with your own
+matcher, you control both the LHS query language and the RHS expression
+language, including the JSON schema the grammar is validated against.</p>
+<p>The supported extension point is registering RHS functions:</p>
+<pre><code class="language-js">grammar.registerRhsLabelFunction(&#39;rollDie&#39;, function (sides) {
+  return 1 + Math.floor(rng() * sides)      // use a seeded rng, not Math.random
+}, { description: &#39;A die roll.&#39;, oneOf: [{ type: &#39;number&#39; }] })
+</code></pre>
+<p>which makes <code>{ $rollDie: 6 }</code> legal in any RHS label. The schema fragment is not
+optional decoration: <code>Grammar#makeSchema</code> builds the grammar&#39;s JSON schema from
+the registered function table, and a grammar using an unregistered <code>$func</code> fails
+validation before it ever runs. <code>registerNarrator</code> is exactly this mechanism,
+applied ten times.</p>
+<p>There is also <code>registerRhsLabelExecFunction(name, command, description, quote)</code>,
+which wraps a shell command. <code>bin/transform.js</code> uses it to expose the <code>llm</code> CLI
+as <code>{ $llm: &quot;...&quot; }</code>. It is command-line only, for the obvious reason.</p>
+<h2 id="5-what-costs-what-what-costs-what">5. What costs what {#what-costs-what}</h2>
+<p>Practical rules for anyone writing a new primitive, each following from §2–3.</p>
+<table>
+<thead>
+<tr>
+<th>do</th>
+<th>not</th>
+<th>why</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>put a literal <code>type</code> on every LHS node</td>
+<td>leave LHS nodes unlabelled</td>
+<td>the pre-filter can only shrink candidate sets it can evaluate; an unlabelled node starts as the whole graph</td>
+</tr>
+<tr>
+<td>keep LHS patterns to 2–3 nodes</td>
+<td>write 5-node patterns</td>
+<td>the search is exponential in pattern size</td>
+</tr>
+<tr>
+<td>use <code>$and</code>/<code>$not</code> in the LHS</td>
+<td>use <code>condition</code> for the same test</td>
+<td>LHS labels prune during the search; <code>condition</code> runs once per <em>complete</em> match</td>
+</tr>
+<tr>
+<td>use <code>condition</code> for facts about the <em>graph</em></td>
+<td>try to express them as labels</td>
+<td><code>&#39;$$graph.hasEdge($b.id, $a.id)&#39;</code> is not a label property; this is what <code>condition</code> is for</td>
+</tr>
+<tr>
+<td>use <code>limit</code> to control counts</td>
+<td>tune <code>weight</code> to control counts</td>
+<td>realised rate = weight × match-site count, and the second factor grows</td>
+</tr>
+<tr>
+<td>use <code>$test</code> sparingly</td>
+<td>put <code>$test</code> on a node that also has no <code>type</code></td>
+<td><code>$test</code> is opaque to the pre-filter, so it runs per candidate</td>
+</tr>
+</tbody></table>
+<h2 id="6-writing-a-primitive">6. Writing a primitive</h2>
+<p>A primitive is a function returning a fresh rule object. The conventions in
+<a href="https://github.com/ihh/graphgram/blob/master/dungeon-primitives.js"><code>dungeon-primitives.js</code></a>
+exist for reasons worth knowing before you deviate from them.</p>
+<p><strong>Return fresh objects.</strong> A factory called twice must return two independent
+rules; rules acquire mutable state (<code>countType</code>, <code>displayName</code>, <code>lhsGraph</code>) at
+<code>Grammar</code> construction.</p>
+<p><strong>Thread the standard options.</strong> Copy the <code>withOpts</code> pattern so every primitive
+accepts <code>{ name, weight, limit, type, delay, condition, induced }</code> without
+clobbering fields the factory itself set.</p>
+<p><strong>Generate stable ids.</strong> Every node gets a <code>nodeId</code>; every forward/backtrack
+pair shares an <code>edgeId</code>. Both are derived from <code>$$iter</code>, qualified by a role
+string because <code>$$iter</code> resets at each stage boundary:</p>
+<pre><code class="language-js">function nodeIdExpr (role) { return { $eval: &#39;&quot;&#39; + role + &#39;_&quot; + ($$iter + 1)&#39; } }
+function edgeIdExpr (role) { return { $eval: &#39;&quot;e_&#39; + role + &#39;_&quot; + ($$iter + 1)&#39; } }
+</code></pre>
+<p>The <code>+ 1</code> is not cosmetic. At <code>$$iter === 0</code> the bare counter stringifies to
+<code>&quot;0&quot;</code>, and the <code>${...}</code> template path falls back to <code>&#39;&#39;</code> on a falsy value, which
+produces an empty <code>pairId</code> and a lock nothing can open.</p>
+<p><strong>Guard against re-splitting paired edges.</strong> This idiom appears in
+<code>midpointRoom</code> and <code>keyDoor</code>:</p>
+<pre><code class="language-js">{ $and: [ { type: pathType }, { $not: { edgeId: &#39;(.+)&#39; } } ] }
+</code></pre>
+<p>An edge carrying an <code>edgeId</code> is paired with a backtrack somewhere whose
+<code>prereq.traversed</code> names it. Splitting that edge in two leaves the backtrack
+pointing at an edge that no longer exists — a door that can never be reopened.
+The guard is also, incidentally, what limits how deeply a lock rule can nest
+inside itself; see
+<a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/key-lock-transformations.html">key-lock transformations</a>.</p>
+<p><strong>Preserve labels you do not mean to replace.</strong> Give the LHS edge an id and
+reference it unchanged on the RHS:</p>
+<pre><code class="language-js">lhs: { edge: [{ v: &#39;a&#39;, w: &#39;b&#39;, label: { type: &#39;path&#39; }, id: &#39;e&#39; }] },
+rhs: { edge: [&#39;e&#39;, /* new edges */] }
+</code></pre>
+<p>Without this the RHS silently rewrites the label, dropping any <code>edgeId</code> or
+<code>prereq</code> it carried. <code>parallelPath</code> goes further and <em>inherits</em> both onto its
+new first edge, so that a gated corridor cannot be bypassed by the new parallel
+route.</p>
+<p><strong>Fill every narrative slot you create.</strong> A node with no <code>text</code> renders as a
+blank room. See <a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/narrative-slots.html">the slot taxonomy</a> for the
+inventory a key-lock owes.</p>
+<h2 id="7-writing-an-exporter">7. Writing an exporter</h2>
+<p>An exporter is a pure function from <a href="https://github.com/ihh/graphgram/blob/master/docs/src/spec/story-ir.html">Story IR</a> to text. It
+never touches a graphlib graph, never learns what a <code>prereq.pairId</code> is, and does
+not need updating when a new primitive lands — only <code>buildStoryIR</code> does.</p>
+<pre><code class="language-js">function exportMyFormat (ir, opts) {
+  const errs = validateStoryIR(ir)
+  if (errs.length) throw new Error(&#39;invalid IR:\n&#39; + errs.join(&#39;\n&#39;))
+  // ...
+}
+</code></pre>
+<p>Four things every target has needed so far.</p>
+<p><strong>Compile the condition language.</strong> Five node types (<code>{var,is}</code>, comparisons,
+<code>all</code>, <code>any</code>, <code>not</code>) map onto whatever boolean syntax the target has. Recursion
+over five cases; twenty lines.</p>
+<p><strong>Implement first-versus-repeat.</strong> No target gives you this for free in a form
+you can rely on, so every exporter emits its own <code>seen_&lt;passage&gt;</code> flag, sets it
+on entry, and branches at the top of the passage. This is the mechanism the
+entire text-variation axis rests on.</p>
+<p><strong>Resolve <code>whenBlocked</code>.</strong> <code>&quot;show&quot;</code> means render the affordance with its
+<code>closedText</code> and no way to take it — the player must learn the door exists.
+<code>&quot;hide&quot;</code> means omit it entirely.</p>
+<p><strong>Handle <code>role: &quot;random&quot;</code>.</strong> These passages have no player choice; the engine
+rolls over <code>weight</code>. Every target needs an explicit cumulative-weight chain,
+because none of them has a native weighted pick. Off-by-one here silently skews
+every battle in the story, so test it against a known distribution.</p>
+<p>Register the new format in <code>bin/story.js</code>&#39;s <code>FORMATS</code> list and its <code>switch</code>, and
+add a structural test against <code>test/fixtures/story-ir.sample.json</code> — the golden
+IR instance, which exercises every field in the spec.</p>
+<h2 id="8-determinism">8. Determinism</h2>
+<p>The reproducibility contract in <a href="https://github.com/ihh/graphgram/blob/master/docs/src/spec/examples.html"><code>docs/spec/examples.md</code></a>
+says: for a fixed library version, <code>--example E --seed S</code> is byte-identical
+everywhere, in every format. Four things keep that true, and each is a rule for
+contributors.</p>
+<ol>
+<li><strong>One entropy source.</strong> A seeded Mersenne Twister, threaded through <code>evolve</code>.
+<code>Math.random()</code> anywhere in a grammar, primitive, or exporter breaks the
+contract. Where a rule needs an arbitrary-looking choice, derive it from
+<code>$$iter</code>.</li>
+<li><strong>No wall clock.</strong> <code>meta</code> carries no timestamp, deliberately. A build that
+stamped <code>Date.now()</code> would churn every golden file on every run.</li>
+<li><strong>Defined ordering.</strong> IR passages are in BFS order from the start, ties
+broken by ascending host id; links are grouped by source passage. Exporters
+depend on this.</li>
+<li><strong>Derived, not sampled, identifiers.</strong> The Twine IFID is a hash of
+<code>meta.id + meta.seed</code>, not a fresh UUID, for the same reason.</li>
+</ol>
+<p>The <code>--sonnet</code> path is the one exemption — it calls a model — but it is cached
+on disk by prompt hash, so a warm cache reproduces too.</p>
+<h2 id="next">Next</h2>
+<ul>
+<li><a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/matching-engine.html">Matching engine</a> — the full treatment, with measurements</li>
+<li><a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/key-lock-transformations.html">Key and lock as graph transformation</a> — the catalogue of realisations</li>
+<li><a href="https://github.com/ihh/graphgram/blob/master/docs/src/papers/budgets.html">Budgets</a> — aiming a stochastic generator</li>
+<li><a href="https://github.com/ihh/graphgram/blob/master/docs/src/spec/story-ir.html">Story IR spec</a> — the export contract</li>
+</ul>
+
+</main>
+<footer class="site-foot">
+  <p>graphgram · <a href="https://github.com/ihh/graphgram">github.com/ihh/graphgram</a> · ISC</p>
+</footer>
+</body>
+</html>

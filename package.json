@@ -17,7 +17,9 @@
   },
   "scripts": {
     "test": "node --test test/*.test.js",
-    "bench": "node test/bench.js"
+    "bench": "node test/bench.js",
+    "site": "node bin/build-docs.js && node bin/build-play.js",
+    "examples": "make examples"
   },
   "repository": {
     "type": "git",
@@ -31,5 +33,24 @@
   "homepage": "https://github.com/ihh/graphgram#readme",
   "devDependencies": {
     "marked": "^16.4.1"
-  }
+  },
+  "files": [
+    "index.js",
+    "subgraph.js",
+    "dungeon-primitives.js",
+    "dag-primitives.js",
+    "mystery-primitives.js",
+    "narrator.js",
+    "themes.js",
+    "setpieces.js",
+    "setpiece-primitives.js",
+    "debug-opts.js",
+    "sonnet-runner.js",
+    "story-ir.js",
+    "exporters/",
+    "examples/",
+    "grammars/",
+    "bin/",
+    "README.md"
+  ]
 }

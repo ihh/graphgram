@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Worked examples — the catalogue contract · graphgram</title>
+<meta name="description" content="graphgram — a graph grammar library for procedural narrative">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+<header class="site-nav">
+  <nav>
+      <a href="../index.html" class="brand">graphgram</a>
+      <a href="../guide.html">Guide</a>
+      <a href="../advanced.html">Advanced</a>
+      <a href="../examples.html">Examples</a>
+      <a href="../play/index.html">Play</a>
+      <a href="../papers/index.html">Papers</a>
+      <a href="../spec/story-ir.html">Spec</a>
+      <a href="../jsdoc/index.html">API</a>
+      <a href="https://github.com/ihh/graphgram" rel="noopener">GitHub</a>
+  </nav>
+</header>
+<main class="prose">
+<h1 id="worked-examples-the-catalogue-contract">Worked examples — the catalogue contract</h1>
+<p>Five named examples span the design space the library is meant to cover.
+Each is a grammar module under <code>examples/</code>, each exports the same
+interface, and each is reproducible from the command line at a pinned
+seed.</p>
+<h2 id="the-axes">The axes</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>puzzle-free</th>
+<th>puzzle-inclusive</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>DAG hypertext</strong></td>
+<td><code>dag-plain</code></td>
+<td><code>dag-locked</code></td>
+</tr>
+<tr>
+<td><strong>bidirectional hypertext</strong></td>
+<td><code>maze-plain</code></td>
+<td><code>maze-locked</code></td>
+</tr>
+</tbody></table>
+<p>Plus <code>mystery-daily</code>: the murder-mystery track, bidirectional and
+puzzle-inclusive, whose locks are social rather than physical.</p>
+<h2 id="the-catalogue">The catalogue</h2>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>topology</th>
+<th>puzzles</th>
+<th>what it demonstrates</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>dag-plain</code></td>
+<td>dag</td>
+<td>no</td>
+<td>Pure branching narrative. Fork/join structure, no state, no backtracking. The &quot;hello world&quot; of the export pipeline.</td>
+</tr>
+<tr>
+<td><code>dag-locked</code></td>
+<td>dag</td>
+<td>yes</td>
+<td>Key-lock inside an acyclic graph: the key sits on one arm of a fork, both arms rejoin, and the join&#39;s forward edge is locked. Choosing the keyless arm is a real (and recoverable-by-replay) failure.</td>
+</tr>
+<tr>
+<td><code>maze-plain</code></td>
+<td>bidirectional</td>
+<td>no</td>
+<td>Two-way midpoint rooms, dead ends, parallel paths, cycle-closing returns. Every passage revisitable, so <code>text.repeat</code> earns its keep.</td>
+</tr>
+<tr>
+<td><code>maze-locked</code></td>
+<td>bidirectional</td>
+<td>yes</td>
+<td>The full dungeon: key/door side-branches, nested locks, monster and puzzle minigames, health potions, gated returns.</td>
+</tr>
+<tr>
+<td><code>mystery-daily</code></td>
+<td>bidirectional</td>
+<td>yes</td>
+<td>Suspects, secrets, and social locks. Nested key-lock structure wearing the clothes of a logic puzzle. Seed derives from the date.</td>
+</tr>
+</tbody></table>
+<h2 id="module-interface">Module interface</h2>
+<pre><code class="language-js">// examples/&lt;id&gt;.js
+module.exports = {
+  id: &#39;maze-locked&#39;,
+  title: &#39;The Cindermoor Vault&#39;,
+  topology: &#39;bidirectional&#39;,      // matches meta.topology
+  puzzles: true,
+  defaultSeeds: [42, 1729, 8675309],
+  budget: { rooms: 12, keys: 3, nestingDepth: 2, npcs: 0, minigames: 2 },
+
+  // Build the grammar JSON. `opts` carries { theme, budget, debug }.
+  grammar (opts) { return { name: ..., start: &#39;START&#39;, stages: [ ... ] } }
+}
+</code></pre>
+<p><code>defaultSeeds[0]</code> is the canonical seed: it is the one the docs site
+ships as playable, the one golden-file tests pin, and the one
+<code>make examples</code> builds by default.</p>
+<h2 id="command-line">Command line</h2>
+<pre><code>bin/story.js --example maze-locked --seed 42 --format twine  --out out/maze-locked.42.twee
+bin/story.js --example maze-locked --seed 42 --format choicescript --out out/maze-locked.42/
+bin/story.js --example maze-locked --seed 42 --format inform7 --out out/maze-locked.42.ni
+bin/story.js --example maze-locked --seed 42 --format ir     --out out/maze-locked.42.ir.json
+bin/story.js --example maze-locked --seed 42 --format play   --out docs/play/stories/maze-locked.42.js
+bin/story.js --list
+</code></pre>
+<p><code>--format</code> values: <code>ir</code>, <code>twine</code>, <code>choicescript</code>, <code>inform7</code>, <code>play</code>, <code>dot</code>.
+<code>choicescript</code> writes a <em>directory</em> (a ChoiceScript project needs several
+files); every other format writes a single file. <code>--out -</code> writes to
+stdout for the single-file formats.</p>
+<p>Other flags mirror <code>bin/transform.js</code> where they overlap: <code>--theme</code>,
+<code>--placeholder</code>, <code>--no-llm</code>, <code>--sonnet</code>, <code>--quiet</code>, <code>--verbose</code>.</p>
+<h2 id="reproducibility-contract">Reproducibility contract</h2>
+<p>For a fixed library version:</p>
+<blockquote>
+<p><code>--example E --seed S</code> produces byte-identical output on every machine,
+in every format, for as long as the grammar for <code>E</code> is unchanged.</p>
+</blockquote>
+<p>This holds because the only entropy source is the seeded Mersenne
+Twister, the theme is derived from the seed, <code>meta</code> carries no timestamp,
+and IR ordering is defined (see <a href="story-ir.html"><code>story-ir.md</code></a> §1). The
+<code>--sonnet</code> path is exempt — it calls a model — but it is cached on disk
+by prompt hash, so a warm cache reproduces too.</p>
+
+</main>
+<footer class="site-foot">
+  <p>graphgram · <a href="https://github.com/ihh/graphgram">github.com/ihh/graphgram</a> · ISC</p>
+</footer>
+</body>
+</html>
