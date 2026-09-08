@@ -1,0 +1,410 @@
+{
+  "irVersion": 1,
+  "meta": {
+    "title": "The Cindermoor Vault",
+    "id": "fixture-vault",
+    "seed": 42,
+    "theme": "gothic_horror",
+    "grammar": "test/fixtures/story-ir.sample.json",
+    "generator": "graphgram 0.0.2",
+    "topology": "bidirectional",
+    "puzzles": true,
+    "budget": {
+      "rooms": 3,
+      "keys": 1,
+      "nestingDepth": 1,
+      "npcs": 0,
+      "minigames": 1
+    }
+  },
+
+  "vars": [
+    { "name": "hp", "kind": "number", "ref": null, "init": 100 },
+    { "name": "moves", "kind": "counter", "ref": null, "init": 0 },
+    { "name": "has_pair_1", "kind": "item", "ref": "pair_1", "init": false },
+    { "name": "seen_hall", "kind": "visited", "ref": "hall_1", "init": false },
+    { "name": "seen_key_1", "kind": "visited", "ref": "key_1", "init": false },
+    { "name": "seen_door_1", "kind": "visited", "ref": "door_1", "init": false },
+    { "name": "took_e_hall_key", "kind": "traversed", "ref": "e_hall_key", "init": false },
+    { "name": "took_e_hall_door", "kind": "traversed", "ref": "e_hall_door", "init": false },
+    { "name": "took_e_door_vault", "kind": "traversed", "ref": "e_door_vault", "init": false }
+  ],
+
+  "items": [
+    {
+      "id": "pair_1",
+      "var": "has_pair_1",
+      "name": "the sexton's brass key",
+      "description": {
+        "first": "A stub of brass, warm as a held hand, its ward cut in the shape of a wing.",
+        "repeat": "The sexton's key, still warm.",
+        "brief": "a brass key"
+      },
+      "takeText": {
+        "first": "You prise the key from the dead sexton's fingers. They give more easily than you expected.",
+        "repeat": "You take up the key again."
+      },
+      "carryText": {
+        "first": "The key sits in your coat pocket and will not cool.",
+        "brief": "carrying the brass key"
+      }
+    }
+  ],
+
+  "passages": [
+    {
+      "id": "P_start",
+      "hostId": "1",
+      "nodeId": "start",
+      "type": "start",
+      "role": "start",
+      "title": "The Lych Gate",
+      "text": {
+        "first": "Rain has been falling on Cindermoor since Tuesday. The lych gate hangs open on one hinge, and beyond it the chapel door stands ajar — which is not how you left it.",
+        "repeat": "The lych gate, and the rain.",
+        "brief": "The lych gate."
+      },
+      "status": null,
+      "onEnter": [],
+      "links": ["L_start_hall"],
+      "tags": ["start"]
+    },
+    {
+      "id": "P_hall",
+      "hostId": "3",
+      "nodeId": "hall_1",
+      "type": "room",
+      "role": "normal",
+      "title": "The Nave",
+      "text": {
+        "first": "Pews in rows like teeth. Water comes through the roof in three places and has been coming through for years. A passage runs down to the crypt; another ends at a door you cannot see the far side of.",
+        "repeat": "The nave. The same three leaks, the same three puddles.",
+        "brief": "The nave.",
+        "variants": [
+          "The nave again. The rain has not let up.",
+          "Back among the pews. Something has moved, or you have."
+        ]
+      },
+      "status": null,
+      "onEnter": [
+        { "op": "set", "var": "seen_hall", "value": true },
+        { "op": "add", "var": "moves", "value": 1 }
+      ],
+      "links": ["L_hall_key", "L_hall_door", "L_hall_beast"],
+      "tags": ["room"]
+    },
+    {
+      "id": "P_key",
+      "hostId": "5",
+      "nodeId": "key_1",
+      "type": "key",
+      "role": "item",
+      "title": "The Crypt Stair",
+      "text": {
+        "first": "The sexton is at the bottom of the stair, and has been for some time. His hand is closed around something bright.",
+        "repeat": "The sexton keeps his place at the bottom of the stair.",
+        "brief": "The crypt stair."
+      },
+      "status": "Key (pair_1)",
+      "onEnter": [
+        { "op": "set", "var": "seen_key_1", "value": true },
+        { "op": "acquire", "item": "pair_1" }
+      ],
+      "links": ["L_key_hall"],
+      "tags": ["key", "item"]
+    },
+    {
+      "id": "P_door",
+      "hostId": "7",
+      "nodeId": "door_1",
+      "type": "door",
+      "role": "normal",
+      "title": "The Vestry Door",
+      "text": {
+        "first": "A door of blackened oak, banded in iron, with a keyhole cut in the shape of a wing.",
+        "repeat": "The oak door again.",
+        "brief": "An oak door."
+      },
+      "status": null,
+      "onEnter": [
+        { "op": "set", "var": "seen_door_1", "value": true }
+      ],
+      "links": ["L_door_vault", "L_door_hall"],
+      "tags": ["door"]
+    },
+    {
+      "id": "P_beast",
+      "hostId": "9",
+      "nodeId": "beast_1",
+      "type": "choice",
+      "role": "choice",
+      "title": "The Bell Loft",
+      "text": {
+        "first": "Something is up among the bells that has too many joints in its legs. It has noticed you.",
+        "repeat": "The thing among the bells shifts its weight and waits.",
+        "brief": "The bell loft."
+      },
+      "status": null,
+      "onEnter": [],
+      "links": ["L_beast_strike", "L_beast_flee"],
+      "tags": ["monster"]
+    },
+    {
+      "id": "P_vault",
+      "hostId": "11",
+      "nodeId": "win",
+      "type": "win",
+      "role": "ending",
+      "title": "The Vestry",
+      "text": {
+        "first": "Ledgers, from 1804 to last month, in the same hand throughout. You have what you came for, and rather more than you wanted.",
+        "brief": "The vestry."
+      },
+      "status": null,
+      "onEnter": [],
+      "links": [],
+      "tags": ["ending", "win"]
+    },
+    {
+      "id": "P_roll",
+      "hostId": "13",
+      "nodeId": "beast_roll_1",
+      "type": "random",
+      "role": "random",
+      "title": "The Exchange",
+      "text": {
+        "first": "You swing.",
+        "repeat": "You swing again."
+      },
+      "status": null,
+      "onEnter": [],
+      "links": ["L_roll_hall", "L_roll_death"],
+      "tags": ["random"]
+    },
+    {
+      "id": "P_death",
+      "hostId": "15",
+      "nodeId": "death_1",
+      "type": "death",
+      "role": "death",
+      "title": "Among the Bells",
+      "text": {
+        "first": "It is quicker than a thing that shape has any business being.",
+        "brief": "You died."
+      },
+      "status": null,
+      "onEnter": [],
+      "links": [],
+      "tags": ["ending", "death"]
+    }
+  ],
+
+  "links": [
+    {
+      "id": "L_start_hall",
+      "edgeId": "e_start_hall",
+      "from": "P_start",
+      "to": "P_hall",
+      "type": "path",
+      "kind": "choice",
+      "weight": 1,
+      "linkText": { "first": "Go in through the chapel door" },
+      "text": { "first": "The door gives without a sound, which is worse than a creak." },
+      "closedText": null,
+      "condition": null,
+      "whenBlocked": "show",
+      "onTraverse": []
+    },
+    {
+      "id": "L_hall_key",
+      "edgeId": "e_hall_key",
+      "from": "P_hall",
+      "to": "P_key",
+      "type": "passage",
+      "kind": "choice",
+      "weight": 1,
+      "linkText": {
+        "first": "Take the stair down to the crypt",
+        "repeat": "Go down to the crypt again"
+      },
+      "text": {
+        "first": "The stair turns twice and the air changes.",
+        "repeat": "Down the turning stair once more."
+      },
+      "closedText": null,
+      "condition": null,
+      "whenBlocked": "show",
+      "onTraverse": [
+        { "op": "set", "var": "took_e_hall_key", "value": true },
+        { "op": "add", "var": "moves", "value": 1 }
+      ]
+    },
+    {
+      "id": "L_hall_door",
+      "edgeId": "e_hall_door",
+      "from": "P_hall",
+      "to": "P_door",
+      "type": "passage",
+      "kind": "choice",
+      "weight": 1,
+      "linkText": {
+        "first": "Walk down to the vestry door",
+        "repeat": "Return to the vestry door"
+      },
+      "text": { "first": "Your boots find every loose flag on the way." },
+      "closedText": null,
+      "condition": null,
+      "whenBlocked": "show",
+      "onTraverse": [
+        { "op": "set", "var": "took_e_hall_door", "value": true },
+        { "op": "add", "var": "moves", "value": 1 }
+      ]
+    },
+    {
+      "id": "L_hall_beast",
+      "edgeId": "e_hall_beast",
+      "from": "P_hall",
+      "to": "P_beast",
+      "type": "monster",
+      "kind": "choice",
+      "weight": 1,
+      "linkText": { "first": "Climb to the bell loft" },
+      "text": { "first": "The ladder is wet. Everything here is wet." },
+      "closedText": null,
+      "condition": null,
+      "whenBlocked": "show",
+      "onTraverse": [
+        { "op": "add", "var": "moves", "value": 1 }
+      ]
+    },
+    {
+      "id": "L_key_hall",
+      "edgeId": "e_key_hall",
+      "from": "P_key",
+      "to": "P_hall",
+      "type": "backtrack",
+      "kind": "choice",
+      "weight": 1,
+      "linkText": { "first": "Climb back up to the nave" },
+      "text": { "first": "You go up faster than you came down." },
+      "closedText": { "first": "You have not been down there yet." },
+      "condition": { "all": [ { "var": "took_e_hall_key", "is": true } ] },
+      "whenBlocked": "hide",
+      "onTraverse": [
+        { "op": "add", "var": "moves", "value": 1 }
+      ]
+    },
+    {
+      "id": "L_door_vault",
+      "edgeId": "e_door_vault",
+      "from": "P_door",
+      "to": "P_vault",
+      "type": "path",
+      "kind": "choice",
+      "weight": 1,
+      "linkText": {
+        "first": "Turn the brass key in the wing-shaped lock",
+        "repeat": "Go through the open door"
+      },
+      "text": {
+        "first": "The wards line up. The door swings in on a smell of old paper.",
+        "repeat": "Through the door, which stays open now."
+      },
+      "closedText": {
+        "first": "The door will not move, and the keyhole is a shape you have seen somewhere else in this building."
+      },
+      "condition": { "all": [ { "var": "has_pair_1", "is": true } ] },
+      "whenBlocked": "show",
+      "onTraverse": [
+        { "op": "set", "var": "took_e_door_vault", "value": true },
+        { "op": "add", "var": "moves", "value": 1 }
+      ]
+    },
+    {
+      "id": "L_door_hall",
+      "edgeId": "e_door_hall",
+      "from": "P_door",
+      "to": "P_hall",
+      "type": "backtrack",
+      "kind": "choice",
+      "weight": 1,
+      "linkText": { "first": "Go back up to the nave" },
+      "text": { "first": "You leave the door where it is." },
+      "closedText": null,
+      "condition": { "all": [ { "var": "took_e_hall_door", "is": true } ] },
+      "whenBlocked": "hide",
+      "onTraverse": [
+        { "op": "add", "var": "moves", "value": 1 }
+      ]
+    },
+    {
+      "id": "L_beast_strike",
+      "edgeId": "e_beast_strike",
+      "from": "P_beast",
+      "to": "P_roll",
+      "type": "choice",
+      "kind": "choice",
+      "weight": 1,
+      "linkText": { "first": "Swing the lantern at it" },
+      "text": { "first": "You commit." },
+      "closedText": null,
+      "condition": { "all": [ { "var": "hp", "gt": 0 } ] },
+      "whenBlocked": "hide",
+      "onTraverse": []
+    },
+    {
+      "id": "L_beast_flee",
+      "edgeId": "e_beast_flee",
+      "from": "P_beast",
+      "to": "P_hall",
+      "type": "retreat",
+      "kind": "choice",
+      "weight": 1,
+      "linkText": { "first": "Go back down the ladder, quickly" },
+      "text": { "first": "It does not follow. That is not reassuring." },
+      "closedText": null,
+      "condition": null,
+      "whenBlocked": "show",
+      "onTraverse": [
+        { "op": "add", "var": "moves", "value": 1 }
+      ]
+    },
+    {
+      "id": "L_roll_hall",
+      "edgeId": "e_roll_hall",
+      "from": "P_roll",
+      "to": "P_hall",
+      "type": "consequence",
+      "kind": "random",
+      "weight": 3,
+      "linkText": { "first": "" },
+      "text": { "first": "Glass and burning oil. It goes back into the dark, and you go back down the ladder." },
+      "closedText": null,
+      "condition": null,
+      "whenBlocked": "hide",
+      "onTraverse": [
+        { "op": "add", "var": "hp", "value": -20 }
+      ]
+    },
+    {
+      "id": "L_roll_death",
+      "edgeId": "e_roll_death",
+      "from": "P_roll",
+      "to": "P_death",
+      "type": "consequence",
+      "kind": "random",
+      "weight": 1,
+      "linkText": { "first": "" },
+      "text": { "first": "The lantern goes out before it lands." },
+      "closedText": null,
+      "condition": null,
+      "whenBlocked": "hide",
+      "onTraverse": [
+        { "op": "add", "var": "hp", "value": -100 }
+      ]
+    }
+  ],
+
+  "start": "P_start",
+  "endings": ["P_vault", "P_death"]
+}
