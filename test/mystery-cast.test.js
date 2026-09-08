@@ -176,6 +176,92 @@ test('mystery-cast: renderCast produces something a person can read', () => {
   assert.ok(!/undefined|\[object/.test(text), 'no undefined leaking into the render')
 })
 
+// --- payoffs: nobody is idle ---------------------------------------------
+
+test('mystery-cast: every person has a payoff', () => {
+  // The invariant the payoff pass exists for. A player who walks a two-link
+  // chain to somebody and gets nothing reads that as a bug in the mystery, not
+  // as a red herring.
+  for (let s = 0; s < 120; s++) {
+    const cast = c.buildCast(rngFor(s), { size: 6 })
+    cast.people.forEach(p => {
+      assert.ok(p.payoff, p.id + ' has a payoff at seed ' + s)
+      assert.ok(['broker', 'culprit', 'keeper', 'herring'].indexOf(p.payoff.kind) >= 0)
+    })
+  }
+})
+
+test('mystery-cast: payoff follows holdCount, not chain position', () => {
+  // The distinction the first cut got wrong. Somebody at the end of a long
+  // chain is hard to REACH but may still unlock nothing; somebody whose secret
+  // lies at large is trivially reachable but may unlock two people. Only
+  // holdCount decides.
+  for (let s = 0; s < 100; s++) {
+    const cast = c.buildCast(rngFor(3100 + s), { size: 7 })
+    const holdCount = {}
+    cast.provenance.forEach(e => { if (e.holder) holdCount[e.holder] = (holdCount[e.holder] || 0) + 1 })
+    cast.people.forEach(p => {
+      if (holdCount[p.id]) {
+        assert.strictEqual(p.payoff.kind, 'broker', p.id + ' holds a secret so is a broker')
+        assert.strictEqual(p.payoff.unlocks, holdCount[p.id])
+      } else {
+        assert.notStrictEqual(p.payoff.kind, 'broker', p.id + ' holds nothing so is not a broker')
+      }
+    })
+  }
+})
+
+test('mystery-cast: herrings never exceed their budget', () => {
+  // The contract bug found on the first pass: `herrings` acted as a floor, so
+  // asking for one dead end and one key produced three dead ends. It is a cap.
+  for (let s = 0; s < 60; s++) {
+    for (const herrings of [0, 1, 2]) {
+      const cast = c.buildCast(rngFor(6000 + s), { size: 6, herrings, physicalKeys: 1 })
+      const n = cast.people.filter(p => p.payoff.kind === 'herring').length
+      assert.ok(n <= herrings,
+        n + ' herrings against a budget of ' + herrings + ' at seed ' + s)
+      assert.deepStrictEqual(c.validateCast(cast), [])
+    }
+  }
+})
+
+test('mystery-cast: an under-provisioned map layer is warned, not silently obeyed', () => {
+  // "Nobody is idle" is the hard invariant; `physicalKeys` is only a request.
+  // When the cast has more spare people than the map planned locks for, the
+  // cast wins and the map is told.
+  const cast = c.buildCast(rngFor(7), { size: 6, physicalKeys: 0, herrings: 0 })
+  assert.deepStrictEqual(c.validateCast(cast), [], 'still a valid cast')
+  assert.ok(cast.warnings.length, 'but it says so')
+  assert.match(cast.warnings[0], /physical locks/)
+  assert.strictEqual(cast.people.filter(p => p.payoff.kind === 'herring').length, 0)
+})
+
+test('mystery-cast: physical keys agree with their keepers', () => {
+  // These handles are what the map layer binds to, so a mismatch here becomes
+  // an unopenable door two layers downstream.
+  for (let s = 0; s < 80; s++) {
+    const cast = c.buildCast(rngFor(8000 + s), { size: 6 })
+    const keepers = cast.people.filter(p => p.payoff.kind === 'keeper')
+    assert.strictEqual(cast.physicalKeys.length, keepers.length)
+    assert.strictEqual(new Set(cast.physicalKeys.map(k => k.keyId)).size, cast.physicalKeys.length)
+    cast.physicalKeys.forEach(k => {
+      const holder = cast.people.find(p => p.id === k.holder)
+      assert.ok(holder, 'key ' + k.keyId + ' has a real holder')
+      assert.strictEqual(holder.payoff.kind, 'keeper')
+      assert.strictEqual(holder.payoff.keyId, k.keyId)
+    })
+  }
+})
+
+test('mystery-cast: exactly one culprit, and it is the murderer', () => {
+  for (let s = 0; s < 60; s++) {
+    const cast = c.buildCast(rngFor(5500 + s), { size: 6 })
+    const culprits = cast.people.filter(p => p.payoff.kind === 'culprit')
+    assert.ok(culprits.length <= 1)
+    if (culprits.length) assert.strictEqual(culprits[0].id, cast.murderer)
+  }
+})
+
 // --- characterisation: current tuning, not asserted design -----------------
 
 test('mystery-cast: characterise the current distributions', () => {

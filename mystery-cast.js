@@ -181,8 +181,14 @@ function pickWeighted (rnd, list) {
  * @param {Number}  [opts.atLargeRate=0.34] Probability a person's secret is
  *   free-standing (found in the world) rather than held by another person.
  *   Lower means deeper nesting and a more chained puzzle; higher means more
- *   independent lines of enquiry the player can start in any order.
- * @returns {Object} { people, provenance, roots, murderer, depth }
+ *   independent lines of enquiry the player can start in any order. Note that
+ *   this does NOT control dead weight — see `assignPayoffs`.
+ * @param {Integer} [opts.physicalKeys] How many people should carry a physical
+ *   map key. Defaults to every person the social chain has no use for, which is
+ *   the setting that leaves nobody idle. The map layer binds these.
+ * @param {Integer} [opts.herrings=0] How many people are allowed to unlock
+ *   nothing at all. A budget, so that a dead end is a decision.
+ * @returns {Object} { people, provenance, roots, murderer, depth, physicalKeys }
  */
 function buildCast (rnd, opts) {
   opts = opts || {}
@@ -276,12 +282,105 @@ function buildCast (rnd, opts) {
            (a.index - b.index)
   })[0]
 
+  const { payoff, keys, warnings } = assignPayoffs(rnd, people, provenance, murderer.id, opts)
+  people.forEach(function (p) { p.payoff = payoff[p.id] })
+
   return {
     people: people,
     provenance: provenance,
     roots: provenance.filter(function (e) { return !e.holder }).map(function (e) { return e.subject }),
     murderer: murderer.id,
-    depth: provenanceDepth(provenance)
+    depth: provenanceDepth(provenance),
+    // The handles the map layer binds to. Each is a physical lock somewhere on
+    // the map whose key is carried by a person, so opening it requires a social
+    // move rather than a search.
+    physicalKeys: keys,
+    // Non-fatal: the cast is sound, but the layer above asked for something it
+    // is not going to get. Surfaced rather than silently reconciled.
+    warnings: warnings,
+    herringBudget: opts.herrings == null ? 0 : opts.herrings
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 3b. Payoffs — what breaking a person is FOR
+// ---------------------------------------------------------------------------
+
+// Every person must be worth reaching. The test is not "is their secret hard to
+// get" but "does anyone need them", and those come apart: a person whose secret
+// sits at large is trivially reachable, and a person at the end of a two-link
+// chain is hard to reach — and if breaking either one unlocks nothing, both are
+// dead weight the player will resent having walked to.
+//
+// So payoff is assigned by `holdCount`, not by chain position:
+//
+//   broker   holds somebody else's secret. Breaking them unlocks a person.
+//            This is the social chain, and it needs no help.
+//   culprit  the murderer. Breaking them ends the story; that is payoff enough.
+//   keeper   holds a PHYSICAL key. Breaking them unlocks a door on the map.
+//            This is the whole point of the category: it repurposes people the
+//            social layer has no further use for into the coupling between the
+//            two layers, so they pay their way instead of being decoration.
+//   herring  deliberately unlocks nothing. Legitimate — a mystery with no dead
+//            ends is a corridor — but budgeted, so it is a choice rather than
+//            an accident of sampling.
+//
+// The keeper category is what makes the composition in
+// docs/spec/two-layer-mystery.md bite. Secrets are found in rooms, so the
+// social layer already depends on the map; giving people physical keys makes
+// the map depend on the social layer too. That two-way coupling is exactly what
+// creates the deadlock in §4 of that spec — B's secret is in the locked study,
+// the study key is held by A, and A will not talk until B vouches — which is
+// why the solvability check has to run on the product and not on either layer.
+// We are not avoiding that hazard; we are choosing it, because the alternative
+// is two layers that never touch.
+function assignPayoffs (rnd, people, provenance, murdererId, opts) {
+  const holdCount = {}
+  provenance.forEach(function (e) { if (e.holder) holdCount[e.holder] = (holdCount[e.holder] || 0) + 1 })
+
+  const payoff = {}
+  const spare = []
+  people.forEach(function (p) {
+    if (holdCount[p.id]) payoff[p.id] = { kind: 'broker', unlocks: holdCount[p.id] }
+    else if (p.id === murdererId) payoff[p.id] = { kind: 'culprit' }
+    else spare.push(p)
+  })
+
+  // `herrings` is a CAP on how many people may unlock nothing, not a target.
+  // Everyone spare beyond that cap becomes a keeper — "nobody is idle" is the
+  // hard invariant here and `physicalKeys` is only a request from the map
+  // layer, so when the cast has more spare people than the map planned locks
+  // for, the cast wins and the map is told it needs more locks. Silently
+  // turning the excess into herrings would satisfy the request by breaking the
+  // invariant the request exists to serve.
+  //
+  // Shuffle before slicing so which spare person ends up a herring is a
+  // function of the seed rather than of cast order.
+  const herringCap = Math.min(opts.herrings == null ? 0 : opts.herrings, spare.length)
+  const requested = opts.physicalKeys == null ? spare.length - herringCap : opts.physicalKeys
+  const keeperCount = Math.max(0, Math.min(spare.length, Math.max(requested, spare.length - herringCap)))
+
+  const shuffled = hallmarks.shuffle(rnd, spare)
+  const keepers = shuffled.slice(0, keeperCount)
+  const herrings = shuffled.slice(keeperCount)
+
+  keepers.forEach(function (p, i) {
+    payoff[p.id] = { kind: 'keeper', keyId: 'phys_' + (i + 1) }
+  })
+  herrings.forEach(function (p) { payoff[p.id] = { kind: 'herring' } })
+
+  const warnings = []
+  if (opts.physicalKeys != null && keeperCount > opts.physicalKeys) {
+    warnings.push('cast needs ' + keeperCount + ' physical locks but the map layer asked for ' +
+                  opts.physicalKeys + '; raise the map budget or the herring budget')
+  }
+
+  return {
+    payoff: payoff,
+    warnings: warnings,
+    keys: keepers.map(function (p, i) {
+      return { keyId: 'phys_' + (i + 1), holder: p.id }
+    })
   }
 }
 
@@ -360,6 +459,39 @@ function validateCast (cast) {
   // At least one starting point, or the player has nothing to pull on.
   if (!cast.roots.length) errs.push('provenance: no secret is at large; nothing can be learned first')
 
+  // Everyone is worth reaching. An unbudgeted person who unlocks nothing is the
+  // failure this check exists for: the player walks a chain to them and gets
+  // nothing, which reads as a bug in the mystery rather than as a red herring.
+  const KINDS = ['broker', 'culprit', 'keeper', 'herring']
+  cast.people.forEach(function (p) {
+    if (!p.payoff || KINDS.indexOf(p.payoff.kind) < 0)
+      errs.push('payoff: ' + p.id + ' has no valid payoff')
+  })
+  const herringCount = cast.people.filter(function (p) { return p.payoff && p.payoff.kind === 'herring' }).length
+  if (herringCount > (cast.herringBudget || 0))
+    errs.push('payoff: ' + herringCount + ' people unlock nothing but the herring budget is ' +
+              (cast.herringBudget || 0))
+
+  const culprits = cast.people.filter(function (p) { return p.payoff && p.payoff.kind === 'culprit' })
+  if (culprits.length > 1) errs.push('payoff: more than one culprit')
+  if (culprits.length === 1 && culprits[0].id !== cast.murderer)
+    errs.push('payoff: the culprit is not the murderer')
+
+  // Physical keys must agree with the payoffs that produced them.
+  const keepers = cast.people.filter(function (p) { return p.payoff && p.payoff.kind === 'keeper' })
+  if ((cast.physicalKeys || []).length !== keepers.length)
+    errs.push('payoff: ' + keepers.length + ' keepers but ' +
+              (cast.physicalKeys || []).length + ' physical keys')
+  ;(cast.physicalKeys || []).forEach(function (k) {
+    if (!idSet.has(k.holder)) errs.push('payoff: key ' + k.keyId + ' held by unknown ' + k.holder)
+    const holder = cast.people.filter(function (p) { return p.id === k.holder })[0]
+    if (holder && holder.payoff.keyId !== k.keyId)
+      errs.push('payoff: key ' + k.keyId + ' and its holder disagree')
+  })
+  if (new Set((cast.physicalKeys || []).map(function (k) { return k.keyId })).size !==
+      (cast.physicalKeys || []).length)
+    errs.push('payoff: duplicate physical key id')
+
   // Relations must remain plausible for the pair they were assigned to. This is
   // the check that catches a future edit loosening a gate by accident.
   const byId = {}
@@ -397,6 +529,13 @@ function renderCast (cast) {
     out.push('      visibly ' + B[p.bearing].adj +
              '; hiding ' + T[p.transgression].secret +
              '; afraid of ' + R[p.register].noun + '.')
+    const pay = p.payoff || {}
+    out.push('      ' + {
+      broker:  'BROKER  — breaking them unlocks ' + pay.unlocks + ' other' + (pay.unlocks === 1 ? '' : 's') + '.',
+      culprit: 'CULPRIT — breaking them ends it.',
+      keeper:  'KEEPER  — carries a physical key (' + pay.keyId + ') to somewhere on the map.',
+      herring: 'HERRING — unlocks nothing. Budgeted.'
+    }[pay.kind])
     const e = provOf[p.id]
     if (!e.holder) {
       out.push('      Their secret is at large — findable without asking anyone.')
@@ -422,6 +561,10 @@ function renderCast (cast) {
   out.push('')
   out.push('start with: ' + cast.roots.map(function (id) { return byId[id].noun }).join(', '))
   out.push('deepest chain: ' + cast.depth)
+  if ((cast.physicalKeys || []).length)
+    out.push('physical keys: ' + cast.physicalKeys.map(function (k) {
+      return k.keyId + ' (' + byId[k.holder].noun + ')'
+    }).join(', '))
   return out.join('\n')
 }
 
@@ -430,6 +573,7 @@ module.exports = {
   SURNAMES,
   RELATIONS,
   buildCast,
+  assignPayoffs,
   validateCast,
   chainDepth,
   provenanceDepth,
