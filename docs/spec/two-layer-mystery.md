@@ -186,6 +186,68 @@ at that point in the order. That does not make the §4 check redundant — physi
 locks can still interpose — but it turns the check from a filter into a
 formality.
 
+### 5.1 Where the steps live
+
+| step | module | state |
+|---|---|---|
+| 1. approval layer | `mystery-cast.js` — `buildCast`, and `provenance` is `G_n` | built |
+| 2. geographic layer | `dungeon-primitives.js` via the `scenes` stage | built |
+| 3. embedding | `mystery-embed.js` — `embedCast` | built |
+| 4. verification | `mystery-embed.js` — `verifyEmbedding` | built |
+| 5. narration | `narrator.js`, `MYSTERY_MACROS` | built |
+
+`embedCast` maximises separation **maximin**: the smallest walk between a secret
+and the person it opens is pushed up first, and the mean only breaks ties. The
+alternative — maximising the mean — is worse for a reason worth keeping written
+down, because it looks reasonable. A layout scoring `{1, 1, 6, 6}` beats one
+scoring `{3, 3, 3, 3}` on the mean and is a worse puzzle: the two 1s are two
+locks that have collapsed back into corridors, and a distant lock elsewhere does
+not pay for them.
+
+Root secrets are additionally constrained to distinct rooms. Separation is blind
+to two secrets sharing a room — it only ever measures secret-to-person — so the
+search will stack every at-large secret in one place and score it as excellent.
+It is: a player who opens one drawer and finds the entire opening move has not
+crossed anything.
+
+> **What the pipeline does not yet do.** `examples/mystery-daily.js` still builds
+> its people with `mystery-primitives.socialLock`, which splices a suspect into a
+> corridor and so does steps 1–3 at once, in one graph. That is the architecture
+> §1 argues against, and it is measurable: over twelve days every one of 48 locks
+> put its key exactly 2 hops from its lock, with zero variance — §8's collapsed
+> corridor as the generator's only output. Routing the daily example through
+> steps 1–4 changes every seed, so it is a deliberate break rather than a fix to
+> slip in.
+
+### 5.2 The ceiling is the map, not the embedding
+
+With the embedding in place, separation stops being the binding constraint and
+the house does. Over 60 seeds at the canonical eight-room budget with a cast of
+five, mean separation is **3.15** against a mean **diameter of 3.70** — the
+embedding is already spending some 85% of the distance the map has to give, and
+the distribution has a real tail where the map allows one:
+
+| hops | 2 | 3 | 4 | 5 | 6 | 7 |
+|---|---|---|---|---|---|---|
+| locks | 79 | 132 | 64 | 18 | 5 | 2 |
+
+Against `socialLock`'s 48 out of 48 locks at exactly 2 hops, that is the whole
+point of the exercise: the number now varies, and it varies because the map
+varies.
+
+Diameter answers almost entirely to the room budget, and pays sub-linearly —
+mean diameter 2.9 / 3.6 / 4.4 / 5.1 / 5.7 at 6 / 8 / 12 / 16 / 20 rooms. Re-
+weighting the `scenes` stage does essentially nothing: shifting `midpointRoom`
+against `parallelPath` from 2/2/1 to 6/1/1 moves the mean diameter at eight rooms
+from 3.6 to 3.6. Both primitives act on a single edge, so the house grows bushy
+rather than long whatever the weights.
+
+So "make the player cross the house" is bounded by a house that is three rooms
+across. Getting past that needs either a much larger room budget — expensive, and
+sub-linear — or a geographic primitive that grows a *corridor*, a chain of rooms,
+rather than subdividing one edge at a time. That is a map-layer job, and it is
+the next thing that would move this number.
+
 ## 6. Provenance: why *this* person knows *that* person's secret
 
 `σ` says where each secret is found. When `σ(n)` is another NPC, there is a

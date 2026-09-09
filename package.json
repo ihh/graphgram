@@ -40,6 +40,8 @@
     "dungeon-primitives.js",
     "dag-primitives.js",
     "mystery-primitives.js",
+    "mystery-cast.js",
+    "mystery-embed.js",
     "narrator.js",
     "themes.js",
     "setpieces.js",
